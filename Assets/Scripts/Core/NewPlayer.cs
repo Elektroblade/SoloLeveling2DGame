@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 
 public class NewPlayer : PhysicsObject
 {
+    enum NextAction {Idle, Dodge, Attack, Jump};
     [Header ("Reference")]
     public AudioSource audioSource;
     [SerializeField] private Animator animator;
@@ -50,7 +51,7 @@ public class NewPlayer : PhysicsObject
     [SerializeField] private float launchRecovery; //How slow should recovering from the launch be? (Higher the number, the longer the launch will last)
     public float baseSpeed = 4f; // Max move speed at 0 agility
     public float maxSpeed = 4f; //Max move speed
-    public float jumpPower = 17f;
+    [System.NonSerialized] private float baseJumpPower = 17f;
     private bool jumping;
     public float dodgePower = 17f;
     public float dodgeVelocity = 17f;
@@ -63,6 +64,10 @@ public class NewPlayer : PhysicsObject
     [System.NonSerialized] public bool shooting = false;
     [System.NonSerialized] public bool isLightningImbued = false;
     [SerializeField] bool facingRight;
+    private int ferocityTotal = 0;
+    private int ferocityCounter = 0;
+    private int comboIndex = 0;
+    NextAction nextAction = NextAction.Idle;
 
     [Header ("Attributes")]
     // strength, stamina, agility, intellect, perception
@@ -77,11 +82,11 @@ public class NewPlayer : PhysicsObject
 
     [Header ("Stats")]
     // These are stats intrinsic to the player. The actual values after considering items etc. may be different.
-    // health pool, defence, mana pool, movement speed, attack rate, physical power, magical power, ferocity, intrinsic crit rate, crit damage
-    public double[] intrinsicStats = new double[10];
+    // health pool, defence, mana pool, movement speed, attack rate, physical power, magical power, ferocity, intrinsic crit rate, crit damage, jump power
+    public double[] intrinsicStats = new double[11];
     // Crit rate can be modified by items but those modifications do not require recalculation of the above
 
-    public double[] externalStats = new double[10];
+    public double[] externalStats = new double[11];
 
     [Header ("Inventory")]
     public int coins;
@@ -123,6 +128,7 @@ public class NewPlayer : PhysicsObject
 
         // Debug; Remember to remove this
         movementSpeedCap = 300;
+        attackRateCap = 100;
 
         recalculateIntrinsicStats();
         recalculateExternalStats();
@@ -137,20 +143,21 @@ public class NewPlayer : PhysicsObject
 
     public void recalculateIntrinsicStats()
     {
-        // health pool, defence, mana pool, movement speed, attack rate, physical power, magical power, ferocity, intrinsic crit rate, crit damage
+        // health pool, defence, mana pool, movement speed, attack rate, physical power, magical power, ferocity, intrinsic crit rate, crit damage, jump power
         //critRatePerceptionPointsCap = -(System.Math.Log(1-(critRateIntrinsicCap)/100))/1.01;
         critRatePerceptionPointsCap = (attributes[4] - 10) / 2;
         //Debug.Log("critRatePerceptionPointsCap = " + critRatePerceptionPointsCap);
 
-        intrinsicStats[0] = 100*System.Math.Pow(2,(attributes[0] - 10)/100.0);
-        intrinsicStats[1] = 0;
-        intrinsicStats[2] = 80 + 2*attributes[1];
+        intrinsicStats[0] = 100*System.Math.Pow(2,(attributes[0] - 10)/100.0);      // Health pool
+        intrinsicStats[1] = 0;                                                      // Defence
+        intrinsicStats[2] = 80 + 2*attributes[1];                                   // Mana pool
         double movementSpeed = 90 + attributes[2];
         double attackRate = 90 + attributes[2];
         intrinsicStats[5] = 10*System.Math.Pow(2,(attributes[0] - 10)/100.0);
         intrinsicStats[6] = 10*System.Math.Pow(2,(attributes[3] - 10)/100.0);
         intrinsicStats[7] = 0;
         intrinsicStats[9] = 0;
+        intrinsicStats[10] = baseJumpPower * (1 + (attributes[1] / 2000f));
         
         if (movementSpeed > movementSpeedCap)
         {
@@ -181,7 +188,7 @@ public class NewPlayer : PhysicsObject
 
     public void recalculateExternalStats()
     {
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 11; i++)
         {
             externalStats[i] = intrinsicStats[i];
         }
@@ -292,6 +299,7 @@ public class NewPlayer : PhysicsObject
             if (Input.GetButtonUp("Jump") && animator.GetBool("grounded") == false && jumping && velocity.y > 0.01)
             {
                 velocity.y = 0;
+                jumping = false;
             }
 
             if (Input.GetButton("Dodge") && canDodge)
@@ -316,6 +324,8 @@ public class NewPlayer : PhysicsObject
             //Punch
             if (Input.GetButtonDown("Fire1"))
             {
+                nextAction = NextAction.Attack;
+                animator.SetBool("attackBool", true);
                 animator.SetTrigger("attack");
                 Shoot(false);
             }
@@ -512,11 +522,45 @@ public class NewPlayer : PhysicsObject
         }
     }
 
+    public void DetermineFerocity()
+    {
+        double tempModifier = 1.0;
+        double ferocRoll = GameManager.Instance.GetRandomDouble(0.0, 1.0);
+        // Find the modulus of ferocity
+        double ferocityMod;
+        for (ferocityMod = externalStats[7]*tempModifier + 100; ferocityMod >= 100; ferocityMod-=100) {}
+        if (ferocRoll < ferocityMod/100)
+        {
+            ferocityTotal = (int) (tempModifier*externalStats[7] + 100)/100 + 1;
+        }
+        else
+        {
+            ferocityTotal = (int) (tempModifier*externalStats[7] + 100)/100 + 0;
+        }
+        ferocityCounter = ferocityTotal;
+        Debug.Log("Determining Ferocity for index " + comboIndex + ": ferocityTotal = " + ferocityTotal);
+        animator.SetFloat("animAttackRate", (float)(externalStats[4]/100f));
+        animator.SetFloat("animFerocRate", (float)((externalStats[4]/100f)*ferocityTotal));
+        animator.SetInteger("ferocityCounter", ferocityTotal);
+    }
+
+    public void decrementFerocityCounter()
+    {
+        if (ferocityCounter > 0)
+        {
+            ferocityCounter--;
+            animator.SetInteger("ferocityCounter", ferocityCounter);
+            Debug.Log("Remaining Ferocity for index " + comboIndex + ": ferocityCounter = " + ferocityCounter + ", anim: " + animator.GetInteger("ferocityCounter"));
+        }
+        //Debug.Log("Decremented ferocity to " + ferocityCounter + " from " + ferocityTotal);
+    }
+
     public void Jump(float jumpMultiplier)
     {
-        if (velocity.y != jumpPower)
+        if (velocity.y != externalStats[10])
         {
-            velocity.y = jumpPower * jumpMultiplier; //The jumpMultiplier allows us to use the Jump function to also launch the player from bounce platforms
+            velocity.y = (float) externalStats[10] * jumpMultiplier; //The jumpMultiplier allows us to use the Jump function to also launch the player from bounce platforms
+            Debug.Log("velocity.y = " + velocity.y);
             PlayJumpSound();
             PlayStepSound();
             JumpEffect();
@@ -589,8 +633,11 @@ public class NewPlayer : PhysicsObject
     {
         if (jumping)
         {
+            Debug.Log(this.name + ", emitting jump particles");
             jumpParticles.Emit(1);
+            Debug.Log(this.name + ", setting audio pitch");
             audioSource.pitch = (Random.Range(0.6f, 1f));
+            Debug.Log(this.name + ", playing land sound");
             audioSource.PlayOneShot(landSound);
             jumping = false;
         }
@@ -625,7 +672,7 @@ public class NewPlayer : PhysicsObject
         if (pounding)
         {
             animator.ResetTrigger("attack");
-            velocity.y = jumpPower / 1.4f;
+            velocity.y = (float) externalStats[10] / 1.4f;
             animator.SetBool("pounded", true);
             GameManager.Instance.audioSource.PlayOneShot(poundSound);
             cameraEffects.Shake(200, 1f);
@@ -680,20 +727,16 @@ public class NewPlayer : PhysicsObject
     {
         double[] damage;
 
-        double ferocRoll = GameManager.Instance.GetRandomDouble(0.0, 1.0);
-        // Find the modulus of ferocity
-        double ferocityMod;
-        for (ferocityMod = externalStats[7]*modifiers[7] + 100; ferocityMod >= 100; ferocityMod-=100) {}
-        if (ferocRoll < ferocityMod/100)
-        {
-            damage = new double[(int) (modifiers[7]*externalStats[7] + 100)/100 + 2];
-        }
-        else
-        {
-            damage = new double[(int) (modifiers[7]*externalStats[7] + 100)/100 + 1];
-        }
+        damage = new double[ferocityTotal + 1];
 
-        double singleHitDamage = modifiers[5]*externalStats[5] + modifiers[6]*externalStats[6];
+        double physicalDamage;
+        // Combo-specific multipliers
+        if (comboIndex == 3)
+            physicalDamage = modifiers[5]*externalStats[5] * 2;
+        else
+            physicalDamage = modifiers[5]*externalStats[5];
+
+        double singleHitDamage = physicalDamage + modifiers[6]*externalStats[6];
 
         //Debug.Log("singleHitDamage = " + singleHitDamage + ", mod[6] = " + modifiers[6]);
 
@@ -775,6 +818,27 @@ public class NewPlayer : PhysicsObject
             myReanimated[lowestLevel[0]].Delete();
             myReanimated[lowestLevel[0]] = newReanimated;
             newReanimated.reanimatedSlotIndex = lowestLevel[0];
+        }
+    }
+
+    public void SetComboIndex(int index)
+    {
+        comboIndex = index;
+    }
+
+    public void PrepareIdle()
+    {
+        nextAction = NextAction.Idle;
+        animator.SetBool("attackBool", false);
+    }
+
+    public void PrepareNextAction()
+    {
+        if (nextAction == NextAction.Attack && animator.GetInteger(ferocityCounter) == 0)
+        {
+            animator.SetBool("attackBool", true);
+
+            Debug.Log("attack = " + animator.GetBool("attack") + ", ferocityCounter = " + animator.GetInteger(ferocityCounter));
         }
     }
 }

@@ -184,6 +184,7 @@ public class GorefieldFlyer : MonoBehaviour
                     previousFrameState = 0;
                     // For testing purposes
                     //transform.position = new Vector3(target.position.x + targetOffset.x, target.position.y + targetOffset.y, 0);
+                    enemyBase.determineFerocity();
                     enemyBase.animator.SetTrigger("bite");
                 }
             }

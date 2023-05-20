@@ -14,6 +14,7 @@ public class GorefieldTall : PhysicsObject
     [SerializeField] enum EnemyBehaviourType { Bug, Zombie }; //Bugs will simply patrol. Zombie's will immediately start chasing you forever until you defeat them.
     [SerializeField] EnemyBehaviourType enemyType;
    
+    [System.NonSerialized] private float origAttentionRange;
     public float attentionRange;
     public float changeDirectionEase = 1; //How slowly should we change directions? A higher number is slower!
     [System.NonSerialized] public float direction = 1;
@@ -27,6 +28,7 @@ public class GorefieldTall : PhysicsObject
     public float jumpPower = 7;
     [System.NonSerialized] public bool jump = false;
     [System.NonSerialized] public float launch = 1; //The float added to x and y moveSpeed. This is set with hurtLaunchPower, and is always brought back to zero
+    [System.NonSerialized] private float origMaxSpeed;
     public float maxSpeed = 7;
     [SerializeField] private float maxSpeedDeviation; //How much should we randomly deviate from maxSpeed? Ensures enemies don't move at exact same speed, thus syncing up.
     [SerializeField] private bool neverStopFollowing = false; //Once the player is seen by an enemy, it will forever follow the player.
@@ -48,7 +50,7 @@ public class GorefieldTall : PhysicsObject
 
     [Header("Combat")]
     private Vector2 currentAttackTarget = new Vector2(0, 0);
-    [System.NonSerialized] public float[] origAttackCooldown = {1.7f};
+    [System.NonSerialized] public float[] origAttackCooldown = {0.6f};
     [System.NonSerialized] public float[] attackCooldown = {3f};
     [System.NonSerialized] public bool isAttacking = false;
     private int previousFrameState = 0;
@@ -60,6 +62,8 @@ public class GorefieldTall : PhysicsObject
         rigidbody2D = GetComponent<Rigidbody2D>();  // Verrry important!
         origScale = transform.localScale;
         rayCastSizeOrig = rayCastSize;
+        origAttentionRange = attentionRange;
+        origMaxSpeed = maxSpeed;
         maxSpeed -= Random.Range(0, maxSpeedDeviation);
         launch = 0;
         if (enemyType == EnemyBehaviourType.Zombie)
@@ -88,6 +92,12 @@ public class GorefieldTall : PhysicsObject
         {
             attackCooldown[0] = 0;
         }
+        // While charging, increase attention range and movement speed
+        if (!enemyBase.animator.GetBool("charge"))
+        {
+            attentionRange = origAttentionRange;
+            maxSpeed = origMaxSpeed;
+        }
 
         if (enemyBase.reanimated && targetEnemy == null)
         {
@@ -96,6 +106,7 @@ public class GorefieldTall : PhysicsObject
         if (!enemyBase.reanimated || targetEnemy != null)
         {
             Transform target;
+            // Attack player or targeted enemy, depending on whether I am alive
             if (enemyBase.reanimated)
             {
                 target = targetEnemy.transform;
@@ -115,6 +126,7 @@ public class GorefieldTall : PhysicsObject
                 DoAttack1(target);
             }
         }
+        // If reanimated and there is no target, follow player around instead
         else
         {
             DoIdle(NewPlayer.Instance.transform);
@@ -188,6 +200,51 @@ public class GorefieldTall : PhysicsObject
                         {
                             attentionRange = 10000000000;
                         }
+                        else if (enemyBase.animator.GetBool("charge"))
+                        {
+                            attentionRange = origAttentionRange * 2.5f;
+                            maxSpeed = origMaxSpeed * 2.5f;
+                        }
+
+                        Debug.Log("health = " + enemyBase.health + ", maxHealth = " + enemyBase.intrinsicStats[0]);
+                        if (enemyBase.health*2 < enemyBase.intrinsicStats[0])
+                        {
+                            Debug.Log("Down to half");
+                            enemyBase.animator.SetBool("charge", true);
+                        }
+                    }
+                    else
+                    {
+                        if (sitStillWhenNotFollowing)
+                        {
+                            sitStillMultiplier = 0;
+                        }
+                        else
+                        {
+                            sitStillMultiplier = 1;
+                        }
+                    }
+                }
+                else
+                {
+                    if ((Mathf.Abs(distanceFromTarget.x) < attentionRange) && (Mathf.Abs(distanceFromTarget.y) < attentionRange))
+                    {
+                        if (neverStopFollowing)
+                        {
+                            attentionRange = 10000000000;
+                        }
+                        else if (enemyBase.animator.GetBool("charge"))
+                        {
+                            attentionRange = origAttentionRange * 2.5f;
+                            maxSpeed = origMaxSpeed * 2.5f;
+                            followPlayer = true;
+                            sitStillMultiplier = 1;
+                        }
+
+                        if (enemyBase.health*2 < enemyBase.intrinsicStats[0])
+                        {
+                            enemyBase.animator.SetBool("charge", true);
+                        }
                     }
                     else
                     {
@@ -219,9 +276,11 @@ public class GorefieldTall : PhysicsObject
                     rayCastSize.y = rayCastSizeOrig.y;
                 }
 
+                // Avoid flipping graphic or attacking mid-attack
                 if (attackCooldown[0] == 0f)
                 {
                     previousFrameState = 0;
+                    // Flip graphic based on target location
                     if (distanceFromTarget.x > 0.02f)
                     {
                         if (graphic.transform.localScale.x == 1)
@@ -236,7 +295,16 @@ public class GorefieldTall : PhysicsObject
                             graphic.transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
                         }
                     }
-                    enemyBase.animator.SetTrigger("slash");
+
+                    // Try to attack
+                    if (attackCooldown[0] == 0f && Mathf.Abs(distanceFromTarget.x) - 5f < 0 && Mathf.Abs(distanceFromTarget.x) + 5f > 0
+                    && Mathf.Abs(distanceFromTarget.y) - 5f < 0 && Mathf.Abs(distanceFromTarget.y) + 5f > 0
+                    && (!enemyBase.reanimated || target != NewPlayer.Instance.transform))
+                    {
+                        //Debug.Log("Start attac");
+                        enemyBase.determineFerocity();
+                        enemyBase.animator.SetTrigger("slash");
+                    }
                 }
 
                 //Check for walls
@@ -295,6 +363,7 @@ public class GorefieldTall : PhysicsObject
 
     void DoAttack1(Transform target)
     {
+        //Debug.Log("Attac");
         distanceFromTarget.x = currentAttackTarget.x - transform.position.x;
         distanceFromTarget.y = currentAttackTarget.y - transform.position.y;
         targetVelocity = Vector2.zero;

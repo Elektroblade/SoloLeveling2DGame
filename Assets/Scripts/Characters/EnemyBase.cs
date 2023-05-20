@@ -21,15 +21,17 @@ public class EnemyBase : MonoBehaviour
     [System.NonSerialized] public RecoveryCounter recoveryCounter;
     [SerializeField] private int level;
     private int xp;
-    double[] intrinsicStats = new double[10];
+    public double[] intrinsicStats = new double[11];
     [SerializeField] public bool reanimated;
     [SerializeField] public GameObject myGameObject;
     public int reanimatedSlotIndex;
     [SerializeField] private GameObject ariseContainer;
+    private int ferocityTotal = 0;
+    private int ferocityCounter = 0;
 
     [Header ("Properties")]
     [SerializeField] private GameObject deathParticles;
-    private double health;
+    public double health;
     [SerializeField] public GameObject healthBarUI;
     [SerializeField] public Slider healthBarSlider;
     [SerializeField] public Slider xpBarSlider;
@@ -331,7 +333,7 @@ public class EnemyBase : MonoBehaviour
         //Debug.Log("Enemy calc damag at level " + level);
 
         int[] modifiers = {0, 0, 0, 0, 1, 1, 0, 1, 1, 1};
-        double[] damage = new double[(int) (modifiers[7]*intrinsicStats[7]+100)/100 + 2];
+        double[] damage = new double[ferocityTotal + 1];
 
         //Debug.Log("damage.Length = " + damage.Length + "");
 
@@ -343,7 +345,7 @@ public class EnemyBase : MonoBehaviour
 
         //Debug.Log("enemy singleHitDamage = " + singleHitDamage);
 
-        for (i = (modifiers[7]*intrinsicStats[7]+100)/100 + 1; i >= 1.0; i--)
+        for (i = (double) ferocityTotal; i >= 1.0; i--)
         {
             //Debug.Log("Index = " + (((int) -i) + damage.Length) + ", i = " + i);
             damage[((int) -i) + damage.Length - 1] = singleHitDamage;
@@ -401,5 +403,17 @@ public class EnemyBase : MonoBehaviour
                 recalculateIntrinsicStats();
             }
         }
+    }
+
+    public void determineFerocity()
+    {
+        ferocityTotal = (int) (intrinsicStats[7] + 100) / 100;
+        ferocityCounter = ferocityTotal;
+    }
+
+    public void decrementFerocityCounter()
+    {
+        if (ferocityCounter > 0)
+            ferocityCounter--;
     }
 }
