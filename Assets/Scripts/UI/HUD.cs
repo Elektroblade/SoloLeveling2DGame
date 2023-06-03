@@ -17,6 +17,7 @@ public class HUD : MonoBehaviour
     public TextMeshProUGUI maxHealthAndManaMesh;
     public TextMeshProUGUI maxExpMesh;
     public TextMeshProUGUI externalStatsMesh;
+    public TextMeshProUGUI parryTimerMesh;
     [SerializeField] private GameObject healthBar;
     [SerializeField] private GameObject manaBar;
     [SerializeField] private GameObject xpBar;
@@ -89,12 +90,29 @@ public class HUD : MonoBehaviour
                 externalStatsMesh.text += "cr = ";
             else if (i == 9)
                 externalStatsMesh.text += "cd = ";
+            else if (i == 10)
+                externalStatsMesh.text += "jp = ";
 
             externalStatsMesh.text += "" + ((int)(10*player.externalStats[i]))/10f;
             if (i == 3 || i == 4 || i == 8)
                 externalStatsMesh.text += "%";
             else if (i == 5 || i == 6)
                 externalStatsMesh.text += "dmg";
+        }
+
+        parryTimerMesh.text = "tl = " + ((int)(10*player.parryTimer[0]))/10f;
+        for (int i = 1; i < player.parryTimer.Length; i++)
+        {
+            parryTimerMesh.text += "\n";
+
+            if (i == 1)
+                parryTimerMesh.text += "tr = ";
+            else if (i == 2)
+                parryTimerMesh.text += "bl = ";
+            else if (i == 3)
+                parryTimerMesh.text += "br = ";
+
+            parryTimerMesh.text += "" + ((int)(10*player.parryTimer[i]))/10f;
         }
 
         attributePointsMesh.text = Mathf.Round(attributePointsEased).ToString();

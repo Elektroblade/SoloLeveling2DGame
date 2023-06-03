@@ -37,7 +37,7 @@ public class LightningFist : MonoBehaviour
         }
         else if (existenceTimer < 0)
         {
-            GetComponent<Collider2D>().enabled = false;
+            collider.enabled = false;
             existenceTimer = 0;
         }
     }
@@ -58,7 +58,7 @@ public class LightningFist : MonoBehaviour
         Color tmp = spriteRenderer.color;
         tmp.a = 1f;
         spriteRenderer.color = tmp;
-        GetComponent<Collider2D>().enabled = true;
+        collider.enabled = true;
         existenceTimer = 0.03f;
     }
 }

@@ -206,10 +206,10 @@ public class GorefieldTall : PhysicsObject
                             maxSpeed = origMaxSpeed * 2.5f;
                         }
 
-                        Debug.Log("health = " + enemyBase.health + ", maxHealth = " + enemyBase.intrinsicStats[0]);
+                        //Debug.Log("health = " + enemyBase.health + ", maxHealth = " + enemyBase.intrinsicStats[0]);
                         if (enemyBase.health*2 < enemyBase.intrinsicStats[0])
                         {
-                            Debug.Log("Down to half");
+                            //Debug.Log("Down to half");
                             enemyBase.animator.SetBool("charge", true);
                         }
                     }

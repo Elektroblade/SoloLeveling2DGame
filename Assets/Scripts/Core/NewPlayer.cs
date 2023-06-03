@@ -23,6 +23,7 @@ public class NewPlayer : PhysicsObject
     [SerializeField] private Component[] graphicSprites;
     [SerializeField] private ParticleSystem jumpParticles;
     [SerializeField] public LightningFist lightningFist;
+    [SerializeField] public AerodynamicHeating AerodynamicHeating;
     [SerializeField] private GameObject pauseMenu;
     public RecoveryCounter recoveryCounter;
     private System.Random random = new System.Random();
@@ -68,6 +69,8 @@ public class NewPlayer : PhysicsObject
     private int ferocityCounter = 0;
     private int comboIndex = 0;
     NextAction nextAction = NextAction.Idle;
+    public float[] parryTimer = {0f, 0f, 0f, 0f};      // [0] = top left, [1] = top right, [2] = bottom left, [3] = bottom right
+    private float parryForgiveness = 0.2f;        // How early the player can parry an attack
 
     [Header ("Attributes")]
     // strength, stamina, agility, intellect, perception
@@ -128,7 +131,7 @@ public class NewPlayer : PhysicsObject
 
         // Debug; Remember to remove this
         movementSpeedCap = 300;
-        attackRateCap = 100;
+        //attackRateCap = 300;
 
         recalculateIntrinsicStats();
         recalculateExternalStats();
@@ -267,6 +270,14 @@ public class NewPlayer : PhysicsObject
             else
                 isLightningImbued = true;
         }
+
+        for (int i = 0; i < parryTimer.Length; i++)
+        {
+            if (parryTimer[i] > 0)
+                parryTimer[i] -= Time.deltaTime;
+            else
+                parryTimer[i] = 0;
+        }
         
         ComputeVelocity();
     }
@@ -298,6 +309,7 @@ public class NewPlayer : PhysicsObject
 
             if (Input.GetButtonUp("Jump") && animator.GetBool("grounded") == false && jumping && velocity.y > 0.01)
             {
+                AerodynamicHeating.DisplaySprite();
                 velocity.y = 0;
                 jumping = false;
             }
@@ -538,7 +550,7 @@ public class NewPlayer : PhysicsObject
             ferocityTotal = (int) (tempModifier*externalStats[7] + 100)/100 + 0;
         }
         ferocityCounter = ferocityTotal;
-        Debug.Log("Determining Ferocity for index " + comboIndex + ": ferocityTotal = " + ferocityTotal);
+        //Debug.Log("Determining Ferocity for index " + comboIndex + ": ferocityTotal = " + ferocityTotal);
         animator.SetFloat("animAttackRate", (float)(externalStats[4]/100f));
         animator.SetFloat("animFerocRate", (float)((externalStats[4]/100f)*ferocityTotal));
         animator.SetInteger("ferocityCounter", ferocityTotal);
@@ -560,7 +572,7 @@ public class NewPlayer : PhysicsObject
         if (velocity.y != externalStats[10])
         {
             velocity.y = (float) externalStats[10] * jumpMultiplier; //The jumpMultiplier allows us to use the Jump function to also launch the player from bounce platforms
-            Debug.Log("velocity.y = " + velocity.y);
+            //Debug.Log("velocity.y = " + velocity.y);
             PlayJumpSound();
             PlayStepSound();
             JumpEffect();
@@ -633,11 +645,11 @@ public class NewPlayer : PhysicsObject
     {
         if (jumping)
         {
-            Debug.Log(this.name + ", emitting jump particles");
+            //Debug.Log(this.name + ", emitting jump particles");
             jumpParticles.Emit(1);
-            Debug.Log(this.name + ", setting audio pitch");
+            //Debug.Log(this.name + ", setting audio pitch");
             audioSource.pitch = (Random.Range(0.6f, 1f));
-            Debug.Log(this.name + ", playing land sound");
+            //Debug.Log(this.name + ", playing land sound");
             audioSource.PlayOneShot(landSound);
             jumping = false;
         }
@@ -727,16 +739,30 @@ public class NewPlayer : PhysicsObject
     {
         double[] damage;
 
+        // If an attack animation is not yet to hit, recalculate ferocity. Change 1 to a modifier if such a modifier exists.
+        if (ferocityCounter < (int) (1 * externalStats[7] + 100)/100 + 0)
+        {
+            DetermineFerocity();
+            Debug.Log("Calculated new ferocity: " + ferocityCounter);
+        }
+
         damage = new double[ferocityTotal + 1];
 
         double physicalDamage;
+        double magicalDamage;
         // Combo-specific multipliers
         if (comboIndex == 3)
+        {
             physicalDamage = modifiers[5]*externalStats[5] * 2;
+            magicalDamage = modifiers[6]*externalStats[6] * 2;
+        }
         else
+        {
             physicalDamage = modifiers[5]*externalStats[5];
+            magicalDamage = modifiers[6]*externalStats[6];
+        }
 
-        double singleHitDamage = physicalDamage + modifiers[6]*externalStats[6];
+        double singleHitDamage = physicalDamage + magicalDamage;
 
         //Debug.Log("singleHitDamage = " + singleHitDamage + ", mod[6] = " + modifiers[6]);
 
@@ -839,6 +865,31 @@ public class NewPlayer : PhysicsObject
             animator.SetBool("attackBool", true);
 
             Debug.Log("attack = " + animator.GetBool("attack") + ", ferocityCounter = " + animator.GetInteger(ferocityCounter));
+        }
+    }
+
+    // attackCode: >=0 = horizontal, -1 = up, -2 = down
+    public void StartParryTimers()
+    {
+        if (comboIndex >= 0 && !facingRight)
+        {
+            parryTimer[0] = parryForgiveness;
+            parryTimer[2] = parryForgiveness;
+        }
+        else if (comboIndex >= 0)
+        {
+            parryTimer[1] = parryForgiveness;
+            parryTimer[3] = parryForgiveness;
+        }
+        else if (comboIndex == -1)
+        {
+            parryTimer[0] = parryForgiveness;
+            parryTimer[1] = parryForgiveness;
+        }
+        else if (comboIndex == -2)
+        {
+            parryTimer[2] = parryForgiveness;
+            parryTimer[3] = parryForgiveness;
         }
     }
 }

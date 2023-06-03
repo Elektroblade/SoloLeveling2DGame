@@ -10,8 +10,8 @@ public class RecoveryCounter : MonoBehaviour
     //[System.NonSerialized] 
 
     public float recoveryTime = 0.6f;
-    [System.NonSerialized] public float[] counter = new float[3];
-    [System.NonSerialized] public bool[] recovering = new bool[3];
+    [System.NonSerialized] public float[] counter = new float[4];
+    [System.NonSerialized] public bool[] recovering = new bool[4];
     [System.NonSerialized] public bool recoveringAtAll = false;
 
     // Update is called once per frame

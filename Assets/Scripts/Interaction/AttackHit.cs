@@ -10,7 +10,7 @@ public class AttackHit : MonoBehaviour
 {
     public enum AttacksWhat { EnemyBase, NewPlayer };
     [SerializeField] private AttacksWhat attacksWhat;
-    [SerializeField] private int attackType;
+    [SerializeField] private int attackType;            // Player melee, player lightningFist, shadow melee, player aerodynamicHeating
     [SerializeField] private bool oneHitKill;
     [SerializeField] private float startCollisionDelay; //Some enemy types, like EnemyBombs, should not be able blow up until a set amount of time
     private int targetSide = 1; //Is the attack target on the left or right side of this object?
@@ -30,6 +30,7 @@ public class AttackHit : MonoBehaviour
     void OnTriggerStay2D(Collider2D col)
     {
         int attackerType = -1;
+        bool playerStaggeredEnemy = false;
 
         //Determine which side the attack is on
         if (parent.transform.position.x < col.transform.position.x)
@@ -44,7 +45,20 @@ public class AttackHit : MonoBehaviour
         //Determine how much damage the attack does
         if (parent.GetComponent<EnemyBase>() != null && col.GetComponent<NewPlayer>() != null)
         {
-            hitPower = parent.GetComponent<EnemyBase>().CalculateDamage();
+            float[] parryTimer = col.GetComponent<NewPlayer>().parryTimer;
+            if ((parent.transform.position.x - col.transform.position.x < 0 && ((parent.transform.position.y - col.transform.position.y > 0 && parryTimer[0] <= 0) 
+            || (parent.transform.position.y - col.transform.position.y <= 0 && parryTimer[2] <= 0))) 
+            || (parent.transform.position.x - col.transform.position.x >= 0 && ((parent.transform.position.y - col.transform.position.y > 0 && parryTimer[1] <= 0) 
+            || (parent.transform.position.y - col.transform.position.y <= 0 && parryTimer[3] <= 0))))
+            {
+                hitPower = parent.GetComponent<EnemyBase>().CalculateDamage();
+            }
+            else
+            {
+                Debug.Log("Parry!");
+                playerStaggeredEnemy = true;
+                parent.GetComponent<EnemyBase>().Stagger();
+            }
         }
         else if (parent.GetComponent<NewPlayer>() != null && col.GetComponent<EnemyBase>() != null)
         {
@@ -70,8 +84,11 @@ public class AttackHit : MonoBehaviour
         {
             if (col.GetComponent<NewPlayer>() != null)
             {
-                NewPlayer.Instance.GetHurt(targetSide, hitPower);
-                if (isBomb) transform.parent.GetComponent<EnemyBase>().Die();
+                if (!playerStaggeredEnemy)
+                {
+                    NewPlayer.Instance.GetHurt(targetSide, hitPower);
+                    if (isBomb) transform.parent.GetComponent<EnemyBase>().Die();
+                }
             }
             else if (col.GetComponent<EnemyBase>() != null)
             {
@@ -96,10 +113,10 @@ public class AttackHit : MonoBehaviour
 
             if (!col.GetComponent<EnemyBase>().reanimated)
             {
-                for (int i = 0; i < hitPower.Length; i++)
-                {
+                //for (int i = 0; i < hitPower.Length; i++)
+                //{
                     col.GetComponent<EnemyBase>().GetHurt(targetSide, hitPower, attackType, attackerType);
-                }
+                //}
             }
         }
         //Attack Breakables

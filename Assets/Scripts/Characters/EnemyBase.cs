@@ -28,6 +28,7 @@ public class EnemyBase : MonoBehaviour
     [SerializeField] private GameObject ariseContainer;
     private int ferocityTotal = 0;
     private int ferocityCounter = 0;
+    private float staggerTimer = 0;
 
     [Header ("Properties")]
     [SerializeField] private GameObject deathParticles;
@@ -45,7 +46,8 @@ public class EnemyBase : MonoBehaviour
     void Start()
     {
         // Testing
-        level = (int) GameManager.Instance.GetRandomDouble(GameManager.Instance.testingLocalDifficulty, GameManager.Instance.testingLocalDifficulty + 30);
+        level = (int) GameManager.Instance.GetRandomDouble(GameManager.Instance.testingLocalDifficulty, 
+        GameManager.Instance.testingLocalDifficulty + GameManager.Instance.testingLocalDifficultyVariance);
 
         recoveryCounter = GetComponent<RecoveryCounter>();
         audioSource = GetComponent<AudioSource>();
@@ -127,6 +129,11 @@ public class EnemyBase : MonoBehaviour
             Die();
         }
 
+        if (staggerTimer > 0)
+            staggerTimer -= Time.deltaTime;
+        else
+            staggerTimer = 0;
+
         // Replenish health by 1% per second
         if (health < intrinsicStats[0] && reanimated)
         {
@@ -174,6 +181,29 @@ public class EnemyBase : MonoBehaviour
                         NewPlayer.Instance.RecoverByMelee();
                     
                     NewPlayer.Instance.cameraEffects.Shake(100, 1);
+
+                    double critDamage = NewPlayer.Instance.externalStats[9];
+                    if (staggerTimer > 0)
+                    {
+                        for (int i = 0; i < hitPower.Length - 1; i++)
+                        {
+                            hitPower[i] *= 1.5;
+                            if ((int) hitPower[hitPower.Length - 1] == 1)
+                            {
+                                hitPower[i] *= (2.0*critDamage+100.0)/(critDamage+100.0);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (staggerTimer > 0)
+                    {
+                        for (int i = 0; i < hitPower.Length - 1; i++)
+                        {
+                            hitPower[i] *= 1.5;
+                        }
+                    }
                 }
 
                 string damagePopupString = "";
@@ -295,7 +325,8 @@ public class EnemyBase : MonoBehaviour
             {
                 if (theReanimated[i] != null)
                 {
-                    theReanimated[i].addXp(2*(int)System.Math.Pow(level,2));
+                    // Change multiplier back to 2
+                    theReanimated[i].addXp(2000*(int)System.Math.Pow(level,2));
                 }
             }
             EnemyContainer myCorpseContainer;
@@ -415,5 +446,11 @@ public class EnemyBase : MonoBehaviour
     {
         if (ferocityCounter > 0)
             ferocityCounter--;
+    }
+
+    public void Stagger()
+    {
+        staggerTimer = 2f;
+        animator.SetTrigger("Stagger");
     }
 }
