@@ -19,7 +19,7 @@ public class EnemyBase : MonoBehaviour
     private AnimatorFunctions animatorFunctions;
     [SerializeField] Instantiator instantiator;
     [System.NonSerialized] public RecoveryCounter recoveryCounter;
-    [SerializeField] private int level;
+    [System.NonSerialized] private int level;
     private int xp;
     public double[] intrinsicStats = new double[11];
     [SerializeField] public bool reanimated;
@@ -326,7 +326,7 @@ public class EnemyBase : MonoBehaviour
                 if (theReanimated[i] != null)
                 {
                     // Change multiplier back to 2
-                    theReanimated[i].addXp(2000*(int)System.Math.Pow(level,2));
+                    theReanimated[i].addXp(2*(int)System.Math.Pow(level,2));
                 }
             }
             EnemyContainer myCorpseContainer;

@@ -279,19 +279,6 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &445530791
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4660103498608002820}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1414b28eaf1253b4488bff3809fd7110, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  enemyBase: {fileID: 4660103499984043710}
 --- !u!1001 &4519098413310471075
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -299,6 +286,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2077231583, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 88148824359756175, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_Layer
@@ -338,22 +329,22 @@ PrefabInstance:
     - target: {fileID: 4556061815624766702, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_Bounds.m_Center.x
-      value: 0.21771097
+      value: 0.21774912
       objectReference: {fileID: 0}
     - target: {fileID: 4556061815624766702, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_Bounds.m_Center.y
-      value: 3.1250017
+      value: 3.1250007
       objectReference: {fileID: 0}
     - target: {fileID: 4556061815624766702, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_Bounds.m_Extent.x
-      value: 4.6478624
+      value: 4.647748
       objectReference: {fileID: 0}
     - target: {fileID: 4556061815624766702, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_Bounds.m_Extent.y
-      value: 2.6950018
+      value: 2.695001
       objectReference: {fileID: 0}
     - target: {fileID: 5385914811038534460, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
@@ -483,7 +474,7 @@ PrefabInstance:
     - target: {fileID: 9086877982030181319, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_Layer
-      value: 10
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 9086877982030181336, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
@@ -578,7 +569,7 @@ PrefabInstance:
     - target: {fileID: 9086877982050692262, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -38.27
+      value: -20.5
       objectReference: {fileID: 0}
     - target: {fileID: 9086877982050692262, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
@@ -604,6 +595,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: GorefieldFlyerAriseContainer Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 9086877982050692263, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
+        type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 9086877982254076154, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
@@ -639,18 +635,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 4519098413310471075}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &4660103499984043710 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 9086877981212448029, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
-    type: 3}
-  m_PrefabInstance: {fileID: 4519098413310471075}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5759865571541314600}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b5f76df804f07458b8dd06edeba7002d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!224 &4660103500405936697 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 9086877981290723738, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,

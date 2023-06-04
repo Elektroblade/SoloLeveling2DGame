@@ -5,7 +5,7 @@ using UnityEngine;
 public class GorefieldTall : PhysicsObject
 {
     [Header ("Reference")]
-    private Rigidbody2D rigidbody2D;
+    [SerializeField] private Rigidbody2D rigidbody2D;
     public EnemyBase enemyBase;
     [SerializeField] private GameObject graphic;
 
@@ -16,6 +16,7 @@ public class GorefieldTall : PhysicsObject
    
     [System.NonSerialized] private float origAttentionRange;
     public float attentionRange;
+    [System.NonSerialized] private float attackRange = 3.5f;
     public float changeDirectionEase = 1; //How slowly should we change directions? A higher number is slower!
     [System.NonSerialized] public float direction = 1;
     private Vector2 distanceFromTarget; //How far is this enemy from the player?
@@ -29,7 +30,7 @@ public class GorefieldTall : PhysicsObject
     [System.NonSerialized] public bool jump = false;
     [System.NonSerialized] public float launch = 1; //The float added to x and y moveSpeed. This is set with hurtLaunchPower, and is always brought back to zero
     [System.NonSerialized] private float origMaxSpeed;
-    public float maxSpeed = 7;
+    [System.NonSerialized] public float maxSpeed = 7;
     [SerializeField] private float maxSpeedDeviation; //How much should we randomly deviate from maxSpeed? Ensures enemies don't move at exact same speed, thus syncing up.
     [SerializeField] private bool neverStopFollowing = false; //Once the player is seen by an enemy, it will forever follow the player.
     private Vector3 origScale;
@@ -59,7 +60,6 @@ public class GorefieldTall : PhysicsObject
     void Start()
     {
         enemyBase = GetComponent<EnemyBase>();
-        rigidbody2D = GetComponent<Rigidbody2D>();  // Verrry important!
         origScale = transform.localScale;
         rayCastSizeOrig = rayCastSize;
         origAttentionRange = attentionRange;
@@ -138,7 +138,7 @@ public class GorefieldTall : PhysicsObject
         Collider2D[] colliderArray = Physics2D.OverlapCircleAll(transform.position, attentionRange);
         foreach (Collider2D collider2D in colliderArray)
         {
-            if (collider2D.TryGetComponent<EnemyBase>(out EnemyBase enemy))
+            if (collider2D.transform.parent != null && collider2D.transform.parent.TryGetComponent<EnemyBase>(out EnemyBase enemy))
             {
                 if (!enemy.reanimated)
                     targetEnemy = enemy;
@@ -153,8 +153,13 @@ public class GorefieldTall : PhysicsObject
         if (!NewPlayer.Instance.frozen)
         {
             distanceFromTarget = new Vector2 (NewPlayer.Instance.gameObject.transform.position.x - transform.position.x, NewPlayer.Instance.gameObject.transform.position.y - transform.position.y);
+            //Debug.Log("distanceFromTarget.x = " + distanceFromTarget.x + ", distanceFromTarget.y = " + distanceFromTarget.y);
+
             directionSmooth += ((direction * sitStillMultiplier) - directionSmooth) * Time.deltaTime * changeDirectionEase;
-            move.x = (1 * directionSmooth) + launch;
+
+            //Debug.Log("direction = " + direction + ", sitStillMult = " + sitStillMultiplier + ", Time.deltaTime = " + Time.deltaTime + ", launch = " + launch + ", maxSpeed = " + maxSpeed);
+
+            move.x = (1 * direction * sitStillMultiplier) + launch;
             launch += (0 - launch) * Time.deltaTime;
             
             if (move.x < 0)
@@ -169,6 +174,7 @@ public class GorefieldTall : PhysicsObject
             if (!enemyBase.recoveryCounter.recoveringAtAll)
             {
                 //Flip the graphic depending on the speed
+                /*
                 if (move.x > 0.01f)
                 {
                     if (graphic.transform.localScale.x == 1)
@@ -183,9 +189,19 @@ public class GorefieldTall : PhysicsObject
                         graphic.transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
                     }
                 }
+                */
 
                 //Check floor type
-                ground = Physics2D.Raycast(transform.position, -Vector2.up);
+                ground = Physics2D.Raycast(transform.position, -Vector2.up, 0.5f, LayerMask.GetMask("Ground"));
+
+                if (ground.collider != null)
+                {
+                    if (Mathf.Abs(transform.position.y - ground.point.y) < 0.5f)
+                    {
+                        Debug.Log("Underground by + " + Mathf.Abs(transform.position.y - ground.point.y) + "!!");
+                        velocity.y = 4;
+                    }
+                }
                 Debug.DrawRay(transform.position, -Vector2.up, Color.green);
 
                 //Check if player is within range to follow
@@ -193,8 +209,16 @@ public class GorefieldTall : PhysicsObject
                 {
                     if ((Mathf.Abs(distanceFromTarget.x) < attentionRange) && (Mathf.Abs(distanceFromTarget.y) < attentionRange))
                     {
-                        followPlayer = true;
-                        sitStillMultiplier = 1;
+                        if (Mathf.Abs(distanceFromTarget.x) > attackRange)
+                        {
+                            followPlayer = true;
+                            sitStillMultiplier = 1;
+                        }
+                        else
+                        {
+                            followPlayer = false;
+                            sitStillMultiplier = 0;
+                        }
 
                         if (neverStopFollowing)
                         {
@@ -319,7 +343,7 @@ public class GorefieldTall : PhysicsObject
                     }
                     else if (direction == 1)
                     {
-                        Jump();
+                        Jump(distanceFromTarget);
                     }
 
                 }
@@ -335,16 +359,18 @@ public class GorefieldTall : PhysicsObject
                     }
                     else if (direction == -1)
                     {
-                        Jump();
+                        Jump(distanceFromTarget);
                     }
                 }
 
+                /*
                 //Check for ledges. Walker's height check is much higher! They will fall pretty far, but will not fall to death. 
                 rightLedge = Physics2D.Raycast(new Vector2(transform.position.x + rayCastOffset.x, transform.position.y), Vector2.down, rayCastSize.y, layerMask);
                 Debug.DrawRay(new Vector2(transform.position.x + rayCastOffset.x, transform.position.y), Vector2.down * rayCastSize.y, Color.blue);
                 if ((rightLedge.collider == null || rightLedge.collider.gameObject.layer == 14) && direction == 1)
                 {
                     direction = -1;
+                    Debug.Log("uh huh");
                 }
 
                 leftLedge = Physics2D.Raycast(new Vector2(transform.position.x - rayCastOffset.x, transform.position.y), Vector2.down, rayCastSize.y, layerMask);
@@ -352,7 +378,9 @@ public class GorefieldTall : PhysicsObject
                 if ((leftLedge.collider == null || leftLedge.collider.gameObject.layer == 14) && direction == -1)
                 {
                     direction = 1;
+                    Debug.Log("yep");
                 }
+                */
             }
         }
 
@@ -369,11 +397,11 @@ public class GorefieldTall : PhysicsObject
         targetVelocity = Vector2.zero;
     }
 
-    public void Jump()
+    public void Jump(Vector2 distanceFromTarget)
     {
         if (grounded)
         {
-            velocity.y = jumpPower;
+            velocity.y = jumpPower * Mathf.Abs(distanceFromTarget.y) * 0.1f;
             PlayJumpSound();
             PlayStepSound();
         }

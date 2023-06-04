@@ -23,7 +23,8 @@ public class NewPlayer : PhysicsObject
     [SerializeField] private Component[] graphicSprites;
     [SerializeField] private ParticleSystem jumpParticles;
     [SerializeField] public LightningFist lightningFist;
-    [SerializeField] public AerodynamicHeating AerodynamicHeating;
+    [SerializeField] public AerodynamicHeating aerodynamicHeating;
+    [SerializeField] public SeismicWave seismicWave;
     [SerializeField] private GameObject pauseMenu;
     public RecoveryCounter recoveryCounter;
     private System.Random random = new System.Random();
@@ -45,6 +46,8 @@ public class NewPlayer : PhysicsObject
     public bool frozen = false;
     private float fallForgivenessCounter; //Counts how long the player has fallen off a ledge
     [SerializeField] private float fallForgiveness = .2f; //How long the player can fall from a ledge and still jump
+    private float jumpEarlinessCounter;   // Counts how long it has been since player unsuccessfully jumped
+    [SerializeField] private float jumpEarliness = .2f;   // How long, after the player tried to jump, that the jump may still be successful
     [System.NonSerialized] public string groundType = "grass";
     [System.NonSerialized] public RaycastHit2D ground; 
     [SerializeField] Vector2 hurtLaunchPower; //How much force should be applied to the player when getting hurt?
@@ -57,7 +60,9 @@ public class NewPlayer : PhysicsObject
     public float dodgePower = 17f;
     public float dodgeVelocity = 17f;
     private bool canDodge = true;
-    private bool dodging;
+    private bool dodging;                   // If false, invincibility may continue, but speed is no longer going to be calculated in this manner.
+    private float dodgeDistanceSpent = 0f;
+    private float dodgeDistance = 6.8f;
     private float dodgeTimer = 0;
     private Vector3 origLocalScale;
     [System.NonSerialized] public bool pounded;
@@ -299,19 +304,54 @@ public class NewPlayer : PhysicsObject
         //Movement, jumping, and attacking!
         if (!frozen && !dodging)
         {
+            // Now that dodging invincibility can outlast the speed of dodging, can need to continue calculating invincibility after controls are available
+            if (dodgeTimer != 0)
+            {
+                dodgeTimer -= Time.deltaTime;
+
+                if (dodgeTimer <= 0)
+                {
+                    dodgeTimer = 0;
+                    dodgeDistanceSpent = 0;
+                    Physics2D.IgnoreLayerCollision(10, 12, false);
+                    Physics2D.IgnoreLayerCollision(10, 15, false);
+                }
+            }
+
             move.x = Input.GetAxis("Horizontal") + launch;
 
-            if (Input.GetButtonDown("Jump") && animator.GetBool("grounded") == true && !jumping)
+            if ((Input.GetButtonDown("Jump") || jumpEarlinessCounter > 0) 
+                && (animator.GetBool("grounded") == true || fallForgivenessCounter < fallForgiveness) && !jumping)
             {
                 animator.SetBool("pounded", false);
+                jumpEarlinessCounter = 0;
                 Jump(1f);
+            }
+            else if (Input.GetButtonDown("Jump") && animator.GetBool("grounded") == false && !jumping)
+            {
+                jumpEarlinessCounter = jumpEarliness;
             }
 
             if (Input.GetButtonUp("Jump") && animator.GetBool("grounded") == false && jumping && velocity.y > 0.01)
             {
-                AerodynamicHeating.DisplaySprite();
+                // AerodynamicHeating start
+
+                // If an attack animation has yet to hit, recalculate ferocity. Change 1 to a modifier if such a modifier exists.
+                if (ferocityCounter < ((int) (1 * externalStats[7] + 100)/100))
+                {
+                    DetermineFerocity();
+                    Debug.Log("Calculated new ferocity: " + ferocityCounter);
+                }
+                aerodynamicHeating.DisplaySprite();
+
+                // AerodynamicHeating end
+
                 velocity.y = 0;
                 jumping = false;
+            }
+            else if (Input.GetButtonUp("Jump") && !jumping)
+            {
+                jumpEarlinessCounter = 0;
             }
 
             if (Input.GetButton("Dodge") && canDodge)
@@ -338,7 +378,7 @@ public class NewPlayer : PhysicsObject
             {
                 nextAction = NextAction.Attack;
                 animator.SetBool("attackBool", true);
-                animator.SetTrigger("attack");
+                //animator.SetTrigger("attack");
                 Shoot(false);
             }
 
@@ -376,6 +416,12 @@ public class NewPlayer : PhysicsObject
                 animator.SetBool("grounded", true);
             }
 
+            // Allow the player to cue a jump even if they have not quite reached the ground ("jump earliness")
+            if (jumpEarlinessCounter > 0)
+                jumpEarlinessCounter -= Time.deltaTime;
+            else if (jumpEarlinessCounter < 0)
+                jumpEarlinessCounter = 0;
+
             //Set each animator float, bool, and trigger to it knows which animation to fire
             animator.SetFloat("velocityX", Mathf.Abs(velocity.x) / baseSpeed);
             animator.SetFloat("velocityY", velocity.y);
@@ -386,14 +432,31 @@ public class NewPlayer : PhysicsObject
         }
         else if (!frozen)
         {
+            // Dodge maintenance
+
             dodgeTimer -= Time.deltaTime;
-            targetVelocity = new Vector2(dodgeVelocity, 0);
-            velocity.x = dodgeVelocity;
-            velocity.y = 0;
+            if (dodgeDistanceSpent + Time.deltaTime * Mathf.Abs(dodgeVelocity) < dodgeDistance)
+            {
+                dodgeDistanceSpent += Time.deltaTime * Mathf.Abs(dodgeVelocity);
+                targetVelocity = new Vector2(dodgeVelocity, 0);
+                velocity.x = dodgeVelocity;
+                velocity.y = 0;
+            }
+            else if (dodgeDistanceSpent < dodgeDistance)
+            {
+                dodgeDistanceSpent += dodgeDistance - dodgeDistanceSpent;
+                targetVelocity = new Vector2((dodgeDistance - dodgeDistanceSpent) * (dodgeVelocity / Mathf.Abs(dodgeVelocity)), 0);
+                velocity.x = (dodgeDistance - dodgeDistanceSpent) * (dodgeVelocity / Mathf.Abs(dodgeVelocity));
+                velocity.y = 0;
+                dodging = false;    // Invincibility may continue, but speed is no longer going to be calculated in this manner.
+            }
+            else
+                dodging = false;    // Invincibility may continue, but speed is no longer going to be calculated in this manner.
+
             if (dodgeTimer <= 0)
             {
                 dodgeTimer = 0;
-                dodging = false;
+                dodgeDistanceSpent = 0;
                 Physics2D.IgnoreLayerCollision(10, 12, false);
                 Physics2D.IgnoreLayerCollision(10, 15, false);
             }
@@ -571,7 +634,11 @@ public class NewPlayer : PhysicsObject
     {
         if (velocity.y != externalStats[10])
         {
+            // SeismicWave
+            seismicWave.DisplaySprite(new Vector3(transform.position.x, transform.position.y, 0), facingRight);
+
             velocity.y = (float) externalStats[10] * jumpMultiplier; //The jumpMultiplier allows us to use the Jump function to also launch the player from bounce platforms
+            fallForgivenessCounter = fallForgiveness;
             //Debug.Log("velocity.y = " + velocity.y);
             PlayJumpSound();
             PlayStepSound();
@@ -738,13 +805,6 @@ public class NewPlayer : PhysicsObject
     public double[] CalculateDamage(int[] modifiers)
     {
         double[] damage;
-
-        // If an attack animation is not yet to hit, recalculate ferocity. Change 1 to a modifier if such a modifier exists.
-        if (ferocityCounter < (int) (1 * externalStats[7] + 100)/100 + 0)
-        {
-            DetermineFerocity();
-            Debug.Log("Calculated new ferocity: " + ferocityCounter);
-        }
 
         damage = new double[ferocityTotal + 1];
 

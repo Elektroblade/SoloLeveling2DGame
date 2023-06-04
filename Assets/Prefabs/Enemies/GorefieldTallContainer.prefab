@@ -1,5 +1,52 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &987876436
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 987876437}
+  - component: {fileID: 987876438}
+  m_Layer: 6
+  m_Name: DamageCollider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &987876437
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 987876436}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 7477978599416503146}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!70 &987876438
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 987876436}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0.19371493, y: 2.3938398}
+  m_Size: {x: 6.625456, y: 6.156898}
+  m_Direction: 1
 --- !u!1 &468107542855388917
 GameObject:
   m_ObjectHideFlags: 0
@@ -4885,7 +4932,7 @@ GameObject:
   m_Component:
   - component: {fileID: 468107542928327625}
   - component: {fileID: 8675091998896384155}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: GorefieldTallContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4938,7 +4985,7 @@ GameObject:
   - component: {fileID: 468107542940458165}
   - component: {fileID: 468107542940458164}
   - component: {fileID: 468107542940458167}
-  m_Layer: 12
+  m_Layer: 6
   m_Name: AttackHit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -30212,22 +30259,6 @@ Rigidbody2D:
   m_SleepingMode: 0
   m_CollisionDetection: 1
   m_Constraints: 0
---- !u!70 &5208090575583571771
-CapsuleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3531817816966243657}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0.19371493, y: 2.3938398}
-  m_Size: {x: 6.625456, y: 6.156898}
-  m_Direction: 1
 --- !u!82 &5208090575583571770
 AudioSource:
   m_ObjectHideFlags: 0
@@ -30399,12 +30430,13 @@ MonoBehaviour:
     maxDepth: 0
     minNormalAngle: 0
     maxNormalAngle: 0
+  rigidbody2D: {fileID: 0}
   enemyBase: {fileID: 5208090575583571766}
   graphic: {fileID: 3531817816966243657}
   layerMask:
     serializedVersion: 2
     m_Bits: 0
-  enemyType: 0
+  enemyType: 1
   attentionRange: 7
   changeDirectionEase: 3
   followPlayer: 1
@@ -30412,7 +30444,6 @@ MonoBehaviour:
   hurtLaunchPower: 10
   jumping: 0
   jumpPower: 7
-  maxSpeed: 3
   maxSpeedDeviation: 1
   neverStopFollowing: 0
   rayCastSize: {x: 5, y: 5}
@@ -30437,12 +30468,25 @@ MonoBehaviour:
   animator: {fileID: 5208090575583571761}
   instantiator: {fileID: 5208090575583571763}
   level: 3
+  intrinsicStats:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
   reanimated: 0
   myGameObject: {fileID: 3531817816966243657}
   reanimatedSlotIndex: 0
   ariseContainer: {fileID: 4660103498608002820, guid: 863d5a389a1540843aaab4673a4d4c3a,
     type: 3}
   deathParticles: {fileID: 468107544783053980}
+  health: 0
   healthBarUI: {fileID: 468107544619472628}
   healthBarSlider: {fileID: 468107544151071598}
   xpBarSlider: {fileID: 0}
@@ -30496,6 +30540,22 @@ MonoBehaviour:
   audioSource: {fileID: 0}
   particleSystem: {fileID: 0}
   setBoolInAnimator: {fileID: 0}
+--- !u!70 &1249314930
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3531817816966243657}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0.19371466, y: 0.24041015}
+  m_Size: {x: 6.6254587, y: 1.8500901}
+  m_Direction: 1
 --- !u!1001 &5208090573788858562
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -30746,7 +30806,7 @@ PrefabInstance:
     - target: {fileID: -4359737089610136779, guid: bbd7074a97c8c8d4c828aed8d77d2403,
         type: 3}
       propertyPath: m_Bounds.m_Center.y
-      value: -0.013443232
+      value: -0.01344347
       objectReference: {fileID: 0}
     - target: {fileID: -4359737089610136779, guid: bbd7074a97c8c8d4c828aed8d77d2403,
         type: 3}
@@ -30756,7 +30816,7 @@ PrefabInstance:
     - target: {fileID: -4359737089610136779, guid: bbd7074a97c8c8d4c828aed8d77d2403,
         type: 3}
       propertyPath: m_Bounds.m_Extent.y
-      value: 3.395364
+      value: 3.3953643
       objectReference: {fileID: 0}
     - target: {fileID: -4351427971259494273, guid: bbd7074a97c8c8d4c828aed8d77d2403,
         type: 3}
@@ -31311,7 +31371,7 @@ PrefabInstance:
     - target: {fileID: 3423236140764713896, guid: bbd7074a97c8c8d4c828aed8d77d2403,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.07
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3423236140764713896, guid: bbd7074a97c8c8d4c828aed8d77d2403,
         type: 3}

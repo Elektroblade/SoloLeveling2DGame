@@ -138,7 +138,7 @@ public class GorefieldFlyer : MonoBehaviour
         Collider2D[] colliderArray = Physics2D.OverlapCircleAll(transform.position, attentionRange);
         foreach (Collider2D collider2D in colliderArray)
         {
-            if (collider2D.TryGetComponent<EnemyBase>(out EnemyBase enemy))
+            if (collider2D.transform.parent != null && collider2D.transform.parent.TryGetComponent<EnemyBase>(out EnemyBase enemy))
             {
                 if (!enemy.reanimated)
                     targetEnemy = enemy;

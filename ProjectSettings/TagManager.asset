@@ -14,7 +14,7 @@ TagManager:
   - PlayerAttack
   - Water
   - UI
-  - 
+  - AIAttack
   - 
   - Ground
   - CameraBounds

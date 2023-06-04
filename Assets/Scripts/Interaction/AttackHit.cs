@@ -43,35 +43,35 @@ public class AttackHit : MonoBehaviour
         }
         
         //Determine how much damage the attack does
-        if (parent.GetComponent<EnemyBase>() != null && col.GetComponent<NewPlayer>() != null)
+        if (parent.GetComponent<EnemyBase>() != null && col.transform.parent.GetComponent<NewPlayer>() != null)
         {
-            float[] parryTimer = col.GetComponent<NewPlayer>().parryTimer;
-            if ((parent.transform.position.x - col.transform.position.x < 0 && ((parent.transform.position.y - col.transform.position.y > 0 && parryTimer[0] <= 0) 
-            || (parent.transform.position.y - col.transform.position.y <= 0 && parryTimer[2] <= 0))) 
-            || (parent.transform.position.x - col.transform.position.x >= 0 && ((parent.transform.position.y - col.transform.position.y > 0 && parryTimer[1] <= 0) 
-            || (parent.transform.position.y - col.transform.position.y <= 0 && parryTimer[3] <= 0))))
+            float[] parryTimer = col.transform.parent.GetComponent<NewPlayer>().parryTimer;
+            if ((parent.transform.position.x - col.transform.parent.transform.position.x < 0 && ((parent.transform.position.y - col.transform.parent.transform.position.y > 0 && parryTimer[0] <= 0) 
+            || (parent.transform.position.y - col.transform.parent.transform.position.y <= 0 && parryTimer[2] <= 0))) 
+            || (parent.transform.position.x - col.transform.parent.transform.position.x >= 0 && ((parent.transform.position.y - col.transform.parent.transform.position.y > 0 && parryTimer[1] <= 0) 
+            || (parent.transform.position.y - col.transform.parent.transform.position.y <= 0 && parryTimer[3] <= 0))))
             {
                 hitPower = parent.GetComponent<EnemyBase>().CalculateDamage();
             }
             else
             {
-                Debug.Log("Parry!");
+                //Debug.Log("Parry!");
                 playerStaggeredEnemy = true;
                 parent.GetComponent<EnemyBase>().Stagger();
             }
         }
-        else if (parent.GetComponent<NewPlayer>() != null && col.GetComponent<EnemyBase>() != null)
+        else if (parent.GetComponent<NewPlayer>() != null && col.transform.parent != null && col.transform.parent.GetComponent<EnemyBase>() != null)
         {
             attackerType = 0;
             hitPower = parent.GetComponent<NewPlayer>().CalculateDamage(statMods);
         }
-        else if (parent.GetComponent<EnemyBase>() != null && col.GetComponent<EnemyBase>() != null)
+        else if (parent.GetComponent<EnemyBase>() != null && col.transform.parent.GetComponent<EnemyBase>() != null)
         {
-            //Debug.Log("Before enemy-enemy collision. parent is " + parent.GetComponent<EnemyBase>().reanimated + " reanimated and col is " + col.GetComponent<EnemyBase>().reanimated + " reanimated.");
-            if ((parent.GetComponent<EnemyBase>().reanimated && !col.GetComponent<EnemyBase>().reanimated)
-                || (!parent.GetComponent<EnemyBase>().reanimated && col.GetComponent<EnemyBase>().reanimated))
+            //Debug.Log("Before enemy-enemy collision. parent is " + parent.GetComponent<EnemyBase>().reanimated + " reanimated and col is " + col.transform.parent.GetComponent<EnemyBase>().reanimated + " reanimated.");
+            if ((parent.GetComponent<EnemyBase>().reanimated && !col.transform.parent.GetComponent<EnemyBase>().reanimated)
+                || (!parent.GetComponent<EnemyBase>().reanimated && col.transform.parent.GetComponent<EnemyBase>().reanimated))
             {
-                //Debug.Log("Calculating enemy-enemy collision. parent is " + parent.GetComponent<EnemyBase>().reanimated + " reanimated and col is " + col.GetComponent<EnemyBase>().reanimated + " reanimated.");
+                //Debug.Log("Calculating enemy-enemy collision. parent is " + parent.GetComponent<EnemyBase>().reanimated + " reanimated and col is " + col.transform.parent.GetComponent<EnemyBase>().reanimated + " reanimated.");
                 attackerType = 1;
                 hitPower = parent.GetComponent<EnemyBase>().CalculateDamage();
             }
@@ -82,7 +82,7 @@ public class AttackHit : MonoBehaviour
         //Attack Player
         if (attacksWhat == AttacksWhat.NewPlayer)
         {
-            if (col.GetComponent<NewPlayer>() != null)
+            if (col.transform.parent.GetComponent<NewPlayer>() != null)
             {
                 if (!playerStaggeredEnemy)
                 {
@@ -90,32 +90,32 @@ public class AttackHit : MonoBehaviour
                     if (isBomb) transform.parent.GetComponent<EnemyBase>().Die();
                 }
             }
-            else if (col.GetComponent<EnemyBase>() != null)
+            else if (col.transform.parent.GetComponent<EnemyBase>() != null)
             {
-                if (col.GetComponent<EnemyBase>().reanimated)
+                if (col.transform.parent.GetComponent<EnemyBase>().reanimated)
                 {
-                    col.GetComponent<EnemyBase>().GetHurt(targetSide, hitPower, attackType, attackerType);
+                    col.transform.parent.GetComponent<EnemyBase>().GetHurt(targetSide, hitPower, attackType, attackerType);
                 }
             }
         }
         //Attack Enemies
-        else if (attacksWhat == AttacksWhat.EnemyBase && col.GetComponent<EnemyBase>() != null)
+        else if (attacksWhat == AttacksWhat.EnemyBase && col.transform.parent != null && col.transform.parent.GetComponent<EnemyBase>() != null)
         {
-            if (col.GetComponent<GorefieldTall>() != null)
+            if (col.transform.parent.GetComponent<GorefieldTall>() != null)
             {
-                Debug.Log("damaging a tall gorefield!, dealing " + hitPower[0] + " per hit to non-reanimated.");
+                //Debug.Log("damaging a tall gorefield!, dealing " + hitPower[0] + " per hit to non-reanimated.");
             }
             if (parent.GetComponent<EnemyBase>())
             {
-                if (parent.GetComponent<EnemyBase>().reanimated)
-                    Debug.Log("Reanimated is dealing " + hitPower[0] + " per hit to non-reanimated.");
+                if (parent.GetComponent<EnemyBase>().reanimated) {}
+                    //Debug.Log("Reanimated is dealing " + hitPower[0] + " per hit to non-reanimated.");
             }
 
-            if (!col.GetComponent<EnemyBase>().reanimated)
+            if (!col.transform.parent.GetComponent<EnemyBase>().reanimated)
             {
                 //for (int i = 0; i < hitPower.Length; i++)
                 //{
-                    col.GetComponent<EnemyBase>().GetHurt(targetSide, hitPower, attackType, attackerType);
+                    col.transform.parent.GetComponent<EnemyBase>().GetHurt(targetSide, hitPower, attackType, attackerType);
                 //}
             }
         }
@@ -128,7 +128,7 @@ public class AttackHit : MonoBehaviour
             }
         }
         //Blow up bombs if they touch walls
-        if (isBomb && col.gameObject.layer == 8)
+        if (isBomb && col.transform.parent.gameObject.layer == 8)
         {
             transform.parent.GetComponent<EnemyBase>().Die();
         }
