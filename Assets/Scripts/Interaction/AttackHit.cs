@@ -10,7 +10,8 @@ public class AttackHit : MonoBehaviour
 {
     public enum AttacksWhat { EnemyBase, NewPlayer };
     [SerializeField] private AttacksWhat attacksWhat;
-    [SerializeField] private int attackType;            // Player melee, player lightningFist, shadow melee, player aerodynamicHeating
+    [SerializeField] private int attackType;            // Player melee, player lightningFist, shadow melee, player aerodynamicHeating, player seismicWave,
+                                                        // Player earthPrism, Player earthDisk
     [SerializeField] private bool oneHitKill;
     [SerializeField] private float startCollisionDelay; //Some enemy types, like EnemyBombs, should not be able blow up until a set amount of time
     private int targetSide = 1; //Is the attack target on the left or right side of this object?
@@ -43,6 +44,8 @@ public class AttackHit : MonoBehaviour
         }
         
         //Determine how much damage the attack does
+
+        // Enemy attack Player
         if (parent.GetComponent<EnemyBase>() != null && col.transform.parent.GetComponent<NewPlayer>() != null)
         {
             float[] parryTimer = col.transform.parent.GetComponent<NewPlayer>().parryTimer;
@@ -60,11 +63,15 @@ public class AttackHit : MonoBehaviour
                 parent.GetComponent<EnemyBase>().Stagger();
             }
         }
+
+        // Player attack Enemy
         else if (parent.GetComponent<NewPlayer>() != null && col.transform.parent != null && col.transform.parent.GetComponent<EnemyBase>() != null)
         {
             attackerType = 0;
             hitPower = parent.GetComponent<NewPlayer>().CalculateDamage(statMods);
         }
+
+        // Enemy attack Enemy
         else if (parent.GetComponent<EnemyBase>() != null && col.transform.parent.GetComponent<EnemyBase>() != null)
         {
             //Debug.Log("Before enemy-enemy collision. parent is " + parent.GetComponent<EnemyBase>().reanimated + " reanimated and col is " + col.transform.parent.GetComponent<EnemyBase>().reanimated + " reanimated.");
@@ -98,6 +105,14 @@ public class AttackHit : MonoBehaviour
                 }
             }
         }
+
+        // Attack EarthPrism
+        else if (attacksWhat == AttacksWhat.EnemyBase && attackType == 0 && col.GetComponent<EarthPrism>() != null)
+        {
+            col.GetComponent<EarthPrism>().Slice((int) NewPlayer.Instance.attributes[0] / 100, NewPlayer.Instance.GetFacingRight(), 
+            NewPlayer.Instance.GetComboIndex(), attackType);
+        }
+
         //Attack Enemies
         else if (attacksWhat == AttacksWhat.EnemyBase && col.transform.parent != null && col.transform.parent.GetComponent<EnemyBase>() != null)
         {

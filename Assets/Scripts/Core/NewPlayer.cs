@@ -25,6 +25,7 @@ public class NewPlayer : PhysicsObject
     [SerializeField] public LightningFist lightningFist;
     [SerializeField] public AerodynamicHeating aerodynamicHeating;
     [SerializeField] public SeismicWave seismicWave;
+    [SerializeField] public EarthPrism earthPrism;
     [SerializeField] private GameObject pauseMenu;
     public RecoveryCounter recoveryCounter;
     private System.Random random = new System.Random();
@@ -69,6 +70,7 @@ public class NewPlayer : PhysicsObject
     [System.NonSerialized] public bool pounding;
     [System.NonSerialized] public bool shooting = false;
     [System.NonSerialized] public bool isLightningImbued = false;
+    [System.NonSerialized] public bool isLightningDash = true;
     [SerializeField] bool facingRight;
     private int ferocityTotal = 0;
     private int ferocityCounter = 0;
@@ -358,7 +360,10 @@ public class NewPlayer : PhysicsObject
             {
                 canDodge = false;
                 animator.SetBool("pounded", false);
-                Dodge(1f);
+                if (isLightningDash)
+                    Dodge(2f);
+                else
+                    Dodge(1f);
             }
 
             //Flip the graphic's localScale
@@ -636,6 +641,7 @@ public class NewPlayer : PhysicsObject
         {
             // SeismicWave
             seismicWave.DisplaySprite(new Vector3(transform.position.x, transform.position.y, 0), facingRight);
+            earthPrism.DisplaySprite(new Vector3(transform.position.x, transform.position.y, 0), facingRight);
 
             velocity.y = (float) externalStats[10] * jumpMultiplier; //The jumpMultiplier allows us to use the Jump function to also launch the player from bounce platforms
             fallForgivenessCounter = fallForgiveness;
@@ -649,8 +655,13 @@ public class NewPlayer : PhysicsObject
 
     public void Dodge(float dodgeMultiplier)
     {
-        if (Mathf.Abs(velocity.x) < dodgePower)
+        // Dodging costs 20 mana but you can dodge with 10 mana.
+        if (Mathf.Abs(velocity.x) < dodgePower && mana >= 10)
         {
+            mana -= 20;
+            if (mana < 0)
+                mana = 0;
+
             dodgeTimer = 0.4f;
             Physics2D.IgnoreLayerCollision(10, 12, true);
             Physics2D.IgnoreLayerCollision(10, 15, true);
@@ -951,5 +962,15 @@ public class NewPlayer : PhysicsObject
             parryTimer[2] = parryForgiveness;
             parryTimer[3] = parryForgiveness;
         }
+    }
+
+    public bool GetFacingRight()
+    {
+        return facingRight;
+    }
+
+    public int GetComboIndex()
+    {
+        return comboIndex;
     }
 }

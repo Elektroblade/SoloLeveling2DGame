@@ -59,6 +59,6 @@ public class LightningFist : MonoBehaviour
         tmp.a = 1f;
         spriteRenderer.color = tmp;
         collider.enabled = true;
-        existenceTimer = 0.03f;
+        existenceTimer = 0.04f;
     }
 }
