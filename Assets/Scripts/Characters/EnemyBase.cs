@@ -14,17 +14,17 @@ public class EnemyBase : MonoBehaviour
     [Header ("Reference")]
     [SerializeField] EnemyType enemyType;
     private double avgHitsToKill = 10;
+    private double avgAttacksToDie = 10;
     [System.NonSerialized] public AudioSource audioSource;
     public Animator animator;
     private AnimatorFunctions animatorFunctions;
     [SerializeField] Instantiator instantiator;
     [System.NonSerialized] public RecoveryCounter recoveryCounter;
     [System.NonSerialized] private int level;
-    private int xp;
+    [System.NonSerialized] private int xp;
     public double[] intrinsicStats = new double[11];
     [SerializeField] public bool reanimated;
-    [SerializeField] public GameObject myGameObject;
-    public int reanimatedSlotIndex;
+    [System.NonSerialized] public int reanimatedSlotIndex;
     [SerializeField] private GameObject ariseContainer;
     private int ferocityTotal = 0;
     private int ferocityCounter = 0;
@@ -32,7 +32,7 @@ public class EnemyBase : MonoBehaviour
 
     [Header ("Properties")]
     [SerializeField] private GameObject deathParticles;
-    public double health;
+    [System.NonSerialized] public double health;
     [SerializeField] public GameObject healthBarUI;
     [SerializeField] public Slider healthBarSlider;
     [SerializeField] public Slider xpBarSlider;
@@ -57,11 +57,13 @@ public class EnemyBase : MonoBehaviour
 
         if (enemyType == EnemyType.GorefieldFlyer)
         {
-            avgHitsToKill = 2;
+            avgHitsToKill = 2.5;
+            avgAttacksToDie = 2.5;
         }
         else if (enemyType == EnemyType.GorefieldTall)
         {
             avgHitsToKill = 7;
+            avgAttacksToDie = 5;
         }
 
         recalculateIntrinsicStats();
@@ -86,8 +88,8 @@ public class EnemyBase : MonoBehaviour
     {
         intrinsicStats[0] = 10*avgHitsToKill*(1+level/100.0)*(1+level/50.0)*System.Math.Pow(2,level/100.0);
         intrinsicStats[1] = 0;
-        intrinsicStats[5] = System.Math.Pow(2,level/100.0);
-        intrinsicStats[6] = System.Math.Pow(2,level/100.0);
+        intrinsicStats[5] = (10 / avgAttacksToDie) * System.Math.Pow(2,level/100.0);
+        intrinsicStats[6] = (10 / avgAttacksToDie) * System.Math.Pow(2,level/100.0);
 
         if (level >= 1800)
         {
@@ -109,7 +111,7 @@ public class EnemyBase : MonoBehaviour
         baseLevelUIText = "Lvl " + level;
         levelUI.text = baseLevelUIText + "\n" + (int) health + "/" + (int) intrinsicStats[0];
 
-        Debug.Log("player level = " + NewPlayer.Instance.level + ", my level = " + level);
+        //Debug.Log("player level = " + NewPlayer.Instance.level + ", my level = " + level);
     }
 
     void Update()
@@ -300,7 +302,7 @@ public class EnemyBase : MonoBehaviour
 
         if (xpBarSlider)
         {
-            Debug.Log("reanimated = " + reanimated + ", xp = " + xp);
+            //Debug.Log("reanimated = " + reanimated + ", xp = " + xp);
         }
         
         if (NewPlayer.Instance.pounding)
@@ -418,10 +420,10 @@ public class EnemyBase : MonoBehaviour
 
     public void addXp(int xpAmount)
     {
-        if (reanimated && myGameObject.active)
+        if (reanimated && gameObject.active)
         {
             int oldLevel = level;
-            Debug.Log("Adding xp = " + xpAmount + ", Next level requires " + (10*System.Math.Pow(level + 1,2)) + " total.");
+            //Debug.Log("Adding xp = " + xpAmount + ", Next level requires " + (10*System.Math.Pow(level + 1,2)) + " total.");
             xp += xpAmount;
             while (xp != 0 && xp >= 10*System.Math.Pow(level + 1,2))
             {

@@ -46,7 +46,7 @@ public class AttackHit : MonoBehaviour
         //Determine how much damage the attack does
 
         // Enemy attack Player
-        if (parent.GetComponent<EnemyBase>() != null && col.transform.parent.GetComponent<NewPlayer>() != null)
+        if (parent.GetComponent<EnemyBase>() != null && col.transform.parent && col.transform.parent.GetComponent<NewPlayer>() != null)
         {
             float[] parryTimer = col.transform.parent.GetComponent<NewPlayer>().parryTimer;
             if ((parent.transform.position.x - col.transform.parent.transform.position.x < 0 && ((parent.transform.position.y - col.transform.parent.transform.position.y > 0 && parryTimer[0] <= 0) 
@@ -72,7 +72,7 @@ public class AttackHit : MonoBehaviour
         }
 
         // Enemy attack Enemy
-        else if (parent.GetComponent<EnemyBase>() != null && col.transform.parent.GetComponent<EnemyBase>() != null)
+        else if (parent.GetComponent<EnemyBase>() != null && col.transform.parent && col.transform.parent.GetComponent<EnemyBase>() != null)
         {
             //Debug.Log("Before enemy-enemy collision. parent is " + parent.GetComponent<EnemyBase>().reanimated + " reanimated and col is " + col.transform.parent.GetComponent<EnemyBase>().reanimated + " reanimated.");
             if ((parent.GetComponent<EnemyBase>().reanimated && !col.transform.parent.GetComponent<EnemyBase>().reanimated)
@@ -89,7 +89,7 @@ public class AttackHit : MonoBehaviour
         //Attack Player
         if (attacksWhat == AttacksWhat.NewPlayer)
         {
-            if (col.transform.parent.GetComponent<NewPlayer>() != null)
+            if (col.transform.parent && col.transform.parent.GetComponent<NewPlayer>() != null)
             {
                 if (!playerStaggeredEnemy)
                 {

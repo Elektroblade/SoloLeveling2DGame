@@ -52,16 +52,18 @@ public class GorefieldTall : PhysicsObject
     [Header("Combat")]
     private Vector2 currentAttackTarget = new Vector2(0, 0);
     [System.NonSerialized] public float[] origAttackCooldown = {0.6f};
-    [System.NonSerialized] public float[] attackCooldown = {3f};
+    [System.NonSerialized] public float[] attackCooldown = {0.6f};
     [System.NonSerialized] public bool isAttacking = false;
     private int previousFrameState = 0;
-    public EnemyBase targetEnemy;
+    [System.NonSerialized] public EnemyBase targetEnemy;
     
     void Start()
     {
         enemyBase = GetComponent<EnemyBase>();
         origScale = transform.localScale;
         rayCastSizeOrig = rayCastSize;
+        if (enemyBase.reanimated)
+            origAttentionRange *= 2;
         origAttentionRange = attentionRange;
         origMaxSpeed = maxSpeed;
         maxSpeed -= Random.Range(0, maxSpeedDeviation);
@@ -152,7 +154,7 @@ public class GorefieldTall : PhysicsObject
 
         if (!NewPlayer.Instance.frozen)
         {
-            distanceFromTarget = new Vector2 (NewPlayer.Instance.gameObject.transform.position.x - transform.position.x, NewPlayer.Instance.gameObject.transform.position.y - transform.position.y);
+            distanceFromTarget = new Vector2 (target.position.x - transform.position.x, target.position.y - transform.position.y);
             //Debug.Log("distanceFromTarget.x = " + distanceFromTarget.x + ", distanceFromTarget.y = " + distanceFromTarget.y);
 
             directionSmooth += ((direction * sitStillMultiplier) - directionSmooth) * Time.deltaTime * changeDirectionEase;
@@ -198,7 +200,7 @@ public class GorefieldTall : PhysicsObject
                 {
                     if (Mathf.Abs(transform.position.y - ground.point.y) < 0.5f)
                     {
-                        Debug.Log("Underground by + " + Mathf.Abs(transform.position.y - ground.point.y) + "!!");
+                        //Debug.Log("Underground by + " + Mathf.Abs(transform.position.y - ground.point.y) + "!!");
                         velocity.y = 4;
                     }
                 }
@@ -211,11 +213,13 @@ public class GorefieldTall : PhysicsObject
                     {
                         if (Mathf.Abs(distanceFromTarget.x) > attackRange)
                         {
+                            //Debug.Log("Moving into attack range");
                             followPlayer = true;
                             sitStillMultiplier = 1;
                         }
                         else
                         {
+                            //Debug.Log("Within attack range");
                             followPlayer = false;
                             sitStillMultiplier = 0;
                         }
@@ -329,6 +333,15 @@ public class GorefieldTall : PhysicsObject
                         enemyBase.determineFerocity();
                         enemyBase.animator.SetTrigger("slash");
                     }
+                    else if (attackCooldown[0] != 0f)
+                    {
+                        //Debug.Log("attackCooldown[0] = " + attackCooldown[0]);
+                    }
+                    else if (Mathf.Abs(distanceFromTarget.x) - 5f >= 0 || Mathf.Abs(distanceFromTarget.x) + 5f <= 0
+                    || Mathf.Abs(distanceFromTarget.y) - 5f >= 0 || Mathf.Abs(distanceFromTarget.y) + 5f <= 0)
+                    {
+                        //Debug.Log("distanceFromTarget.x = " + distanceFromTarget.x + ", distanceFromTarget.y = " + distanceFromTarget.y);
+                    }
                 }
 
                 //Check for walls
@@ -347,6 +360,11 @@ public class GorefieldTall : PhysicsObject
                     }
 
                 }
+                else if (followPlayer && direction == 1 && Mathf.Abs(distanceFromTarget.y) + 2f <= 0 
+                    && (enemyBase.reanimated || enemyBase.animator.GetBool("charge")))
+                {
+                    Jump(distanceFromTarget);
+                }
 
                 leftWall = Physics2D.Raycast(new Vector2(transform.position.x, transform.position.y + rayCastOffset.y), Vector2.left, rayCastSize.x, layerMask);
                 Debug.DrawRay(new Vector2(transform.position.x, transform.position.y + rayCastOffset.y), Vector2.left * rayCastSize.x, Color.blue);
@@ -361,6 +379,11 @@ public class GorefieldTall : PhysicsObject
                     {
                         Jump(distanceFromTarget);
                     }
+                }
+                else if (followPlayer && direction == -1 && Mathf.Abs(distanceFromTarget.y) + 2f <= 0 
+                    && (enemyBase.reanimated || enemyBase.animator.GetBool("charge")))
+                {
+                    Jump(distanceFromTarget);
                 }
 
                 /*

@@ -45,7 +45,7 @@ public class GorefieldFlyer : MonoBehaviour
     [System.NonSerialized] public float[] attackCooldown = {4f};
     [System.NonSerialized] public bool isAttacking = false;
     private int previousFrameState = 0;
-    public EnemyBase targetEnemy;
+    [System.NonSerialized] public EnemyBase targetEnemy;
 
     // Use this for initialization
     void Start()

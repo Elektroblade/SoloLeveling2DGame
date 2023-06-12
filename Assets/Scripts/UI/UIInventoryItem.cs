@@ -10,26 +10,47 @@ public class UIInventoryItem : MonoBehaviour, IPointerClickHandler, IPointerEnte
     private Image spriteImage;
     private UIInventoryItem selectedInventoryItem;
     private Tooltip tooltip;
+    [SerializeField] public bool isHotbarSlot;
+    [System.NonSerialized] public Vector3 origScale;
+
+    private void Start()
+    {
+        origScale = this.transform.localScale;
+    }
 
     private void Awake()
     {
         spriteImage = GetComponent<Image>();
         UpdateInventoryItem(null);  // Testing purposes
-        selectedInventoryItem = GameObject.Find("SelectedInventoryItem").GetComponent<UIInventoryItem>();
-        tooltip = GameObject.Find("Tooltip").GetComponent<Tooltip>();
+        if (GameObject.Find("SelectedInventoryItem") != null)
+        {
+            selectedInventoryItem = GameObject.Find("SelectedInventoryItem").GetComponent<UIInventoryItem>();
+            tooltip = GameObject.Find("Tooltip").GetComponent<Tooltip>();
+        }
+        else
+        {
+            selectedInventoryItem = null;
+        }
     }
 
     public void UpdateInventoryItem(InventoryItem inventoryItem)
     {
-        this.inventoryItem = inventoryItem;
+        if (inventoryItem != null)
+            this.inventoryItem = inventoryItem;
+        else
+            this.inventoryItem = null;
         if (this.inventoryItem != null)
         {
-            spriteImage.color = Color.white;
+            Color tmpImageColour = spriteImage.color;
+            tmpImageColour.a = 1f;
+            spriteImage.color = tmpImageColour;
             spriteImage.sprite = this.inventoryItem.icon;
         }
         else
         {
-            spriteImage.color = Color.clear;
+            Color tmpImageColour = spriteImage.color;
+            tmpImageColour.a = 0f;
+            spriteImage.color = tmpImageColour;
         }
     }
 
@@ -68,5 +89,21 @@ public class UIInventoryItem : MonoBehaviour, IPointerClickHandler, IPointerEnte
     public void OnPointerExit(PointerEventData eventData)
     {
         tooltip.gameObject.SetActive(false);
+    }
+
+    public void HighlightMe()
+    {
+        Color tempParentColor = new Color(1f, 1f, 1f, 1f);
+        tempParentColor.a = 0.1f;
+        this.transform.parent.GetComponent<Image>().color = tempParentColor;
+        this.transform.localScale = new Vector3(origScale.x + 0.1f, origScale.y + 0.1f, 1);
+    }
+
+    public void UnhighlightMe()
+    {
+        Color tempParentColor = new Color(1f, 1f, 1f, 1f);
+        tempParentColor.a = 1f;
+        this.transform.parent.GetComponent<Image>().color = tempParentColor;
+        this.transform.localScale = new Vector3(origScale.x - 0.1f, origScale.y - 0.1f, 1);
     }
 }

@@ -12,9 +12,8 @@ public class GameManager : MonoBehaviour
     private static GameManager instance;
     [SerializeField] public AudioTrigger gameMusic;
     [SerializeField] public AudioTrigger gameAmbience;
-    public List<InventoryItem> inventoryItems = new List<InventoryItem>();
+    public InventoryStorage inventoryItems;
     public InventoryDatabase inventoryDatabase;
-    public UIInventory inventoryUI;
     public Transform pfDamagePopup;
     [System.NonSerialized] public int testingLocalDifficulty = 000;
     [System.NonSerialized] public int testingLocalDifficultyVariance = 30;
@@ -34,62 +33,60 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("Start Called");
 
-        inventoryUI.gameObject.SetActive(false);
         audioSource = GetComponent<AudioSource>();
-        GiveItem("Barca's Dagger");
-        GiveItem("Crimson Knight's Helmet");
-        GiveItem("Warden's Collar");
-        GiveItem("High-Rank Knight's Chestplate");
-        GiveItem("High-Rank Knight's Gauntlets");
-        GiveItem("High-Rank Mage's Ring");
-        GiveItem("Mid-Rank Assassin's Boots");
+        inventoryItems = GetComponent<InventoryStorage>();
+        inventoryItems.inventoryUI.gameObject.SetActive(false);
+        GiveItem("BarcasDagger");
+        GiveItem("MorgulFlail");
+        GiveItem("CrimsonKnightsHelmet");
+        GiveItem("WardensCollar");
+        GiveItem("HighRankKnightsChestplate");
+        GiveItem("HighRankKnightsGauntlets");
+        GiveItem("HighRankMagesRing");
+        GiveItem("MidRankAssassinsBoots");
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            if (!inventoryUI.gameObject.activeSelf)
+            if (!inventoryItems.inventoryUI.gameObject.activeSelf)
             {
                 Cursor.visible = true;
+                NewPlayer.Instance.hasInventoryOpen = true;
             }
             else
             {
                 Cursor.visible = false;
+                NewPlayer.Instance.hasInventoryOpen = false;
             }
             
-            inventoryUI.gameObject.SetActive(!inventoryUI.gameObject.activeSelf);
+            inventoryItems.inventoryUI.gameObject.SetActive(!inventoryItems.inventoryUI.gameObject.activeSelf);
         }
     }
 
-    public void GiveItem(string name)
+    public void GiveItem(string id)
     {
         //Debug.Log("Trying to add item: " + name);
-        InventoryItem inventoryItemToAdd = inventoryDatabase.GetInventoryItem(name);
-        if (inventoryItemToAdd == null)
-        {
-            Debug.Log("null!");
-        }
-        inventoryItems.Add(inventoryItemToAdd);
-        inventoryUI.AddNewInventoryItem(inventoryItemToAdd);
+        InventoryItem inventoryItemToAdd = inventoryDatabase.GetInventoryItem(id);
+        inventoryItems.AddItem(inventoryItemToAdd);
         //Debug.Log("Added item: " + inventoryItemToAdd.name);
 
         //hud.SetInventoryImage(Resources.Load<Sprite>("UI/InventoryItems/" + name));
     }
 
-    public InventoryItem CheckForInventoryItem(string name)
+    public InventoryItem CheckForInventoryItem(string id)
     {
-        return inventoryItems.Find(inventoryItem => (inventoryItem.name.CompareTo(name) == 0));
+        return inventoryItems.Find(id);
     }
 
-    public void RemoveInventoryItem(string name)
+    public void RemoveInventoryItem(string id)
     {
-        InventoryItem inventoryItemToRemove = CheckForInventoryItem(name);
+        InventoryItem inventoryItemToRemove = CheckForInventoryItem(id);
         if (inventoryItemToRemove != null)
         {
             inventoryItems.Remove(inventoryItemToRemove);
-            inventoryUI.RemoveInventoryItem(inventoryItemToRemove);
-            Debug.Log("Item removed: " + inventoryItemToRemove.name);
+            Debug.Log("Item removed: " + inventoryItemToRemove.id);
         }
 
         //hud.SetInventoryImage(hud.blankUI);

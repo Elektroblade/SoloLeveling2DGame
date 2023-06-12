@@ -70,7 +70,7 @@ public class EarthPrism : MonoBehaviour
             Instantiate(earthDisk, diskPosition, transform.rotation);
 
             prismHeight -= maxPrismHeight / (abilityLevel + 1f);
-            Debug.Log("prismHeight = " + prismHeight + ", 1.523f - maxPrismHeight = " + (1.523f - maxPrismHeight));
+            //Debug.Log("prismHeight = " + prismHeight + ", 1.523f - maxPrismHeight = " + (1.523f - maxPrismHeight));
             if (prismHeight <= 0)
             {
                 earthPrismSide.enabled = false;

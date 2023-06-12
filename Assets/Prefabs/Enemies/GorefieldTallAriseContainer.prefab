@@ -308,7 +308,7 @@ PrefabInstance:
     - target: {fileID: 468107542928327624, guid: 6c88642d290c96d46a93dcef6e76d59e,
         type: 3}
       propertyPath: m_Name
-      value: GorefieldTallAriseContainer (1)
+      value: GorefieldTallAriseContainer
       objectReference: {fileID: 0}
     - target: {fileID: 468107542928327624, guid: 6c88642d290c96d46a93dcef6e76d59e,
         type: 3}
@@ -499,17 +499,22 @@ PrefabInstance:
     - target: {fileID: 808889812811484151, guid: 6c88642d290c96d46a93dcef6e76d59e,
         type: 3}
       propertyPath: m_Bounds.m_Center.x
-      value: 0.008272409
+      value: 0.0082781315
       objectReference: {fileID: 0}
     - target: {fileID: 808889812811484151, guid: 6c88642d290c96d46a93dcef6e76d59e,
         type: 3}
       propertyPath: m_Bounds.m_Center.y
-      value: -0.013442993
+      value: -0.013450623
       objectReference: {fileID: 0}
     - target: {fileID: 808889812811484151, guid: 6c88642d290c96d46a93dcef6e76d59e,
         type: 3}
       propertyPath: m_Bounds.m_Extent.x
-      value: 3.4279103
+      value: 3.4279084
+      objectReference: {fileID: 0}
+    - target: {fileID: 808889812811484151, guid: 6c88642d290c96d46a93dcef6e76d59e,
+        type: 3}
+      propertyPath: m_Bounds.m_Extent.y
+      value: 3.3953648
       objectReference: {fileID: 0}
     - target: {fileID: 1272402470560355237, guid: 6c88642d290c96d46a93dcef6e76d59e,
         type: 3}
@@ -626,6 +631,11 @@ PrefabInstance:
       propertyPath: xpBarSlider
       value: 
       objectReference: {fileID: 481633316}
+    - target: {fileID: 5208090575583571766, guid: 6c88642d290c96d46a93dcef6e76d59e,
+        type: 3}
+      propertyPath: ariseContainer
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 5549118749276380037, guid: 6c88642d290c96d46a93dcef6e76d59e,
         type: 3}
       propertyPath: m_Layer
@@ -686,6 +696,11 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 10
       objectReference: {fileID: 0}
+    - target: {fileID: 8675091998896384155, guid: 6c88642d290c96d46a93dcef6e76d59e,
+        type: 3}
+      propertyPath: enemyBase
+      value: 
+      objectReference: {fileID: 4392994576316609945}
     - target: {fileID: 8719429069961863705, guid: 6c88642d290c96d46a93dcef6e76d59e,
         type: 3}
       propertyPath: m_Layer
@@ -708,6 +723,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6c88642d290c96d46a93dcef6e76d59e, type: 3}
+--- !u!114 &4392994576316609945 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5208090575583571766, guid: 6c88642d290c96d46a93dcef6e76d59e,
+    type: 3}
+  m_PrefabInstance: {fileID: 8408738933397412527}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5f76df804f07458b8dd06edeba7002d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &8272790181533125722 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 468107544619472629, guid: 6c88642d290c96d46a93dcef6e76d59e,

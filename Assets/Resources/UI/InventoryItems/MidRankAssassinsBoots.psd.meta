@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 54743fdafd71f7b48a5c9ac995b44e83
+guid: d02c8c5b5f15bba43b7286c3f496b6c8
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -90,7 +90,7 @@ TextureImporter:
     secondaryTextures: []
   spritePackingTag: 
   pSDRemoveMatte: 0
-  pSDShowRemoveMatteOption: 0
+  pSDShowRemoveMatteOption: 1
   userData: 
   assetBundleName: 
   assetBundleVariant: 

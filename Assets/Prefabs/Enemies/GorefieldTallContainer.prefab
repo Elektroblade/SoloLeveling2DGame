@@ -30259,6 +30259,22 @@ Rigidbody2D:
   m_SleepingMode: 0
   m_CollisionDetection: 1
   m_Constraints: 0
+--- !u!70 &1249314930
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3531817816966243657}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0.19371466, y: 0.24041015}
+  m_Size: {x: 6.6254587, y: 1.8500901}
+  m_Direction: 1
 --- !u!82 &5208090575583571770
 AudioSource:
   m_ObjectHideFlags: 0
@@ -30401,7 +30417,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 420e96ddfe1ad484ebaaf99004b00fa8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  recoveryTime: 0.4
 --- !u!114 &5208090575583571765
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30451,7 +30466,6 @@ MonoBehaviour:
   sitStillWhenNotFollowing: 1
   jumpSound: {fileID: 8300000, guid: a69256e0605cd46c19e2fe34da9587b5, type: 3}
   stepSound: {fileID: 0}
-  targetEnemy: {fileID: 0}
 --- !u!114 &5208090575583571766
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30467,7 +30481,6 @@ MonoBehaviour:
   enemyType: 1
   animator: {fileID: 5208090575583571761}
   instantiator: {fileID: 5208090575583571763}
-  level: 3
   intrinsicStats:
   - 0
   - 0
@@ -30483,7 +30496,7 @@ MonoBehaviour:
   reanimated: 0
   myGameObject: {fileID: 3531817816966243657}
   reanimatedSlotIndex: 0
-  ariseContainer: {fileID: 4660103498608002820, guid: 863d5a389a1540843aaab4673a4d4c3a,
+  ariseContainer: {fileID: 8272790181049456999, guid: 8df698c1a6a0ceb40a9a8fc8cffe702e,
     type: 3}
   deathParticles: {fileID: 468107544783053980}
   health: 0
@@ -30506,7 +30519,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 420e96ddfe1ad484ebaaf99004b00fa8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  recoveryTime: 0.6
 --- !u!114 &5208090575583571768
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30540,22 +30552,6 @@ MonoBehaviour:
   audioSource: {fileID: 0}
   particleSystem: {fileID: 0}
   setBoolInAnimator: {fileID: 0}
---- !u!70 &1249314930
-CapsuleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3531817816966243657}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0.19371466, y: 0.24041015}
-  m_Size: {x: 6.6254587, y: 1.8500901}
-  m_Direction: 1
 --- !u!1001 &5208090573788858562
 PrefabInstance:
   m_ObjectHideFlags: 0

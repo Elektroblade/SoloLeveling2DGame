@@ -329,7 +329,7 @@ PrefabInstance:
     - target: {fileID: 4556061815624766702, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_Bounds.m_Center.x
-      value: 0.21774912
+      value: 0.21774149
       objectReference: {fileID: 0}
     - target: {fileID: 4556061815624766702, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
@@ -339,7 +339,7 @@ PrefabInstance:
     - target: {fileID: 4556061815624766702, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_Bounds.m_Extent.x
-      value: 4.647748
+      value: 4.6477404
       objectReference: {fileID: 0}
     - target: {fileID: 4556061815624766702, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
@@ -569,7 +569,7 @@ PrefabInstance:
     - target: {fileID: 9086877982050692262, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -20.5
+      value: 8.23
       objectReference: {fileID: 0}
     - target: {fileID: 9086877982050692262, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
@@ -594,7 +594,7 @@ PrefabInstance:
     - target: {fileID: 9086877982050692263, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_Name
-      value: GorefieldFlyerAriseContainer Variant
+      value: GorefieldFlyerAriseContainer
       objectReference: {fileID: 0}
     - target: {fileID: 9086877982050692263, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
