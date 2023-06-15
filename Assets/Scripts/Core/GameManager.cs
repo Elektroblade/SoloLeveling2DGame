@@ -44,6 +44,9 @@ public class GameManager : MonoBehaviour
         GiveItem("HighRankKnightsGauntlets");
         GiveItem("HighRankMagesRing");
         GiveItem("MidRankAssassinsBoots");
+
+        RemoveInventoryItem("MidRankAssassinsBoots");
+        RemoveInventoryItem("CrimsonKnightsHelmet");
     }
 
     private void Update()
@@ -69,7 +72,7 @@ public class GameManager : MonoBehaviour
     {
         //Debug.Log("Trying to add item: " + name);
         InventoryItem inventoryItemToAdd = inventoryDatabase.GetInventoryItem(id);
-        inventoryItems.AddItem(inventoryItemToAdd);
+        inventoryItems.AddItem(inventoryItemToAdd, false, -1);
         //Debug.Log("Added item: " + inventoryItemToAdd.name);
 
         //hud.SetInventoryImage(Resources.Load<Sprite>("UI/InventoryItems/" + name));
@@ -85,7 +88,8 @@ public class GameManager : MonoBehaviour
         InventoryItem inventoryItemToRemove = CheckForInventoryItem(id);
         if (inventoryItemToRemove != null)
         {
-            inventoryItems.Remove(inventoryItemToRemove);
+            Debug.Log("id to remove = " + id + ", found id " + inventoryItemToRemove.id);
+            inventoryItems.RemoveItem(inventoryItemToRemove);
             Debug.Log("Item removed: " + inventoryItemToRemove.id);
         }
 

@@ -8,12 +8,14 @@ using UnityEngine.SceneManagement;
 public class UIInventory : MonoBehaviour
 {
     [System.NonSerialized] public UIInventoryItem[] uIInventoryItems;
+    [System.NonSerialized] public int uIInventorySize = 9;
     public GameObject hotbarSlotPrefab;
     public GameObject slotPrefab;
     public Transform slotPanel;
     [System.NonSerialized] private int numberOfSlots = 9;
     [SerializeField] public TextMeshProUGUI highlightedDescription;
-    [System.NonSerialized] private int highlightedIndex = 0;
+    [System.NonSerialized] public int highlightedIndex = 0;
+    [System.NonSerialized] public int selectedIndex = -1;
     [System.NonSerialized] private float holdArrowKeyCooldown = 0f;
     [System.NonSerialized] private float holdArrowKeyCooldownMax = 0.08f;
 
@@ -27,6 +29,22 @@ public class UIInventory : MonoBehaviour
             instance.transform.SetParent(slotPanel);
             uIInventoryItems[i] = instance.GetComponentInChildren<UIInventoryItem>();
         }
+
+        uIInventoryItems[highlightedIndex].highlighted = true;
+
+        if (selectedIndex >= 0)
+        {
+            uIInventoryItems[selectedIndex].selected = true;
+        }
+
+        /*
+        uIInventoryItems[highlightedIndex].HighlightMe();
+
+        if (highlightedIndex < uIInventorySize && uIInventoryItems[highlightedIndex] != null)
+        {
+            uIInventoryItems[highlightedIndex].HighlightMe();
+        }
+        */
     }
 
     private void Update()
@@ -41,50 +59,32 @@ public class UIInventory : MonoBehaviour
         }
 
         int prevHighlightedIndex = highlightedIndex;    // Remember previous highlighted index to unhighlight if another index is highlighted.
+        int prevSelectedIndex = selectedIndex;
 
         if (Input.GetKeyDown(KeyCode.UpArrow) && highlightedIndex >= 9)
         {
             holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
             highlightedIndex -= 9;
         }
-        if (Input.GetKeyDown(KeyCode.RightArrow) && highlightedIndex % 9 < 8 && highlightedIndex < uIInventoryItems.Length - 1)
+        if (Input.GetKeyDown(KeyCode.RightArrow) && highlightedIndex % 9 < 8 && highlightedIndex < uIInventorySize - 1)
         {
             holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
-            int newHighlightedIndex = highlightedIndex;
-            while (newHighlightedIndex % 9 < 8 && highlightedIndex < uIInventoryItems.Length - 1)
-            {
-                newHighlightedIndex++;
-                if (uIInventoryItems[newHighlightedIndex].inventoryItem != null)
-                {
-                    highlightedIndex = newHighlightedIndex;
-                    break;
-                }
-            }
+            highlightedIndex++;
         }
-        if (Input.GetKeyDown(KeyCode.DownArrow) && highlightedIndex < uIInventoryItems.Length - 9)
+        if (Input.GetKeyDown(KeyCode.DownArrow) && highlightedIndex < uIInventorySize - 9)
         {
             holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
             highlightedIndex += 9;
         }
-        else if (Input.GetKeyDown(KeyCode.DownArrow) && highlightedIndex < uIInventoryItems.Length - 1)
+        else if (Input.GetKeyDown(KeyCode.DownArrow) && highlightedIndex < uIInventorySize - 1)
         {
             holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
-            highlightedIndex = uIInventoryItems.Length - 1;
+            highlightedIndex = uIInventorySize - 1;
         }
         if (Input.GetKeyDown(KeyCode.LeftArrow) && highlightedIndex % 9 > 0)
         {
             holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
-            int newHighlightedIndex = highlightedIndex;
-            while (newHighlightedIndex % 9 > 0)
-            {
-                newHighlightedIndex--;
-                if (uIInventoryItems[newHighlightedIndex].inventoryItem != null)
-                {
-                    Debug.Log("index " + newHighlightedIndex + " is not null!");
-                    highlightedIndex = newHighlightedIndex;
-                    break;
-                }
-            }
+            highlightedIndex--;
         }
 
         if (Input.GetKey(KeyCode.UpArrow) && highlightedIndex >= 9 && holdArrowKeyCooldown == 0)
@@ -92,21 +92,12 @@ public class UIInventory : MonoBehaviour
             holdArrowKeyCooldown = holdArrowKeyCooldownMax;
             highlightedIndex -= 9;
         }
-        if (Input.GetKey(KeyCode.RightArrow) && highlightedIndex % 9 < 8 && holdArrowKeyCooldown == 0 && highlightedIndex < uIInventoryItems.Length - 1)
+        if (Input.GetKey(KeyCode.RightArrow) && highlightedIndex % 9 < 8 && holdArrowKeyCooldown == 0 && highlightedIndex < uIInventorySize - 1)
         {
             holdArrowKeyCooldown = holdArrowKeyCooldownMax;
-            int newHighlightedIndex = highlightedIndex;
-            while (newHighlightedIndex % 9 < 8 && highlightedIndex < uIInventoryItems.Length - 1)
-            {
-                newHighlightedIndex++;
-                if (uIInventoryItems[newHighlightedIndex].inventoryItem != null)
-                {
-                    highlightedIndex = newHighlightedIndex;
-                    break;
-                }
-            }
+            highlightedIndex++;
         }
-        if (Input.GetKey(KeyCode.DownArrow) && highlightedIndex < uIInventoryItems.Length - 9 && holdArrowKeyCooldown == 0)
+        if (Input.GetKey(KeyCode.DownArrow) && highlightedIndex < uIInventorySize - 9 && holdArrowKeyCooldown == 0)
         {
             holdArrowKeyCooldown = holdArrowKeyCooldownMax;
             highlightedIndex += 9;
@@ -114,28 +105,106 @@ public class UIInventory : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftArrow) && highlightedIndex % 9 > 0 && holdArrowKeyCooldown == 0)
         {
             holdArrowKeyCooldown = holdArrowKeyCooldownMax;
-            int newHighlightedIndex = highlightedIndex;
-            while (newHighlightedIndex % 9 > 0)
+            highlightedIndex--;
+        }
+
+        if (Input.GetButtonDown("Jump"))
+        {
+            if (selectedIndex != highlightedIndex && selectedIndex >= 0 && selectedIndex < uIInventorySize && highlightedIndex < uIInventorySize 
+                && (uIInventoryItems[selectedIndex].inventoryItem != null || uIInventoryItems[highlightedIndex].inventoryItem != null))
             {
-                 
-                newHighlightedIndex--;
-                if (uIInventoryItems[newHighlightedIndex].inventoryItem != null)
+                InventoryStorage inventoryStorage = GameManager.Instance.inventoryItems;
+
+                if (uIInventoryItems[selectedIndex].inventoryItem == null && uIInventoryItems[highlightedIndex].inventoryItem.itemType == "WEAPON")
                 {
-                    highlightedIndex = newHighlightedIndex;
-                    break;
+                    //Debug.Log("SelectedIndex is NULL");
+                    InventoryItem inventoryItemToMove = uIInventoryItems[highlightedIndex].inventoryItem;
+                    inventoryStorage.RemoveItem(inventoryItemToMove);       // Removal must occur first, otherwise the item will simply be stacked upon itself
+                    inventoryStorage.AddItem(inventoryItemToMove, false, selectedIndex);
+                    UpdateSlot(highlightedIndex, null);
                 }
+                else if (uIInventoryItems[highlightedIndex].inventoryItem == null && uIInventoryItems[selectedIndex].inventoryItem.itemType == "WEAPON")
+                {
+                    //Debug.Log("HighlightedIndex is NULL");
+                    InventoryItem inventoryItemToMove = uIInventoryItems[selectedIndex].inventoryItem;
+                    inventoryStorage.RemoveItem(inventoryItemToMove);       // Removal must occur first, otherwise the item will simply be stacked upon itself
+                    inventoryStorage.AddItem(inventoryItemToMove, false, highlightedIndex);
+                    UpdateSlot(selectedIndex, null);
+                }
+                else if (selectedIndex < 9 && highlightedIndex < 9)
+                {
+                    //Debug.Log("Both items in hotbar");
+                    inventoryStorage.SwapItemIndices(highlightedIndex, selectedIndex);
+                }
+                else if (selectedIndex < 9 && uIInventoryItems[highlightedIndex].inventoryItem.itemType == "WEAPON")
+                {
+                    //Debug.Log("selectedIndex in hotbar");
+                    InventoryItem inventoryItemToMove1 = uIInventoryItems[highlightedIndex].inventoryItem;
+                    inventoryStorage.RemoveItem(inventoryItemToMove1);       // Removal must occur first, otherwise the item will simply be stacked upon itself
+                    InventoryItem inventoryItemToMove2 = uIInventoryItems[selectedIndex].inventoryItem;
+                    inventoryStorage.AddItem(inventoryItemToMove1, false, selectedIndex);
+                    inventoryStorage.AddItem(inventoryItemToMove2, true, highlightedIndex);
+                }
+                else if (highlightedIndex < 9 && uIInventoryItems[selectedIndex].inventoryItem.itemType == "WEAPON")
+                {
+                    //Debug.Log("highlightedIndex in hotbar");
+                    InventoryItem inventoryItemToMove1 = uIInventoryItems[selectedIndex].inventoryItem;
+                    inventoryStorage.RemoveItem(inventoryItemToMove1);       // Removal must occur first, otherwise the item will simply be stacked upon itself
+                    InventoryItem inventoryItemToMove2 = uIInventoryItems[highlightedIndex].inventoryItem;
+                    inventoryStorage.AddItem(inventoryItemToMove1, false, highlightedIndex);
+                    inventoryStorage.AddItem(inventoryItemToMove2, true, selectedIndex);
+                }
+                else if (selectedIndex >= 9 && highlightedIndex >= 9)
+                {
+                    inventoryStorage.SwapItemIndices(highlightedIndex, selectedIndex);
+                }
+
+                selectedIndex = -1;
+            }
+            else if (selectedIndex < 0)
+            {
+                selectedIndex = highlightedIndex;
             }
         }
 
-        if (uIInventoryItems[highlightedIndex].inventoryItem != null)
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            if (selectedIndex >= 0)
+            {
+                selectedIndex = -1;
+            }
+            else if (highlightedIndex < 9)
+            {
+                InventoryStorage inventoryStorage = GameManager.Instance.inventoryItems;
+                InventoryItem inventoryItemToMove = uIInventoryItems[highlightedIndex].inventoryItem;
+                inventoryStorage.RemoveItem(inventoryItemToMove);       // Removal must occur first, otherwise the item will simply be stacked upon itself
+                inventoryStorage.AddItem(inventoryItemToMove, true, -1);
+                UpdateSlot(highlightedIndex, null);
+            }
+        }
+
+        
+        if (uIInventoryItems[highlightedIndex].inventoryItem != null && highlightedIndex != prevHighlightedIndex)
         {
             highlightedDescription.text = uIInventoryItems[highlightedIndex].inventoryItem.description;
             uIInventoryItems[highlightedIndex].HighlightMe();
+        }
+        else if (highlightedIndex != prevHighlightedIndex)
+        {
+            highlightedDescription.text = "";
+        }
+        if (highlightedIndex != prevHighlightedIndex && prevHighlightedIndex < uIInventorySize)
+        {
+            uIInventoryItems[prevHighlightedIndex].UnhighlightMe();
+        }
 
-            if (highlightedIndex != prevHighlightedIndex && prevHighlightedIndex < uIInventoryItems.Length)
-            {
-                uIInventoryItems[prevHighlightedIndex].UnhighlightMe();
-            }
+        if (selectedIndex >= 0 && selectedIndex < uIInventorySize && selectedIndex != prevSelectedIndex)
+        {
+            uIInventoryItems[selectedIndex].SelectMe();
+        }
+        if (prevSelectedIndex >= 0 && prevSelectedIndex < uIInventorySize && prevSelectedIndex != selectedIndex)
+        {
+            uIInventoryItems[prevSelectedIndex].UnselectMe();
         }
     }
 
@@ -147,29 +216,36 @@ public class UIInventory : MonoBehaviour
         }
         else
         {
+            Debug.Log("updating slot " + slot + " to null...");
             uIInventoryItems[slot].UpdateInventoryItem(null);
         }
     }
 
     public void AddNewInventoryItem(InventoryItem inventoryItem)
     {
-        UIInventoryItem[] biggerStorage = new UIInventoryItem[uIInventoryItems.Length + 1];
-        uIInventoryItems.CopyTo(biggerStorage, 0);
-        uIInventoryItems = biggerStorage;
+        if (uIInventorySize >= uIInventoryItems.Length)
+        {
+            UIInventoryItem[] biggerStorage = new UIInventoryItem[uIInventorySize + 1];
+            uIInventoryItems.CopyTo(biggerStorage, 0);
+            uIInventoryItems = biggerStorage;
+        }
+        uIInventorySize++;
 
         GameObject instance = Instantiate(slotPrefab);
         instance.transform.SetParent(slotPanel);
-        uIInventoryItems[uIInventoryItems.Length - 1] = instance.GetComponentInChildren<UIInventoryItem>();
+        uIInventoryItems[uIInventorySize - 1] = instance.GetComponentInChildren<UIInventoryItem>();
 
-        UpdateSlot((uIInventoryItems.Length - 1), inventoryItem);
+        UpdateSlot((uIInventorySize - 1), inventoryItem);
     }
 
     public void RemoveInventoryItem()
     {
-        UpdateSlot(uIInventoryItems.Length - 1, null);
+        UpdateSlot(uIInventorySize - 1, null);
+        GameObject slotToErase = uIInventoryItems[uIInventorySize - 1].transform.parent.gameObject;
+        Destroy(uIInventoryItems[uIInventorySize -1]);
+        Destroy(slotToErase);
 
-        UIInventoryItem[] smallerStorage = new UIInventoryItem[uIInventoryItems.Length - 1];
-        uIInventoryItems.CopyTo(smallerStorage, 0);
-        uIInventoryItems = smallerStorage;
+        uIInventoryItems[uIInventorySize - 1] = null;
+        uIInventorySize--;
     }
 }
