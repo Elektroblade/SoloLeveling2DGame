@@ -44,9 +44,10 @@ public class GameManager : MonoBehaviour
         GiveItem("HighRankKnightsGauntlets");
         GiveItem("HighRankMagesRing");
         GiveItem("MidRankAssassinsBoots");
+        GiveItem("TheOneRing");
 
-        RemoveInventoryItem("MidRankAssassinsBoots");
-        RemoveInventoryItem("CrimsonKnightsHelmet");
+        //RemoveInventoryItem("MidRankAssassinsBoots");
+        //RemoveInventoryItem("CrimsonKnightsHelmet");
     }
 
     private void Update()

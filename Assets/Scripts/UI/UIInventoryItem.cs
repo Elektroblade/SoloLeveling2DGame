@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class UIInventoryItem : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+public class UIInventoryItem : MonoBehaviour
 {
     public InventoryItem inventoryItem;
     private Image spriteImage;
@@ -79,43 +79,6 @@ public class UIInventoryItem : MonoBehaviour, IPointerClickHandler, IPointerEnte
 
             Debug.Log("slot should be invisible now");
         }
-    }
-
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        Debug.Log("Detected Pointer Click!");
-        if (this.inventoryItem != null)
-        {
-            if (selectedInventoryItem.inventoryItem != null)
-            {
-                InventoryItem clone = new InventoryItem(selectedInventoryItem.inventoryItem);
-                selectedInventoryItem.UpdateInventoryItem(this.inventoryItem);
-                UpdateInventoryItem(clone);
-            }
-            else
-            {
-                selectedInventoryItem.UpdateInventoryItem(this.inventoryItem);
-                UpdateInventoryItem(null);
-            }
-        }
-        else if (selectedInventoryItem.inventoryItem != null)
-        {
-            UpdateInventoryItem(selectedInventoryItem.inventoryItem);
-            selectedInventoryItem.UpdateInventoryItem(null);
-        }
-    }
-
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        if (this.inventoryItem != null)
-        {
-            tooltip.GenerateTooltip(this.inventoryItem);
-        }
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        tooltip.gameObject.SetActive(false);
     }
 
     public void HighlightMe()

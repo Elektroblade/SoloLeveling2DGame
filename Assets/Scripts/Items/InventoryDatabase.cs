@@ -5,6 +5,8 @@ using UnityEngine;
 public class InventoryDatabase : MonoBehaviour
 {
     public List<InventoryItem> inventoryItems = new List<InventoryItem>();
+    public List<ActiveSkill> activeSkills = new List<ActiveSkill>();
+    public List<PassiveSkill> passiveSkills = new List<PassiveSkill>();
 
     private void Awake()
     {
@@ -28,21 +30,23 @@ public class InventoryDatabase : MonoBehaviour
         inventoryItems = new List<InventoryItem>() {
 
             // Weapons
-            new InventoryItem("Barca's Dagger", "BarcasDagger", "WEAPON", "DAGGER", "A dagger used by the great warrior Barca. A powerful spell of weightlessness imbued in the dagger allows the user to be more agile while wielding it.\nATTACK POWER +100\nAGILITY +10",
+            new InventoryItem("Barca's Dagger", "BarcasDagger", "WEAPON", "DAGGER",
+            "A dagger used by the great warrior Barca. A powerful spell of weightlessness imbued in the dagger allows the user to be more agile while wielding it.\nATTACK POWER +100\nAGILITY +10",
             new Dictionary<string, double>
             {
                 {"AcquisitionDifficulty", 50.0},
-                {"Agility", 50.0},
-                {"AttackPower", 100.0},
+                {"Agility==", 50.0},
+                {"PhysicalPower", 100.0},
                 {"Agility+", 10.0}
             }),
 
-            new InventoryItem("Morgul Flail", "MorgulFlail", "WEAPON", "FLAIL", "An unweildy flail wrought from cursed steel with a great, deadly head capable of shattering shields or killing enemies in one swing.",
+            new InventoryItem("Morgul Flail", "MorgulFlail", "WEAPON", "FLAIL",
+            "An unweildy flail wrought from cursed steel with a great, deadly head capable of shattering shields or killing enemies in one swing.",
             new Dictionary<string, double>
             {
                 {"AcquisitionDifficulty", 65.0},
-                {"Strength=", 65.0},               // = means Threshold. First Threshold is used for attackRate scaling.
-                {"AttackPower", (65.0 / 4.0) * 3.3 * 0.95},    // (Level / combo value) * combo time * stagger modifier
+                {"Strength==", 65.0},               // = means Threshold. First Threshold is used for attackRate scaling.
+                {"PhysicalPower", (65.0 / 4.0) * 3.3 * 0.95},    // (Level / combo value) * combo time * stagger modifier
                 {"Stagger*", 1.5}
             }),
 
@@ -64,21 +68,33 @@ public class InventoryDatabase : MonoBehaviour
             new InventoryItem("High-Rank Knight's Chestplate", "HighRankKnightsChestplate", "ARMOUR", "CHESTPLATE", "",
             new Dictionary<string, double>
             {
-                {"AcquisitionDifficulty", 20.0}
+                {"AcquisitionDifficulty", 30.0}
             }),
 
             // Gloves
             new InventoryItem("High-Rank Knight's Gauntlets", "HighRankKnightsGauntlets", "ARMOUR", "GLOVES", "",
             new Dictionary<string, double>
             {
-                {"AcquisitionDifficulty", 20.0}
+                {"AcquisitionDifficulty", 30.0}
             }),
 
             // Rings
             new InventoryItem("High-Rank Mage's Ring", "HighRankMagesRing", "ADORNMENT", "RING", "",
             new Dictionary<string, double>
             {
-                {"AcquisitionDifficulty", 20.0}
+                {"AcquisitionDifficulty", 30.0}
+            }),
+
+            new InventoryItem("The One Ring", "TheOneRing", "ADORNMENT", "RING",
+            "<i>Ash nazg durbatulûk, ash nazg gimbatul, ash nazg thrakatulûk, agh burzum-ishi krimpatul.</i>\n\n"
+            + "A Ring of made of gold, forged by the Dark Lord Sauron in the fires of Mouth Doom. While wearing the One Ring, "
+            + "your Intelligence and Perception are increased dramatically, but because the Ring is endowed with malevolent agency, "
+            + "you are unable to avoid harming innocent civilians and hunters while wearing it.",
+            new Dictionary<string, double>
+            {
+                {"AcquisitionDifficulty", 90.0},
+                {"Intelligence+", 200.0},
+                {"Perception+", 200.0}
             }),
 
             // Boots
@@ -89,6 +105,86 @@ public class InventoryDatabase : MonoBehaviour
             })
             
             // Next item
+        };
+
+        activeSkills = new List<ActiveSkill>() {
+            
+            // Electromancer
+            new ActiveSkill("Rakurai", "Rakurai", "ELECTROMANCER", 1, -1.0, 1.5,
+                "While channeling this skill, imbue all weapon attacks with a bolt of directional lightning. Tap to start channeling, tap again to stop."),
+
+            // Geomancer
+            new ActiveSkill("Seismic Tsunami", "SeismicTsumani", "GEOMANCER", 1, 20.0, -1.0,
+                "Summon a giant seismic wave in front of you, launching enemies diagonally and dealing massive physical damage."),
+
+            // Necromancer
+            new ActiveSkill("Shadow Extraction", "ShadowExtraction", "NECROMANCER", 1, -1.0, -1.0,
+                "A Shadow Soldier is created from a body without life by taking out its mana. The chance of failure increases the higher the target's attributes are, "
+                + "and the more time passed since the target's death."),
+
+            // Shadow Monarch
+            new ActiveSkill("Summon Shadow", "SummonShadow", "SHADOW MONARCH", 2, -1.0, -1.0,
+                "Saved Soldiers can be summoned and reabsorbed whenever and wherever the animator desires. You must set another Active Skill slot to reabsorb summoned Shadows."),
+            
+            // Scourge of Vitality
+            new ActiveSkill("Bloodbend", "Bloodbend", "SCOURGE OF VITALITY", 1, 20.0, 2.0,
+                "Cast at the closest enemy you are facing. The enemy attacks wildly and their attacks can hit other enemies. Other enemies can be hit by an affected enemy "
+                + "and these attacks trigger 50% of your life steal. Each new enemy you bloodbend has an instant cost and a drains your HP over time. You can die from this drain "
+                + "and the only ways to stop bloodbending are to kill all affected creatures or leave the room. Upgrade to increase maximum enemies under your control."),
+
+            // Great Ranger
+            new ActiveSkill("Eye of Sung", "EyeOfSung", "TELEPATH", 1, 100.0, -1.0,
+                "Obtained by felling Sauron, Lord of the Rings. Tap to open ally selection menu. Select an ally to monitor. If there are enemies in range, "
+                + "tap again to teleport to the enemy nearest to that ally. Monitoring has no cost, but teleport has large instant cost."),
+
+            // World
+            new ActiveSkill("Flaming Hand", "FlamingHand", "WORLD", 1, 10.0, -1.0,
+                "Obtained by felling Sauron, Lord of the Rings. For 30 seconds after using this skill, your Morgul weapon attacks set enemies ablaze."),
+
+            new ActiveSkill("Maiar Strike", "MaiarStrike", "WORLD", 1, -1.0, 2.0,
+                "Obtained by felling Sauron, Lord of the Rings. While channeling this skill, adds 2% of Magic Damage to Crit Rate "
+                + "and multiplies Crit Damage by Crit Rate if Crit Rate exceeds 100%.")
+        };
+
+        passiveSkills = new List<PassiveSkill>() {
+            // Pyromancer
+            new PassiveSkill("Fire Breathing", "FireBreathing", "PYROMANCER", false,
+                "When charging normal attacks, breathe fire in a cone. Contact damage falls off with distance."),
+
+            // Firelord
+            new PassiveSkill("Aerodynamic Heating", "AerodynamicHeating", "FIRELORD", true,
+                "When ending your jump early, a burst of intense thermal energy flares above you as you begin your descent towards earth."),
+
+            // Thunderlord
+            new PassiveSkill("Lightning Dash", "LightningDash", "THUNDERLORD", false,
+                "You move the same distance twice as fast while dodging, but still retain the same invincibility window. Enemies in your wake are electrocuted."),
+
+            // Geomancer
+            new PassiveSkill("Tumultuous Takeoff", "TumultuousTakeoff", "GEOMANCER", true,
+                "When jumping, your feet emit an tremor that deals physical damage."),
+
+            // Tectonic Emperor
+            new PassiveSkill("Earth Prism", "EarthPrism", "TECTONIC EMPEROR", false,
+                "When jumping, in addition to a tremor, a rock prism emerges from the ground. Strike this rock with your weapon to hurl disks of rock. "
+                + "The maximum number of disks you can produce from a single prism is based on your Strength stat."),
+
+            // Bloodmage
+            new PassiveSkill("Enhanced Life Steal", "EnhancedLifeSteal", "BLOODMAGE", true,
+                "You regenerate 2.5/3.75/5/6.25/7.5% HP from landing weapon attacks."),
+            
+            new PassiveSkill("Cost Autonomy", "CostAutonomy", "BLOODMAGE", true,
+                "While you have the Bloodmage job slotted, you can use sliders for each Active Skill to choose between spending MP or HP."),
+
+            new PassiveSkill("Tensile Siphoning", "TensileSiphoning", "BLOODMAGE", false,
+                "While below 34% HP, each enemy hit by your weapon attacks spawns a tendril that extends your weapon attack to another enemy. "
+                + "This tendril gives you the same regeneration as your weapon attacks."),
+
+            // Scourge of Vitality
+            new PassiveSkill("Blood Alliance", "BloodAlliance", "SCOURGE OF VITALITY", true,
+                "Weapon and tendril life stealing also heals allies within a small radius. Upgrade to increase healing range."),
+
+            new PassiveSkill("Vital Protraction", "Vital Protraction", "SCOURGE OF VITALITY", false,
+                "While below 50% HP, reduces the amount of damage taken multiplicatively by 0-1% of your Strength, increasing linearly based on amount of HP missing below 50%.")
         };
     }
 }
