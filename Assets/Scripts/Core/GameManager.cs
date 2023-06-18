@@ -12,7 +12,8 @@ public class GameManager : MonoBehaviour
     private static GameManager instance;
     [SerializeField] public AudioTrigger gameMusic;
     [SerializeField] public AudioTrigger gameAmbience;
-    public InventoryStorage inventoryItems;
+    [System.NonSerialized] public InventoryStorage inventoryItems;
+    [SerializeField] public UIStatus uIStatus;
     public InventoryDatabase inventoryDatabase;
     public Transform pfDamagePopup;
     [System.NonSerialized] public int testingLocalDifficulty = 000;
@@ -36,6 +37,7 @@ public class GameManager : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         inventoryItems = GetComponent<InventoryStorage>();
         inventoryItems.inventoryUI.gameObject.SetActive(false);
+        uIStatus.Goodbye();
         GiveItem("BarcasDagger");
         GiveItem("MorgulFlail");
         GiveItem("CrimsonKnightsHelmet");
@@ -56,16 +58,29 @@ public class GameManager : MonoBehaviour
         {
             if (!inventoryItems.inventoryUI.gameObject.activeSelf)
             {
-                Cursor.visible = true;
                 NewPlayer.Instance.hasInventoryOpen = true;
             }
             else
             {
-                Cursor.visible = false;
                 NewPlayer.Instance.hasInventoryOpen = false;
             }
             
             inventoryItems.inventoryUI.gameObject.SetActive(!inventoryItems.inventoryUI.gameObject.activeSelf);
+        }
+
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            if (!uIStatus.gameObject.activeSelf)
+            {
+                NewPlayer.Instance.hasStatusOpen = true;
+                uIStatus.gameObject.SetActive(true);
+                uIStatus.WakeMeUp();
+            }
+            else
+            {
+                NewPlayer.Instance.hasStatusOpen = false;
+                uIStatus.Goodbye();
+            }
         }
     }
 

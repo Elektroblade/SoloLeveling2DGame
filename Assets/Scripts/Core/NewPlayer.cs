@@ -79,6 +79,7 @@ public class NewPlayer : PhysicsObject
     public float[] parryTimer = {0f, 0f, 0f, 0f};      // [0] = top left, [1] = top right, [2] = bottom left, [3] = bottom right
     private float parryForgiveness = 0.2f;        // How early the player can parry an attack
     [System.NonSerialized] public bool hasInventoryOpen = false;
+    [System.NonSerialized] public bool hasStatusOpen = false;
 
     [Header ("Attributes")]
     // strength, stamina, agility, intellect, perception
@@ -141,8 +142,8 @@ public class NewPlayer : PhysicsObject
         movementSpeedCap = 300;
         //attackRateCap = 300;
 
-        recalculateIntrinsicStats();
-        recalculateExternalStats();
+        RecalculateIntrinsicStats();
+        RecalculateExternalStats();
 
         health = (int) intrinsicStats[0];
         mana = (int) intrinsicStats[2];
@@ -152,7 +153,7 @@ public class NewPlayer : PhysicsObject
         SetGroundType();
     }
 
-    public void recalculateIntrinsicStats()
+    public void RecalculateIntrinsicStats()
     {
         // health pool, defence, mana pool, movement speed, attack rate, physical power, magical power, ferocity, intrinsic crit rate, crit damage, jump power
         //critRatePerceptionPointsCap = -(System.Math.Log(1-(critRateIntrinsicCap)/100))/1.01;
@@ -197,7 +198,7 @@ public class NewPlayer : PhysicsObject
         }
     }
 
-    public void recalculateExternalStats()
+    public void RecalculateExternalStats()
     {
         for (int i = 0; i < 11; i++)
         {
@@ -258,20 +259,8 @@ public class NewPlayer : PhysicsObject
             mana = externalStats[2];
         }
 
-        if (attributePoints/5 > 0)
-        {
-            for (int i = 0; i < attributes.Length; i++)
-            {
-                attributes[i]++;
-            }
-            attributePoints -= 5;
-
-            recalculateIntrinsicStats();
-            recalculateExternalStats();
-        }
-
         // Start or end duration abilities
-        if (!hasInventoryOpen && Input.GetKeyDown(KeyCode.Q))
+        if (((!hasInventoryOpen && !hasStatusOpen) && !hasStatusOpen) && Input.GetKeyDown(KeyCode.Q))
         {
             if (isLightningImbued)
                 isLightningImbued = false;
@@ -299,15 +288,17 @@ public class NewPlayer : PhysicsObject
         //Lerp launch back to zero at all times
         launch += (0 - launch) * Time.deltaTime * launchRecovery;
 
-        if (!hasInventoryOpen && Input.GetButtonDown("Cancel"))
+        if ((!hasInventoryOpen && !hasStatusOpen) && Input.GetButtonDown("Cancel"))
         {
             pauseMenu.SetActive(true);
         }
         else if (Input.GetButtonDown("Cancel"))
         {
             Cursor.visible = false;
-            NewPlayer.Instance.hasInventoryOpen = false;
+            hasInventoryOpen = false;
+            hasStatusOpen = false;
             GameManager.Instance.inventoryItems.inventoryUI.gameObject.SetActive(false);
+            GameManager.Instance.uIStatus.gameObject.SetActive(false);
         }
 
         //Movement, jumping, and attacking!
@@ -327,22 +318,22 @@ public class NewPlayer : PhysicsObject
                 }
             }
             
-            if (!hasInventoryOpen)
+            if ((!hasInventoryOpen && !hasStatusOpen))
                 move.x = Input.GetAxis("Horizontal") + launch;
 
-            if (((!hasInventoryOpen && Input.GetButtonDown("Jump")) || jumpEarlinessCounter > 0)
+            if ((((!hasInventoryOpen && !hasStatusOpen) && Input.GetButtonDown("Jump")) || jumpEarlinessCounter > 0)
                 && (animator.GetBool("grounded") == true || fallForgivenessCounter < fallForgiveness) && !jumping)
             {
                 animator.SetBool("pounded", false);
                 jumpEarlinessCounter = 0;
                 Jump(1f);
             }
-            else if ((!hasInventoryOpen && Input.GetButtonDown("Jump")) && animator.GetBool("grounded") == false && !jumping)
+            else if (((!hasInventoryOpen && !hasStatusOpen) && Input.GetButtonDown("Jump")) && animator.GetBool("grounded") == false && !jumping)
             {
                 jumpEarlinessCounter = jumpEarliness;
             }
 
-            if ((!hasInventoryOpen && Input.GetButtonUp("Jump")) && animator.GetBool("grounded") == false && jumping && velocity.y > 0.01)
+            if (((!hasInventoryOpen && !hasStatusOpen) && Input.GetButtonUp("Jump")) && animator.GetBool("grounded") == false && jumping && velocity.y > 0.01)
             {
                 // AerodynamicHeating start
 
@@ -359,7 +350,7 @@ public class NewPlayer : PhysicsObject
                 velocity.y = 0;
                 jumping = false;
             }
-            else if ((!hasInventoryOpen && Input.GetButtonUp("Jump")) && !jumping)
+            else if (((!hasInventoryOpen && !hasStatusOpen) && Input.GetButtonUp("Jump")) && !jumping)
             {
                 jumpEarlinessCounter = 0;
             }
@@ -375,12 +366,12 @@ public class NewPlayer : PhysicsObject
             }
 
             //Flip the graphic's localScale
-            if (!hasInventoryOpen && Input.GetAxis("Horizontal") > 0.01f)
+            if ((!hasInventoryOpen && !hasStatusOpen) && Input.GetAxis("Horizontal") > 0.01f)
             {
                 graphic.transform.localScale = new Vector3(origLocalScale.x, transform.localScale.y, transform.localScale.z);
                 facingRight = true;
             }
-            else if (!hasInventoryOpen && Input.GetAxis("Horizontal") < -0.01f)
+            else if ((!hasInventoryOpen && !hasStatusOpen) && Input.GetAxis("Horizontal") < -0.01f)
             {
                 facingRight = false;
                 graphic.transform.localScale = new Vector3(-origLocalScale.x, transform.localScale.y, transform.localScale.z);
@@ -438,7 +429,7 @@ public class NewPlayer : PhysicsObject
             //Set each animator float, bool, and trigger to it knows which animation to fire
             animator.SetFloat("velocityX", Mathf.Abs(velocity.x) / baseSpeed);
             animator.SetFloat("velocityY", velocity.y);
-            if (!hasInventoryOpen)
+            if ((!hasInventoryOpen && !hasStatusOpen))
             {
                 animator.SetInteger("attackDirectionY", (int)Input.GetAxis("VerticalDirection"));
                 animator.SetInteger("moveDirection", (int)Input.GetAxis("HorizontalDirection"));
