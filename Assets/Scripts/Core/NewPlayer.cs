@@ -160,16 +160,16 @@ public class NewPlayer : PhysicsObject
         critRatePerceptionPointsCap = (attributes[4] - 10) / 2;
         //Debug.Log("critRatePerceptionPointsCap = " + critRatePerceptionPointsCap);
 
-        intrinsicStats[0] = 100*System.Math.Pow(2,(attributes[0] - 10)/100.0);      // Health pool
+        intrinsicStats[0] = 100*System.Math.Pow(2,(attributes[0] - 10)/(100.0+attributes[0]/11.25));      // Health pool
         intrinsicStats[1] = 0;                                                      // Defence
         intrinsicStats[2] = 80 + 2*attributes[1];                                   // Mana pool
         double movementSpeed = 90 + attributes[2];
         double attackRate = 90 + attributes[2];
-        intrinsicStats[5] = 10*System.Math.Pow(2,(attributes[0] - 10)/100.0);
-        intrinsicStats[6] = 10*System.Math.Pow(2,(attributes[3] - 10)/100.0);
+        intrinsicStats[5] = 10*System.Math.Pow(2,(attributes[0] - 10)/(100.0+attributes[0]/11.25));
+        intrinsicStats[6] = 10*System.Math.Pow(2,(attributes[3] - 10)/(100.0+attributes[0]/11.25));
         intrinsicStats[7] = 0;
         intrinsicStats[9] = 0;
-        intrinsicStats[10] = baseJumpPower * (1 + (attributes[1] / 2000f));
+        intrinsicStats[10] = baseJumpPower * (1 + ((attributes[1] - 10) / 2000f));
         
         if (movementSpeed > movementSpeedCap)
         {
@@ -186,6 +186,7 @@ public class NewPlayer : PhysicsObject
         }
         else
             intrinsicStats[4] = attackRate;
+        
         if (attributes[4] > System.Math.Ceiling(critRatePerceptionPointsCap))
         {
             intrinsicStats[8] = 100*(1-System.Math.Exp(-0.01*System.Math.Ceiling(critRatePerceptionPointsCap)));
@@ -298,7 +299,7 @@ public class NewPlayer : PhysicsObject
             hasInventoryOpen = false;
             hasStatusOpen = false;
             GameManager.Instance.inventoryItems.inventoryUI.gameObject.SetActive(false);
-            GameManager.Instance.uIStatus.gameObject.SetActive(false);
+            GameManager.Instance.uIStatus.Goodbye();
         }
 
         //Movement, jumping, and attacking!

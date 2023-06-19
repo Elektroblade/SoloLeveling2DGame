@@ -16,8 +16,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] public UIStatus uIStatus;
     public InventoryDatabase inventoryDatabase;
     public Transform pfDamagePopup;
-    [System.NonSerialized] public int testingLocalDifficulty = 000;
-    [System.NonSerialized] public int testingLocalDifficultyVariance = 30;
+    [System.NonSerialized] public int testingLocalDifficulty = 2000;
+    [System.NonSerialized] public int testingLocalDifficultyVariance = 300;
 
     // Singleton instantiation
     public static GameManager Instance

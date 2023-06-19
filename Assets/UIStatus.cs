@@ -50,6 +50,7 @@ public class UIStatus : MonoBehaviour
 
     public void Goodbye()
     {
+        uIAttributes.Goodbye();
         isDoingStuff = false;
 
         statusPanel.SetActive(false);
@@ -73,7 +74,10 @@ public class UIStatus : MonoBehaviour
         valueDisplays[4].text = "HP: " + ((int)(10*player.health))/10f;
         valueDisplays[5].text = "MP: " + ((int)(10*player.mana))/10f;
 
-        healthBar.transform.localScale = new Vector2((float) (player.health / player.externalStats[0]), 1);
+        if (player.health < 0)
+            healthBar.transform.localScale = new Vector2(0f, 1);
+        else
+            healthBar.transform.localScale = new Vector2((float) (player.health / player.externalStats[0]), 1);
         manaBar.transform.localScale = new Vector2((float) (player.mana / player.externalStats[2]), 1);
 
         // Button updates

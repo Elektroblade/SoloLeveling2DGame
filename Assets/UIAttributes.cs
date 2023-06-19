@@ -14,9 +14,13 @@ public class UIAttributes : MonoBehaviour
     [SerializeField] private GameObject skillsAndEquipmentPanel;
     [SerializeField] private GameObject statsPanel;
     [SerializeField] private List<TextMeshProUGUI> attributeDisplays = new List<TextMeshProUGUI>();
+    [SerializeField] private List<TextMeshProUGUI> statDisplays = new List<TextMeshProUGUI>();
     [System.NonSerialized] private int[] tempAttributes = new int[5];
     [System.NonSerialized] private int tempSpentAP = 0;
     [System.NonSerialized] private int highlightedIndex = 0;
+    [System.NonSerialized] private float holdArrowKeyCooldown = 0f;
+    [System.NonSerialized] private float holdArrowKeyCooldownMax = 0.08f;
+    [System.NonSerialized] private float holdArrowKeyCooldownOrig = 0.08f;
     [System.NonSerialized] private bool isDoingStuff = false;
     [System.NonSerialized] private bool waitAFrame = false;
 
@@ -24,6 +28,7 @@ public class UIAttributes : MonoBehaviour
     {
         isDoingStuff = true;
         waitAFrame = true;
+        holdArrowKeyCooldown = 10f * holdArrowKeyCooldownMax;
 
         for (int i = 0; i < tempAttributes.Length; i++)
         {
@@ -40,6 +45,13 @@ public class UIAttributes : MonoBehaviour
             }
         }
 
+        DisplayTempStatBonuses();
+
+        for (int i = 1; i < 22; i += 2)
+        {
+            statDisplays[i].color = new Color(46/256f, 186/256f, 239/256f, 0.8f);
+        }
+
         otherButtons[0].gameObject.SetActive(false);
 
         statsPanel.SetActive(true);
@@ -54,13 +66,10 @@ public class UIAttributes : MonoBehaviour
 
     public void Goodbye()
     {
-        attributeModifyButtons[prevHighlightedIndex].UnhighlightMe();
+        attributeModifyButtons[highlightedIndex].UnhighlightMe();
         HideTempBonuses();
         isDoingStuff = false;
-
-        statsPanel.SetActive(false);
-        statusPanel.SetActive(false);
-        skillsAndEquipmentPanel.SetActive(false);
+        otherButtons[0].gameObject.SetActive(false);
     }
 
     private void Update()
@@ -76,6 +85,15 @@ public class UIAttributes : MonoBehaviour
 
     private void DoUpdate()
     {
+        if (holdArrowKeyCooldown > 0f)
+        {
+            holdArrowKeyCooldown -= Time.deltaTime;
+        }
+        else if (holdArrowKeyCooldown < 0f)
+        {
+            holdArrowKeyCooldown = 0f;
+        }
+
         int prevHighlightedIndex = highlightedIndex;
 
         if (Input.GetKeyDown(KeyCode.UpArrow) && (highlightedIndex > 0 && highlightedIndex != 6))
@@ -104,28 +122,135 @@ public class UIAttributes : MonoBehaviour
 
         if (Input.GetButtonDown("Jump"))
         {
+            holdArrowKeyCooldownMax = holdArrowKeyCooldownOrig;
             NewPlayer player = NewPlayer.Instance;
             if (prevHighlightedIndex < 10 && prevHighlightedIndex % 2 == 0 && player.attributePoints > tempSpentAP)
             {
+                holdArrowKeyCooldown = 4f * holdArrowKeyCooldownMax;
                 tempSpentAP++;
                 tempAttributes[prevHighlightedIndex / 2]++;
                 MakeDecreaseAvailableAt(prevHighlightedIndex + 1);
             }
             else if (prevHighlightedIndex < 10 && prevHighlightedIndex % 2 == 1)
             {
+                holdArrowKeyCooldown = 4f * holdArrowKeyCooldownMax;
                 tempSpentAP--;
-                if (tempAttributes[prevHighlightedIndex / 2] - 1 == 0)
+                tempAttributes[prevHighlightedIndex / 2]--;
+                
+                if (tempAttributes[prevHighlightedIndex / 2] == 0)
                 {
                     MakeDecreaseUnavailableAt(prevHighlightedIndex);
                     prevHighlightedIndex--;
                 }
-
-                tempAttributes[prevHighlightedIndex / 2]--;
+                else
+                {
+                    DisplayTempBonuses();
+                }
             }
             else if (prevHighlightedIndex == 10)
             {
+                holdArrowKeyCooldown = 10f * holdArrowKeyCooldownMax;
                 CommitChanges();
             }
+        }
+
+        if (Input.GetButton("Jump") && holdArrowKeyCooldown == 0)
+        {
+            NewPlayer player = NewPlayer.Instance;
+            holdArrowKeyCooldownMax -= holdArrowKeyCooldownMax / 50f;
+
+            if (prevHighlightedIndex < 10 && prevHighlightedIndex % 2 == 0 && player.attributePoints > tempSpentAP)
+            {
+                holdArrowKeyCooldown = holdArrowKeyCooldownMax;
+
+                if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.0625f)
+                {
+                    tempSpentAP += 50;
+                    tempAttributes[prevHighlightedIndex / 2] += 50;
+                }
+                else if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.125f)
+                {
+                    tempSpentAP += 10;
+                    tempAttributes[prevHighlightedIndex / 2] += 10;
+                }
+                else if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.25f)
+                {
+                    tempSpentAP += 4;
+                    tempAttributes[prevHighlightedIndex / 2] += 4;
+                }
+                else if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.5f)
+                {
+                    tempSpentAP += 2;
+                    tempAttributes[prevHighlightedIndex / 2] += 2;
+                }
+                else
+                {
+                    tempSpentAP++;
+                    tempAttributes[prevHighlightedIndex / 2]++;
+                }
+
+                while (player.attributePoints < tempSpentAP)
+                {
+                    tempSpentAP--;
+                    tempAttributes[prevHighlightedIndex / 2]--;
+                }
+
+                MakeDecreaseAvailableAt(prevHighlightedIndex + 1);
+            }
+            else if (prevHighlightedIndex < 10 && prevHighlightedIndex % 2 == 1)
+            {
+                holdArrowKeyCooldown = holdArrowKeyCooldownMax;
+
+                if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.0625f)
+                {
+                    tempSpentAP -= 50;
+                    tempAttributes[prevHighlightedIndex / 2] -= 50;
+                }
+                else if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.125f)
+                {
+                    tempSpentAP -= 10;
+                    tempAttributes[prevHighlightedIndex / 2] -= 10;
+                }
+                else if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.25f)
+                {
+                    tempSpentAP -= 4;
+                    tempAttributes[prevHighlightedIndex / 2] -= 4;
+                }
+                else if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.5f)
+                {
+                    tempSpentAP -= 2;
+                    tempAttributes[prevHighlightedIndex / 2] -= 2;
+                }
+                else
+                {
+                    tempSpentAP--;
+                    tempAttributes[prevHighlightedIndex / 2]--;
+                }
+
+                while (tempAttributes[prevHighlightedIndex / 2] < 0)
+                {
+                    tempSpentAP++;
+                    tempAttributes[prevHighlightedIndex / 2]++;
+                }
+                
+                if (tempAttributes[prevHighlightedIndex / 2] == 0)
+                {
+                    holdArrowKeyCooldownMax = holdArrowKeyCooldownOrig;
+                    holdArrowKeyCooldown = 10f * holdArrowKeyCooldownMax;
+                    MakeDecreaseUnavailableAt(prevHighlightedIndex);
+                    prevHighlightedIndex--;
+                }
+                else
+                {
+                    DisplayTempBonuses();
+                }
+            }
+        }
+
+        if (Input.GetButtonUp("Jump"))
+        {
+            if (highlightedIndex != 10)
+                DisplayTempStatBonuses();
         }
 
         if (Input.GetKeyDown(KeyCode.Q))
@@ -133,6 +258,7 @@ public class UIAttributes : MonoBehaviour
             attributeModifyButtons[prevHighlightedIndex].UnhighlightMe();
             HideTempBonuses();
             isDoingStuff = false;
+            otherButtons[0].gameObject.SetActive(false);
             uIStatus.WakeMeUp();
         }
 
@@ -145,10 +271,16 @@ public class UIAttributes : MonoBehaviour
         if (prevHighlightedIndex != highlightedIndex && isDoingStuff)
         {
             if (highlightedIndex == 10)
+            {
                 DisplayTempOutcomes();
+                DisplayTempStatOutcomes();
+            }
 
             if (prevHighlightedIndex == 10 && otherButtons[prevHighlightedIndex - 10].gameObject.activeSelf)
+            {
                 DisplayTempBonuses();
+                DisplayTempStatBonuses();
+            }
 
             if (prevHighlightedIndex < 10)
                 attributeModifyButtons[prevHighlightedIndex].UnhighlightMe();
@@ -177,6 +309,10 @@ public class UIAttributes : MonoBehaviour
         {
             HideTempBonuses();
             otherButtons[0].gameObject.SetActive(false);
+        }
+        else
+        {
+            DisplayTempBonuses();
         }
     }
 
@@ -222,23 +358,34 @@ public class UIAttributes : MonoBehaviour
     {
         NewPlayer player = NewPlayer.Instance;
 
+        attributeDisplays[0].text = "STRENGTH: " + player.attributes[0];
+        attributeDisplays[1].text = "AGILITY: " + player.attributes[2];
+        attributeDisplays[2].text = "PERCEPTION: " + player.attributes[4];
+        attributeDisplays[3].text = "STAMINA: " + player.attributes[1];
+        attributeDisplays[4].text = "INTELLIGENCE: " + player.attributes[3];
+
         for (int i = 0; i < 5; i++)
         {
-            attributeDisplays[i].color = new Color(0f, 63/256f, 128f, 0.8f);
+            if (tempAttributes[i] != 0)
+            {
+                attributeDisplays[i].text += " (+" + tempAttributes[i] + ")";
+                attributeDisplays[i].color = new Color(46/256f, 186/256f, 239/256f, 0.8f);
+            }
+            else
+            {
+                attributeDisplays[i].color = new Color(1f, 1f, 1f, 1f);
+            }
         }
 
-        attributeDisplays[0].text = "STRENGTH: " + player.attributes[0] + " (+" + tempAttributes[0] + ")";
-        attributeDisplays[1].text = "AGILITY: " + player.attributes[2] + " (+" + tempAttributes[1] + ")";
-        attributeDisplays[2].text = "PERCEPTION: " + player.attributes[4] + " (+" + tempAttributes[2] + ")";
-        attributeDisplays[3].text = "STAMINA: " + player.attributes[1] + " (+" + tempAttributes[3] + ")";
-        attributeDisplays[4].text = "INTELLIGENCE: " + player.attributes[3] + " (+" + tempAttributes[4] + ")";
+        attributeDisplays[5].color = new Color(46/256f, 186/256f, 239/256f, 0.8f);
+        attributeDisplays[5].text = "REMAINING POINTS: " + player.attributePoints + " -" + tempSpentAP;
     }
 
     private void HideTempBonuses()
     {
         NewPlayer player = NewPlayer.Instance;
 
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 6; i++)
         {
             attributeDisplays[i].color = new Color(1f, 1f, 1f, 1f);
         }
@@ -248,13 +395,15 @@ public class UIAttributes : MonoBehaviour
         attributeDisplays[2].text = "PERCEPTION: " + player.attributes[4];
         attributeDisplays[3].text = "STAMINA: " + player.attributes[1];
         attributeDisplays[4].text = "INTELLIGENCE: " + player.attributes[3];
+
+        attributeDisplays[5].text = "REMAINING POINTS: " + player.attributePoints;
     }
 
     public void DisplayTempOutcomes()
     {
         NewPlayer player = NewPlayer.Instance;
 
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 6; i++)
         {
             attributeDisplays[i].color = new Color(1f, 0f, 0f, 0.8f);
         }
@@ -264,5 +413,218 @@ public class UIAttributes : MonoBehaviour
         attributeDisplays[2].text = "PERCEPTION: " + (player.attributes[4] + tempAttributes[2]);
         attributeDisplays[3].text = "STAMINA: " + (player.attributes[1] + tempAttributes[3]);
         attributeDisplays[4].text = "INTELLIGENCE: " + (player.attributes[3] + tempAttributes[4]);
+
+        attributeDisplays[5].text = "REMAINING POINTS: " + (player.attributePoints - tempSpentAP);
+    }
+
+    public void DisplayTempStatBonuses()
+    {
+        NewPlayer player = NewPlayer.Instance;
+
+        if (tempAttributes[0] > 0)
+        {
+            statDisplays[1].text = " +" + ((int)(10*(100*System.Math.Pow(2,(tempAttributes[0])/(100.0+tempAttributes[0]/11.25)) - player.intrinsicStats[0])))/10f;
+            statDisplays[11].text = " +" + ((int)(10*(10*System.Math.Pow(2,(tempAttributes[0])/(100.0+tempAttributes[0]/11.25)) - player.intrinsicStats[5])))/10f;
+        }
+        else
+        {
+            statDisplays[1].text = "";
+            statDisplays[11].text = "";
+        }
+
+        if (tempAttributes[1] > 0)
+        {
+            double prospectiveMovementSpeed = player.intrinsicStats[3] + tempAttributes[1];
+            double prospectiveAttackRate = player.intrinsicStats[4] + tempAttributes[1];
+            double prospectiveFerocity = player.intrinsicStats[7];
+
+            if (prospectiveMovementSpeed > player.movementSpeedCap)
+            {
+                statDisplays[7].text = " +" + ((int)(10*(player.movementSpeedCap - player.intrinsicStats[3])))/10f;
+                prospectiveFerocity += (prospectiveMovementSpeed - player.movementSpeedCap)/2 - player.intrinsicStats[7];
+            }
+            else
+                statDisplays[7].text = " +" + ((int)(10*(prospectiveMovementSpeed - player.intrinsicStats[3])))/10f;
+
+            if (prospectiveAttackRate > player.attackRateCap)
+            {
+                statDisplays[9].text = " +" + (player.attackRateCap - player.intrinsicStats[4]);
+                prospectiveFerocity += (prospectiveAttackRate - player.attackRateCap)/2 - player.intrinsicStats[7];
+            }
+            else
+                statDisplays[9].text = " +" + (prospectiveAttackRate - player.intrinsicStats[4]);
+
+            statDisplays[15].text = " +" + prospectiveFerocity;
+        }
+        else
+        {
+            statDisplays[7].text = "";
+            statDisplays[9].text = "";
+            statDisplays[15].text = "";
+        }
+
+        if (tempAttributes[2] > 0)
+        {
+            // If set to 'half'
+            player.critRatePerceptionPointsCap = (player.attributes[4] - 10 + tempAttributes[2]) / 2;
+
+            if (tempAttributes[2] + player.attributes[4] > System.Math.Ceiling(player.critRatePerceptionPointsCap))
+            {
+                statDisplays[17].text = " +" + ((int)(10*(100*(1-System.Math.Exp(-0.01*System.Math.Ceiling(player.critRatePerceptionPointsCap))) - player.intrinsicStats[8])))/10f;
+                statDisplays[19].text = " +" + ((int)(10*((tempAttributes[2]) - System.Math.Ceiling(player.critRatePerceptionPointsCap) - player.intrinsicStats[9])))/10f;
+            }
+            else
+            {
+                statDisplays[17].text = " +" + ((int)(10*(100*(1-System.Math.Exp(-0.01*tempAttributes[2])) - player.intrinsicStats[8])))/10f;
+                statDisplays[19].text = "";
+            }
+        }
+        else
+        {
+            statDisplays[17].text = "";
+            statDisplays[19].text = "";
+        }
+
+        if (tempAttributes[3] > 0)
+        {
+            statDisplays[5].text = " +" + (100 + 2*tempAttributes[3] - player.intrinsicStats[2]);
+            statDisplays[21].text = " +" + ((int)(10*(100 * (1 + (tempAttributes[3] / 2000f)) - (100.0 * player.intrinsicStats[10] / 17.0))))/10f;
+        }
+        else
+        {
+            statDisplays[5].text = "";
+            statDisplays[21].text = "";
+        }
+
+        if (tempAttributes[4] > 0)
+        {
+            statDisplays[13].text = " +" + ((int)(10*(10*System.Math.Pow(2,(tempAttributes[4])/(100.0+tempAttributes[0]/11.25)) - player.intrinsicStats[6])))/10f;
+        }
+        else
+        {
+            statDisplays[13].text = "";
+        }
+
+        // Stat line colours
+        for (int i = 0; i < 22; i += 2)
+        {
+            statDisplays[i].color = new Color(1f, 1f, 1f, 1f);
+        }
+
+        statDisplays[0].text = "HEALTH POINTS: " + ((int)(10*player.intrinsicStats[0]))/10f;
+        statDisplays[4].text = "MANA POINTS: " + player.intrinsicStats[2];
+        statDisplays[6].text = "MOVEMENT SPEED: " + ((int)(10*player.intrinsicStats[3]))/10f + "%";
+        statDisplays[8].text = "ATTACK RATE: " + ((int)(10*player.intrinsicStats[4]))/10f + "%";
+        statDisplays[10].text = "PHYSICAL DAMAGE: " + ((int)(10*player.intrinsicStats[5]))/10f;
+        statDisplays[12].text = "MAGICAL DAMAGE: " + ((int)(10*player.intrinsicStats[6]))/10f;
+        statDisplays[14].text = "FEROCITY: " + player.intrinsicStats[7];
+        statDisplays[16].text = "CRIT RATE: " + ((int)(10*player.intrinsicStats[8]))/10f + "%";
+        statDisplays[18].text = "CRIT DAMAGE: " + ((int)(10*player.intrinsicStats[9]))/10f;
+        statDisplays[20].text = "JUMP POWER: " + ((int)(10*player.intrinsicStats[10]))/10f;
+    }
+
+    public void DisplayTempStatOutcomes()
+    {
+        NewPlayer player = NewPlayer.Instance;
+
+        if (tempAttributes[0] > 0)
+        {
+            statDisplays[0].text = "HEALTH POINTS: " + ((int)(10*(100*System.Math.Pow(2,(player.attributes[0] - 10.0 + tempAttributes[0])/(100.0+player.attributes[0] - 10.0 + tempAttributes[0]/11.25)))))/10f;
+            statDisplays[10].text = "PHYSICAL DAMAGE: " + ((int)(10*(10*System.Math.Pow(2,(player.attributes[0] - 10.0 + tempAttributes[0])/(100.0+player.attributes[0] - 10.0 + tempAttributes[0]/11.25)))))/10f;
+        }
+        else
+        {
+            statDisplays[0].text = "HEALTH POINTS: " + player.intrinsicStats[0];
+            statDisplays[10].text = "PHYSICAL DAMAGE: " + player.intrinsicStats[5];
+        }
+
+        if (tempAttributes[1] > 0)
+        {
+            double prospectiveMovementSpeed = player.intrinsicStats[3] + tempAttributes[1];
+            double prospectiveAttackRate = player.intrinsicStats[4] + tempAttributes[1];
+            double prospectiveFerocity = player.intrinsicStats[7];
+
+            if (prospectiveMovementSpeed > player.movementSpeedCap)
+            {
+                statDisplays[6].text = "MOVEMENT SPEED: " + ((int)(10*(player.movementSpeedCap)))/10f + "%";
+                prospectiveFerocity += (prospectiveMovementSpeed - player.movementSpeedCap)/2;
+            }
+            else
+                statDisplays[6].text = "MOVEMENT SPEED: " + ((int)(10*(prospectiveMovementSpeed)))/10f + "%";
+
+            if (prospectiveAttackRate > player.attackRateCap)
+            {
+                statDisplays[8].text = "ATTACK RATE: " + (player.attackRateCap) + "%";
+                prospectiveFerocity += (prospectiveAttackRate - player.attackRateCap)/2;
+            }
+            else
+                statDisplays[8].text = "ATTACK RATE: " + (prospectiveAttackRate) + "%";
+
+            statDisplays[14].text = "FEROCITY: " + prospectiveFerocity;
+        }
+        else
+        {
+            statDisplays[6].text = "MOVEMENT SPEED: " + player.intrinsicStats[3] + "%";
+            statDisplays[8].text = "ATTACK RATE: " + player.intrinsicStats[4] + "%";
+            statDisplays[14].text = "FEROCITY: " + player.intrinsicStats[7];
+        }
+
+        if (tempAttributes[2] > 0)
+        {
+            // If set to 'half'
+            player.critRatePerceptionPointsCap = (player.attributes[4] - 10 + tempAttributes[2]) / 2;
+
+            if (tempAttributes[2] + player.attributes[4] > System.Math.Ceiling(player.critRatePerceptionPointsCap))
+            {
+                statDisplays[16].text = "CRIT RATE: " + ((int)(10*(100*(1-System.Math.Exp(-0.01*System.Math.Ceiling(player.critRatePerceptionPointsCap))))))/10f;
+                statDisplays[18].text = "CRIT DAMAGE: " + ((int)(10*((tempAttributes[2]) - System.Math.Ceiling(player.critRatePerceptionPointsCap))))/10f;
+            }
+            else
+            {
+                statDisplays[16].text = "CRIT RATE: " + ((int)(10*(100*(1-System.Math.Exp(-0.01*tempAttributes[2])))))/10f + "%";
+                statDisplays[18].text = "CRIT DAMAGE: " + player.intrinsicStats[9];
+            }
+        }
+        else
+        {
+            statDisplays[16].text = "CRIT RATE: " + player.intrinsicStats[8] + "%";
+            statDisplays[18].text = "CRIT DAMAGE: " + player.intrinsicStats[9];
+        }
+
+        if (tempAttributes[3] > 0)
+        {
+            statDisplays[4].text = "MANA POINTS: " + (100 + 2*tempAttributes[3]);
+            statDisplays[20].text = "JUMP POWER: " + ((int)(10*(100 * (1 + (tempAttributes[3] / 2000f)))))/10f;
+        }
+        else
+        {
+            statDisplays[4].text = "MANA POINTS: " + player.intrinsicStats[2];
+            statDisplays[20].text = "JUMP POWER: " + player.intrinsicStats[10];
+        }
+
+        if (tempAttributes[4] > 0)
+        {
+            statDisplays[12].text = "MAGICAL DAMAGE: " + ((int)(10*(10*System.Math.Pow(2,(tempAttributes[4])/(100.0+tempAttributes[0]/11.25)))))/10f;
+        }
+        else
+        {
+            statDisplays[12].text = "MAGICAL DAMAGE: " + player.intrinsicStats[6];
+        }
+
+        for (int i = 0; i < 22; i += 2)
+        {
+            statDisplays[i].color = new Color(1f, 0f, 0f, 0.8f);
+        }
+
+        statDisplays[1].text = "";
+        statDisplays[5].text = "";
+        statDisplays[7].text = "";
+        statDisplays[9].text = "";
+        statDisplays[11].text = "";
+        statDisplays[13].text = "";
+        statDisplays[15].text = "";
+        statDisplays[17].text = "";
+        statDisplays[19].text = "";
+        statDisplays[21].text = "";
     }
 }

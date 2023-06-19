@@ -139,6 +139,8 @@ public class HUD : MonoBehaviour
         //Controls the width of the health bar based on the player's total health
         healthBarWidth = (float)NewPlayer.Instance.health / (float)NewPlayer.Instance.externalStats[0];
         healthBarWidthEased += (healthBarWidth - healthBarWidthEased) * 10f * Time.deltaTime * healthBarWidthEased;
+        if (healthBarWidthEased < 0)
+            healthBarWidthEased = 0;
         healthBar.transform.localScale = new Vector2(healthBarWidthEased, 1);
 
         //Controls the width of the mana bar based on the player's total mana

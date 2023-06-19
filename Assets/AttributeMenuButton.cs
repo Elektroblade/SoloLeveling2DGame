@@ -30,7 +30,7 @@ public class AttributeMenuButton : MonoBehaviour
     public void HighlightMe()
     {
         isHighlighted = true;
-        spriteImage.color = new Color(0f, 63/256f, 128f, 0.8f);
+        spriteImage.color = new Color(46/256f, 186/256f, 239/255f, 0.8f);
     }
 
     public void UnhighlightMe()
