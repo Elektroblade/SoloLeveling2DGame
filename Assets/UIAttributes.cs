@@ -15,17 +15,23 @@ public class UIAttributes : MonoBehaviour
     [SerializeField] private GameObject statsPanel;
     [SerializeField] private List<TextMeshProUGUI> attributeDisplays = new List<TextMeshProUGUI>();
     [SerializeField] private List<TextMeshProUGUI> statDisplays = new List<TextMeshProUGUI>();
+    [SerializeField] private Canvas mSCDropdownCanvas;
+    [SerializeField] private List<StatusMenuButton> mSCDropdownButtons = new List<StatusMenuButton>();
+    [SerializeField] private List<TextMeshProUGUI> capDropdownDisplays = new List<TextMeshProUGUI>();
     [System.NonSerialized] private int[] tempAttributes = new int[5];
     [System.NonSerialized] private int tempSpentAP = 0;
     [System.NonSerialized] private int highlightedIndex = 0;
+    [System.NonSerialized] private int highlightedDropdownIndex = 0;
     [System.NonSerialized] private float holdArrowKeyCooldown = 0f;
     [System.NonSerialized] private float holdArrowKeyCooldownMax = 0.08f;
     [System.NonSerialized] private float holdArrowKeyCooldownOrig = 0.08f;
     [System.NonSerialized] private bool isDoingStuff = false;
     [System.NonSerialized] private bool waitAFrame = false;
+    [System.NonSerialized] private int[] capPreferences = new int[3];
 
     public void WakeMeUp()
     {
+        mSCDropdownCanvas.enabled = false;
         isDoingStuff = true;
         waitAFrame = true;
         holdArrowKeyCooldown = 10f * holdArrowKeyCooldownMax;
@@ -66,7 +72,9 @@ public class UIAttributes : MonoBehaviour
 
     public void Goodbye()
     {
-        attributeModifyButtons[highlightedIndex].UnhighlightMe();
+        mSCDropdownCanvas.enabled = false;
+        if (highlightedIndex < 10)
+            attributeModifyButtons[highlightedIndex].UnhighlightMe();
         HideTempBonuses();
         isDoingStuff = false;
         otherButtons[0].gameObject.SetActive(false);
@@ -76,7 +84,10 @@ public class UIAttributes : MonoBehaviour
     {
         if (isDoingStuff && !waitAFrame)
         {
-            DoUpdate();
+            if (!mSCDropdownCanvas.enabled)
+                DoUpdate();
+            else if (mSCDropdownCanvas.enabled)
+                DoMSCDropdown();
         }
 
         if (waitAFrame)
@@ -96,14 +107,19 @@ public class UIAttributes : MonoBehaviour
 
         int prevHighlightedIndex = highlightedIndex;
 
-        if (Input.GetKeyDown(KeyCode.UpArrow) && (highlightedIndex > 0 && highlightedIndex != 6))
+        if (Input.GetKeyDown(KeyCode.UpArrow) && (highlightedIndex > 0 && highlightedIndex != 6 && highlightedIndex < 11))
             highlightedIndex--;
             if (highlightedIndex > 0 && highlightedIndex < 10 && !attributeModifyButtons[highlightedIndex].IsPossible())
                 highlightedIndex--;
         
-        if (Input.GetKeyDown(KeyCode.RightArrow) && highlightedIndex < 5)
+        if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            highlightedIndex += 6;
+            if (highlightedIndex < 5)
+                highlightedIndex += 6;
+            else if (highlightedIndex < 11 && highlightedIndex > 5)
+            {
+                highlightedIndex = 11;
+            }
         }
 
         if (Input.GetKeyDown(KeyCode.DownArrow) && highlightedIndex != 5 && highlightedIndex < 10)
@@ -115,13 +131,20 @@ public class UIAttributes : MonoBehaviour
                 highlightedIndex++;
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftArrow) && highlightedIndex > 5)
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            highlightedIndex -= 6;
+            if (highlightedIndex > 5 && highlightedIndex < 11)
+                highlightedIndex -= 6;
+            else if (highlightedIndex == 11)
+            {
+                highlightedIndex = 6;
+            }
         }
 
         if (Input.GetButtonDown("Jump"))
         {
+            if (prevHighlightedIndex < 10)
+                attributeModifyButtons[prevHighlightedIndex].SelectMe();
             holdArrowKeyCooldownMax = holdArrowKeyCooldownOrig;
             NewPlayer player = NewPlayer.Instance;
             if (prevHighlightedIndex < 10 && prevHighlightedIndex % 2 == 0 && player.attributePoints > tempSpentAP)
@@ -152,10 +175,34 @@ public class UIAttributes : MonoBehaviour
                 holdArrowKeyCooldown = 10f * holdArrowKeyCooldownMax;
                 CommitChanges();
             }
+            else if (prevHighlightedIndex == 11)
+            {
+                mSCDropdownButtons[0].HighlightMe();
+                for (int i = 1; i < mSCDropdownButtons.Count; i++)
+                {
+                    mSCDropdownButtons[i].UnhighlightMe();
+                }
+
+                mSCDropdownCanvas.enabled = true;
+                waitAFrame = true;
+                highlightedDropdownIndex = 0;
+            }
         }
 
         if (Input.GetButton("Jump") && holdArrowKeyCooldown == 0)
         {
+            if (prevHighlightedIndex < 10 && !attributeModifyButtons[prevHighlightedIndex].IsSelected())
+            {
+                for (int i = 0; i < attributeModifyButtons.Count; i++)
+                {
+                    if (attributeModifyButtons[i].IsPossible())
+                        attributeModifyButtons[i].DeselectMe();
+                }
+
+                holdArrowKeyCooldownMax = holdArrowKeyCooldownOrig;
+                attributeModifyButtons[prevHighlightedIndex].SelectMe();
+            }
+
             NewPlayer player = NewPlayer.Instance;
             holdArrowKeyCooldownMax -= holdArrowKeyCooldownMax / 50f;
 
@@ -249,13 +296,20 @@ public class UIAttributes : MonoBehaviour
 
         if (Input.GetButtonUp("Jump"))
         {
+            for (int i = 0; i < attributeModifyButtons.Count; i++)
+            {
+                if (attributeModifyButtons[i].IsPossible())
+                    attributeModifyButtons[i].DeselectMe();
+            }
+
             if (highlightedIndex != 10)
                 DisplayTempStatBonuses();
         }
 
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            attributeModifyButtons[prevHighlightedIndex].UnhighlightMe();
+            if (prevHighlightedIndex < 10)
+                attributeModifyButtons[prevHighlightedIndex].UnhighlightMe();
             HideTempBonuses();
             isDoingStuff = false;
             otherButtons[0].gameObject.SetActive(false);
@@ -291,6 +345,60 @@ public class UIAttributes : MonoBehaviour
                 attributeModifyButtons[highlightedIndex].HighlightMe();
             else
                 otherButtons[highlightedIndex - 10].HighlightMe();
+        }
+    }
+
+    private void DoMSCDropdown()
+    {
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            Debug.Log("Down");
+
+            if (highlightedDropdownIndex < mSCDropdownButtons.Count - 1)
+            {
+                mSCDropdownButtons[highlightedDropdownIndex].UnhighlightMe();
+                mSCDropdownButtons[highlightedDropdownIndex + 1].HighlightMe();
+
+                highlightedDropdownIndex++;
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            Debug.Log("Up, " + highlightedDropdownIndex);
+
+            if (highlightedDropdownIndex > 0)
+            {
+                mSCDropdownButtons[highlightedDropdownIndex].UnhighlightMe();
+                mSCDropdownButtons[highlightedDropdownIndex - 1].HighlightMe();
+
+                highlightedDropdownIndex--;
+            }
+        }
+
+        if (Input.GetButtonDown("Jump"))
+        {
+            capPreferences[0] = highlightedDropdownIndex;
+            capDropdownDisplays[0].text = mSCDropdownButtons[highlightedDropdownIndex].transform.GetComponentsInChildren<TextMeshProUGUI>()[0].text;
+            mSCDropdownCanvas.enabled = false;
+
+            mSCDropdownButtons[0].HighlightMe();
+            for (int i = 1; i < mSCDropdownButtons.Count; i++)
+            {
+                mSCDropdownButtons[i].UnhighlightMe();
+            }
+        }
+            
+
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            mSCDropdownCanvas.enabled = false;
+
+            mSCDropdownButtons[0].HighlightMe();
+            for (int i = 1; i < mSCDropdownButtons.Count; i++)
+            {
+                mSCDropdownButtons[i].UnhighlightMe();
+            }
         }
     }
 
@@ -466,16 +574,16 @@ public class UIAttributes : MonoBehaviour
         if (tempAttributes[2] > 0)
         {
             // If set to 'half'
-            player.critRatePerceptionPointsCap = (player.attributes[4] - 10 + tempAttributes[2]) / 2;
+            double tempCritRatePerceptionPointsCap = (player.attributes[4] - 10 + tempAttributes[2]) / 2;
 
-            if (tempAttributes[2] + player.attributes[4] > System.Math.Ceiling(player.critRatePerceptionPointsCap))
+            if (tempAttributes[2] + player.attributes[4] > System.Math.Ceiling(tempCritRatePerceptionPointsCap))
             {
-                statDisplays[17].text = " +" + ((int)(10*(100*(1-System.Math.Exp(-0.01*System.Math.Ceiling(player.critRatePerceptionPointsCap))) - player.intrinsicStats[8])))/10f;
-                statDisplays[19].text = " +" + ((int)(10*((tempAttributes[2]) - System.Math.Ceiling(player.critRatePerceptionPointsCap) - player.intrinsicStats[9])))/10f;
+                statDisplays[17].text = " +" + ((int)(10*(100*(1-System.Math.Pow(0.5,System.Math.Ceiling(tempCritRatePerceptionPointsCap)/(100.0))) - player.intrinsicStats[8])))/10f;
+                statDisplays[19].text = " +" + ((int)(10*(1.5*((tempAttributes[2]) - System.Math.Ceiling(tempCritRatePerceptionPointsCap)) - player.intrinsicStats[9])))/10f;
             }
             else
             {
-                statDisplays[17].text = " +" + ((int)(10*(100*(1-System.Math.Exp(-0.01*tempAttributes[2])) - player.intrinsicStats[8])))/10f;
+                statDisplays[17].text = " +" + ((int)(10*(100*(1-System.Math.Pow(0.5,tempAttributes[2]/(100.0))) - player.intrinsicStats[8])))/10f;
                 statDisplays[19].text = "";
             }
         }
@@ -520,7 +628,7 @@ public class UIAttributes : MonoBehaviour
         statDisplays[14].text = "FEROCITY: " + player.intrinsicStats[7];
         statDisplays[16].text = "CRIT RATE: " + ((int)(10*player.intrinsicStats[8]))/10f + "%";
         statDisplays[18].text = "CRIT DAMAGE: " + ((int)(10*player.intrinsicStats[9]))/10f;
-        statDisplays[20].text = "JUMP POWER: " + ((int)(10*player.intrinsicStats[10]))/10f;
+        statDisplays[20].text = "JUMP POWER: " + ((int)(100/1.7*player.intrinsicStats[10]))/10f;
     }
 
     public void DisplayTempStatOutcomes()

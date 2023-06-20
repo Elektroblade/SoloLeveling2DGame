@@ -86,7 +86,7 @@ public class EnemyBase : MonoBehaviour
 
     void recalculateIntrinsicStats()
     {
-        intrinsicStats[0] = 10*avgHitsToKill*(1+level/100.0)*(1+level/50.0)*System.Math.Pow(2,level/(100.0+level*0.1*(1-System.Math.Exp(-0.01*level))));
+        intrinsicStats[0] = 10*avgHitsToKill*(1+level/100.0)*(1+level/75.0)*System.Math.Pow(2,level/(100.0+level*0.1*(1-System.Math.Exp(-0.01*level))));
         intrinsicStats[1] = 0;
         intrinsicStats[5] = (10 / avgAttacksToDie) * System.Math.Pow(2,level/(100.0+level*0.1*(1-System.Math.Exp(-0.01*level))));
         intrinsicStats[6] = (10 / avgAttacksToDie) * System.Math.Pow(2,level/(100.0+level*0.1*(1-System.Math.Exp(-0.01*level))));
@@ -105,8 +105,8 @@ public class EnemyBase : MonoBehaviour
         }
 
         double critRatePerceptionPointsCap = level/2;
-        intrinsicStats[8] = 100*(1-System.Math.Exp(-0.01*System.Math.Ceiling(critRatePerceptionPointsCap)));
-        intrinsicStats[9] = level - System.Math.Ceiling(critRatePerceptionPointsCap);
+        intrinsicStats[8] = 100*(1-System.Math.Pow(0.5,System.Math.Ceiling(critRatePerceptionPointsCap)/(100.0)));
+        intrinsicStats[9] = 1.5*(level - System.Math.Ceiling(critRatePerceptionPointsCap));
 
         baseLevelUIText = "Lvl " + level;
         levelUI.text = baseLevelUIText + "\n" + (int) health + "/" + (int) intrinsicStats[0];

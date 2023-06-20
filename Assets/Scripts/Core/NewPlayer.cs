@@ -189,12 +189,12 @@ public class NewPlayer : PhysicsObject
         
         if (attributes[4] > System.Math.Ceiling(critRatePerceptionPointsCap))
         {
-            intrinsicStats[8] = 100*(1-System.Math.Exp(-0.01*System.Math.Ceiling(critRatePerceptionPointsCap)));
-            intrinsicStats[9] = (attributes[4] - 10) - System.Math.Ceiling(critRatePerceptionPointsCap);
+            intrinsicStats[8] = 100*(1-System.Math.Pow(0.5,System.Math.Ceiling(critRatePerceptionPointsCap)/(100.0)));
+            intrinsicStats[9] = 1.5*((attributes[4] - 10) - System.Math.Ceiling(critRatePerceptionPointsCap));
         }
         else
         {
-            intrinsicStats[8] = 100*(1-System.Math.Exp(-0.01*attributes[4]));
+            intrinsicStats[8] = 100*(1-System.Math.Pow(0.5,attributes[4]/(100.0)));
             intrinsicStats[9] = 0;
         }
     }

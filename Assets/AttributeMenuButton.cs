@@ -7,6 +7,7 @@ public class AttributeMenuButton : MonoBehaviour
 {
     [System.NonSerialized] private bool isHighlighted = false;
     [System.NonSerialized] private bool isPossible = true;
+    [System.NonSerialized] private bool isSelected = false;
     [SerializeField] private bool isDecrease;
     [SerializeField] private Image spriteImage;
 
@@ -27,16 +28,29 @@ public class AttributeMenuButton : MonoBehaviour
         return isPossible;
     }
 
+    public bool IsSelected()
+    {
+        return isSelected;
+    }
+
     public void HighlightMe()
     {
         isHighlighted = true;
-        spriteImage.color = new Color(46/256f, 186/256f, 239/255f, 0.8f);
+
+        if (!isSelected)
+        {
+            spriteImage.color = new Color(46/256f, 186/256f, 239/256f, 0.8f);
+        }
     }
 
     public void UnhighlightMe()
     {
         isHighlighted = false;
-        spriteImage.color = new Color(1f, 1f, 1f, 1f);
+
+        if (!isSelected)
+        {
+            spriteImage.color = new Color(1f, 1f, 1f, 1f);
+        }
     }
 
     public void ImpossibleMe()
@@ -52,5 +66,24 @@ public class AttributeMenuButton : MonoBehaviour
     {
         isPossible = true;
         UnhighlightMe();
+    }
+
+    public void SelectMe()
+    {
+        isSelected = true;
+        spriteImage.color = new Color(0f, 63/256f, 96/256f, 128/256f);
+    }
+
+    public void DeselectMe()
+    {
+        isSelected = false;
+        if (isHighlighted)
+        {
+            HighlightMe();
+        }
+        else
+        {
+            UnhighlightMe();
+        }
     }
 }
