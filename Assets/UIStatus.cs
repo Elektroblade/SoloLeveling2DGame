@@ -125,7 +125,7 @@ public class UIStatus : MonoBehaviour
         {
             buttons[prevHighlightedIndex].UnhighlightMe();
             buttons[highlightedIndex].HighlightMe();
-            Debug.Log("highlightedIndex = " + highlightedIndex);
+            //Debug.Log("highlightedIndex = " + highlightedIndex);
         }
     }
 }

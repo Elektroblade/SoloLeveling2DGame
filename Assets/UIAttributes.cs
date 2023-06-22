@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using TMPro;
 using UnityEngine.SceneManagement;
 
@@ -18,6 +19,8 @@ public class UIAttributes : MonoBehaviour
     [SerializeField] private Canvas mSCDropdownCanvas;
     [SerializeField] private List<StatusMenuButton> mSCDropdownButtons = new List<StatusMenuButton>();
     [SerializeField] private List<TextMeshProUGUI> capDropdownDisplays = new List<TextMeshProUGUI>();
+    [SerializeField] private List<TextMeshProUGUI> inputTextDisplays = new List<TextMeshProUGUI>();
+    [SerializeField] private List<TextMeshProUGUI> statCapDisplays = new List<TextMeshProUGUI>();
     [System.NonSerialized] private int[] tempAttributes = new int[5];
     [System.NonSerialized] private int tempSpentAP = 0;
     [System.NonSerialized] private int highlightedIndex = 0;
@@ -27,7 +30,14 @@ public class UIAttributes : MonoBehaviour
     [System.NonSerialized] private float holdArrowKeyCooldownOrig = 0.08f;
     [System.NonSerialized] private bool isDoingStuff = false;
     [System.NonSerialized] private bool waitAFrame = false;
-    [System.NonSerialized] private int[] capPreferences = new int[3];
+    [System.NonSerialized] private bool isInputingText = false;
+    [System.NonSerialized] private string currentInputText = "";
+    [System.NonSerialized] private int currentPeriodCount = 0;
+
+    private void start()
+    {
+        
+    }
 
     public void WakeMeUp()
     {
@@ -64,10 +74,16 @@ public class UIAttributes : MonoBehaviour
         statusPanel.SetActive(true);
         skillsAndEquipmentPanel.SetActive(false);
 
-        if (attributeModifyButtons != null)
+        if (highlightedIndex < 10 && attributeModifyButtons != null)
         {
             attributeModifyButtons[highlightedIndex].HighlightMe();
         }
+
+        NewPlayer player = NewPlayer.Instance;
+        if (player.capValues[0,highlightedDropdownIndex] < 0.0)
+            player.capValues[0,highlightedDropdownIndex] = NewPlayer.Instance.intrinsicStats[3];
+        statCapDisplays[0].text = "MOVEMENT SPEED CAP: " + player.capValues[0,highlightedDropdownIndex] + "%";
+        inputTextDisplays[0].text = "" + player.capValues[0, player.capPreferences[0]];
     }
 
     public void Goodbye()
@@ -84,10 +100,12 @@ public class UIAttributes : MonoBehaviour
     {
         if (isDoingStuff && !waitAFrame)
         {
-            if (!mSCDropdownCanvas.enabled)
+            if (!mSCDropdownCanvas.enabled && !isInputingText)
                 DoUpdate();
-            else if (mSCDropdownCanvas.enabled)
+            else if (mSCDropdownCanvas.enabled && !isInputingText)
                 DoMSCDropdown();
+            else if (isInputingText)
+                DoInputingText();
         }
 
         if (waitAFrame)
@@ -120,6 +138,10 @@ public class UIAttributes : MonoBehaviour
             {
                 highlightedIndex = 11;
             }
+            else if (highlightedIndex >= 11 && highlightedIndex < 14)
+            {
+                highlightedIndex += 3;
+            }
         }
 
         if (Input.GetKeyDown(KeyCode.DownArrow) && highlightedIndex != 5 && highlightedIndex < 10)
@@ -138,6 +160,10 @@ public class UIAttributes : MonoBehaviour
             else if (highlightedIndex == 11)
             {
                 highlightedIndex = 6;
+            }
+            else if (highlightedIndex >= 14 && highlightedIndex < 17)
+            {
+                highlightedIndex -= 3;
             }
         }
 
@@ -175,9 +201,10 @@ public class UIAttributes : MonoBehaviour
                 holdArrowKeyCooldown = 10f * holdArrowKeyCooldownMax;
                 CommitChanges();
             }
-            else if (prevHighlightedIndex == 11)
+            else if (prevHighlightedIndex >= 11 && prevHighlightedIndex < 14)
             {
-                mSCDropdownButtons[0].HighlightMe();
+                Debug.Log("here we are (down)");
+                mSCDropdownButtons[prevHighlightedIndex - 11].HighlightMe();
                 for (int i = 1; i < mSCDropdownButtons.Count; i++)
                 {
                     mSCDropdownButtons[i].UnhighlightMe();
@@ -186,6 +213,13 @@ public class UIAttributes : MonoBehaviour
                 mSCDropdownCanvas.enabled = true;
                 waitAFrame = true;
                 highlightedDropdownIndex = 0;
+            }
+            else if (prevHighlightedIndex >= 14 && prevHighlightedIndex < 17)
+            {
+                Debug.Log("input index + 14 = " + (prevHighlightedIndex));
+                highlightedIndex = prevHighlightedIndex;
+                isInputingText = true;
+                waitAFrame = true;
             }
         }
 
@@ -338,12 +372,14 @@ public class UIAttributes : MonoBehaviour
 
             if (prevHighlightedIndex < 10)
                 attributeModifyButtons[prevHighlightedIndex].UnhighlightMe();
-            else
+            else if (prevHighlightedIndex < 17)
                 otherButtons[prevHighlightedIndex - 10].UnhighlightMe();
+
+            Debug.Log("highlightedIndex = " + highlightedIndex + ", prevHighlightedIndex = " + prevHighlightedIndex);
 
             if (highlightedIndex < 10)
                 attributeModifyButtons[highlightedIndex].HighlightMe();
-            else
+            else if (highlightedIndex < 17)
                 otherButtons[highlightedIndex - 10].HighlightMe();
         }
     }
@@ -378,8 +414,13 @@ public class UIAttributes : MonoBehaviour
 
         if (Input.GetButtonDown("Jump"))
         {
-            capPreferences[0] = highlightedDropdownIndex;
+            NewPlayer player = NewPlayer.Instance;
+            player.capPreferences[0] = highlightedDropdownIndex;
             capDropdownDisplays[0].text = mSCDropdownButtons[highlightedDropdownIndex].transform.GetComponentsInChildren<TextMeshProUGUI>()[0].text;
+            if (player.capValues[0,highlightedDropdownIndex] < 0.0)
+                player.capValues[0,highlightedDropdownIndex] = NewPlayer.Instance.intrinsicStats[3];
+            statCapDisplays[0].text = "MOVEMENT SPEED CAP: " + player.capValues[0,highlightedDropdownIndex] + "%";
+            inputTextDisplays[0].text = "" + player.capValues[0, player.capPreferences[0]];
             mSCDropdownCanvas.enabled = false;
 
             mSCDropdownButtons[0].HighlightMe();
@@ -399,6 +440,82 @@ public class UIAttributes : MonoBehaviour
             {
                 mSCDropdownButtons[i].UnhighlightMe();
             }
+        }
+    }
+
+    private void DoInputingText()
+    {
+        string prevInputText = currentInputText;
+        bool weAreDoneHere = false;
+
+        if (Input.GetKeyDown("0"))
+            currentInputText += "0";
+        else if (Input.GetKeyDown("1"))
+            currentInputText += "1";
+        else if (Input.GetKeyDown("2"))
+            currentInputText += "2";
+        else if (Input.GetKeyDown("3"))
+            currentInputText += "3";
+        else if (Input.GetKeyDown("4"))
+            currentInputText += "4";
+        else if (Input.GetKeyDown("5"))
+            currentInputText += "5";
+        else if (Input.GetKeyDown("6"))
+            currentInputText += "6";
+        else if (Input.GetKeyDown("7"))
+            currentInputText += "7";
+        else if (Input.GetKeyDown("8"))
+            currentInputText += "8";
+        else if (Input.GetKeyDown("9"))
+            currentInputText += "9";
+        else if (Input.GetKeyDown("."))
+        {
+            if (currentPeriodCount < 1)
+            {
+                currentPeriodCount++;
+                currentInputText += ".";
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.Return))
+        {
+            Debug.Log("confirming and exiting input");
+            ReadStringInput(currentInputText);
+            currentInputText = "";
+            currentPeriodCount = 0;
+            isDoingStuff = true;
+            isInputingText = false;
+            weAreDoneHere = true;
+        }
+        else if (Input.GetKeyDown("backspace"))
+        {
+            string tempInputText = "";
+
+            for (int i = 0; i < currentInputText.Length - 1; i++)
+            {
+                tempInputText += currentInputText[i];
+            }
+
+            if (currentInputText[currentInputText.Length - 1] == '.')
+                currentPeriodCount--;
+
+            currentInputText = tempInputText;
+        }
+        else if (Input.GetKeyDown("q"))
+        {
+            NewPlayer player = NewPlayer.Instance;
+            Debug.Log("discarding input");
+            currentInputText = "";
+            currentPeriodCount = 0;
+            isDoingStuff = true;
+            isInputingText = false;
+            weAreDoneHere = true;
+
+            inputTextDisplays[highlightedIndex-14].text = "" + player.capValues[highlightedIndex-14,player.capPreferences[highlightedIndex-14]];
+        }
+
+        if (prevInputText.CompareTo(currentInputText) != 0 && !weAreDoneHere)
+        {
+            inputTextDisplays[highlightedIndex - 14].text = currentInputText;
         }
     }
 
@@ -459,6 +576,8 @@ public class UIAttributes : MonoBehaviour
 
             player.RecalculateIntrinsicStats();
             player.RecalculateExternalStats();
+
+            statCapDisplays[0].text = "MOVEMENT SPEED CAP: " + player.movementSpeedCap + "%";
         }
     }
 
@@ -542,14 +661,22 @@ public class UIAttributes : MonoBehaviour
 
         if (tempAttributes[1] > 0)
         {
+            double prospectiveMovementSpeedCap;
+            if (player.capPreferences[0] == 0)
+            {
+                prospectiveMovementSpeedCap = System.Math.Ceiling(player.capValues[0,0]/100.0*(90.0 + player.attributes[2] + tempAttributes[1] - 100.0) + 100.0);
+            }
+            else
+                prospectiveMovementSpeedCap = System.Math.Ceiling(player.capValues[0,1]);
+
             double prospectiveMovementSpeed = player.intrinsicStats[3] + tempAttributes[1];
             double prospectiveAttackRate = player.intrinsicStats[4] + tempAttributes[1];
             double prospectiveFerocity = player.intrinsicStats[7];
 
-            if (prospectiveMovementSpeed > player.movementSpeedCap)
+            if (prospectiveMovementSpeed > prospectiveMovementSpeedCap)
             {
-                statDisplays[7].text = " +" + ((int)(10*(player.movementSpeedCap - player.intrinsicStats[3])))/10f;
-                prospectiveFerocity += (prospectiveMovementSpeed - player.movementSpeedCap)/2 - player.intrinsicStats[7];
+                statDisplays[7].text = " +" + ((int)(10*(prospectiveMovementSpeedCap - player.intrinsicStats[3])))/10f;
+                prospectiveFerocity += (prospectiveMovementSpeed - prospectiveMovementSpeedCap)/2 - player.intrinsicStats[7];
             }
             else
                 statDisplays[7].text = " +" + ((int)(10*(prospectiveMovementSpeed - player.intrinsicStats[3])))/10f;
@@ -648,14 +775,22 @@ public class UIAttributes : MonoBehaviour
 
         if (tempAttributes[1] > 0)
         {
+            double prospectiveMovementSpeedCap;
+            if (player.capPreferences[0] == 0)
+            {
+                prospectiveMovementSpeedCap = System.Math.Ceiling(player.capValues[0,0]/100.0*(90.0 + player.attributes[2] + tempAttributes[1] - 100.0) + 100.0);
+            }
+            else
+                prospectiveMovementSpeedCap = System.Math.Ceiling(player.capValues[0,1]);
+
             double prospectiveMovementSpeed = player.intrinsicStats[3] + tempAttributes[1];
             double prospectiveAttackRate = player.intrinsicStats[4] + tempAttributes[1];
             double prospectiveFerocity = player.intrinsicStats[7];
 
             if (prospectiveMovementSpeed > player.movementSpeedCap)
             {
-                statDisplays[6].text = "MOVEMENT SPEED: " + ((int)(10*(player.movementSpeedCap)))/10f + "%";
-                prospectiveFerocity += (prospectiveMovementSpeed - player.movementSpeedCap)/2;
+                statDisplays[6].text = "MOVEMENT SPEED: " + ((int)(10*(prospectiveMovementSpeedCap)))/10f + "%";
+                prospectiveFerocity += (prospectiveMovementSpeed - prospectiveMovementSpeedCap)/2;
             }
             else
                 statDisplays[6].text = "MOVEMENT SPEED: " + ((int)(10*(prospectiveMovementSpeed)))/10f + "%";
@@ -734,5 +869,39 @@ public class UIAttributes : MonoBehaviour
         statDisplays[17].text = "";
         statDisplays[19].text = "";
         statDisplays[21].text = "";
+    }
+
+    public void ReadStringInput(string sInput)
+    {
+        NewPlayer player = NewPlayer.Instance;
+
+        if (player.capPreferences[highlightedIndex-14] != null)
+            Debug.Log("player.capPreferences not null at " + (highlightedIndex - 14) + ". value = " + player.capPreferences[highlightedIndex-14]);
+
+        double nInput = double.Parse(sInput);
+
+        Debug.Log("parsed value: " + nInput);
+        
+        if (highlightedIndex-14 == 0)
+        {
+            if (player.capPreferences[0] == 0)
+            {
+                if (nInput > 100.0)
+                    nInput = 100.0;
+                player.capValues[0,0] = nInput;
+                Debug.Log("player.capValues[0,0] = " + player.capValues[0,0] + ", (nInput*(player.intrinsicStats[3] - 100.0) + 100.0) = " + (nInput*(player.intrinsicStats[3] - 100.0) + 100.0));
+                statCapDisplays[0].text = "MOVEMENT SPEED CAP: " + System.Math.Ceiling(nInput*0.01*(player.intrinsicStats[3] - 100.0) + 100.0) + "%";
+            }
+            else if (player.capPreferences[highlightedIndex-14] == 1)
+            {
+                player.capValues[0,1] = nInput;
+                Debug.Log("player.capValues[0,1] = " + player.capValues[0,1]);
+                statCapDisplays[0].text = "MOVEMENT SPEED CAP: " + nInput + "%";
+            }
+        }
+
+        inputTextDisplays[highlightedIndex-14].text = "" + player.capValues[highlightedIndex-14,player.capPreferences[highlightedIndex-14]];
+        DisplayTempBonuses();
+        DisplayTempStatBonuses();
     }
 }

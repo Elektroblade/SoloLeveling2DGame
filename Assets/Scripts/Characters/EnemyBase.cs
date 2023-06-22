@@ -46,7 +46,7 @@ public class EnemyBase : MonoBehaviour
     void Start()
     {
         // Testing
-        level = (int) GameManager.Instance.GetRandomDouble(GameManager.Instance.testingLocalDifficulty, 
+        level = (int) GameManager.Instance.GetRandomDouble(GameManager.Instance.testingLocalDifficulty + 1, 
         GameManager.Instance.testingLocalDifficulty + GameManager.Instance.testingLocalDifficultyVariance);
 
         recoveryCounter = GetComponent<RecoveryCounter>();

@@ -78,6 +78,8 @@ public class NewPlayer : PhysicsObject
     NextAction nextAction = NextAction.Idle;
     public float[] parryTimer = {0f, 0f, 0f, 0f};      // [0] = top left, [1] = top right, [2] = bottom left, [3] = bottom right
     private float parryForgiveness = 0.2f;        // How early the player can parry an attack
+    [System.NonSerialized] public int[] capPreferences = {0, 0, 0};
+    [System.NonSerialized] public double[,] capValues = new double[3,4]{ {100.0, -1.0, 0.0, 0.0}, {100.0, -1.0, 0.0, 0.0}, {90.0, -1.0, 50.0, -1.0} };
     [System.NonSerialized] public bool hasInventoryOpen = false;
     [System.NonSerialized] public bool hasStatusOpen = false;
 
@@ -155,6 +157,7 @@ public class NewPlayer : PhysicsObject
 
     public void RecalculateIntrinsicStats()
     {
+        
         // health pool, defence, mana pool, movement speed, attack rate, physical power, magical power, ferocity, intrinsic crit rate, crit damage, jump power
         //critRatePerceptionPointsCap = -(System.Math.Log(1-(critRateIntrinsicCap)/100))/1.01;
         critRatePerceptionPointsCap = (attributes[4] - 10) / 2;
@@ -164,6 +167,10 @@ public class NewPlayer : PhysicsObject
         intrinsicStats[1] = 0;                                                      // Defence
         intrinsicStats[2] = 80 + 2*attributes[1];                                   // Mana pool
         double movementSpeed = 90 + attributes[2];
+        if (capPreferences[0] == 0)
+            movementSpeedCap = System.Math.Ceiling(capValues[0,0]/100.0*(movementSpeed - 100.0) + 100.0);
+        else
+            movementSpeedCap = System.Math.Ceiling(capValues[0,1]);
         double attackRate = 90 + attributes[2];
         intrinsicStats[5] = 10*System.Math.Pow(2,(attributes[0] - 10)/(100.0+attributes[0]/11.25));
         intrinsicStats[6] = 10*System.Math.Pow(2,(attributes[3] - 10)/(100.0+attributes[0]/11.25));
