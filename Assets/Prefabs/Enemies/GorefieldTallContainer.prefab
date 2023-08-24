@@ -5106,6 +5106,8 @@ MonoBehaviour:
   isBomb: 0
   hitPower: []
   statMods: 
+  parryMeshPrefab: {fileID: 8558461649606754561, guid: c38c7e4f0fcc74f4e88747511ea42705,
+    type: 3}
 --- !u!1 &468107543087776391
 GameObject:
   m_ObjectHideFlags: 0
@@ -30494,12 +30496,9 @@ MonoBehaviour:
   - 0
   - 0
   reanimated: 0
-  myGameObject: {fileID: 3531817816966243657}
-  reanimatedSlotIndex: 0
   ariseContainer: {fileID: 8272790181049456999, guid: 8df698c1a6a0ceb40a9a8fc8cffe702e,
     type: 3}
   deathParticles: {fileID: 468107544783053980}
-  health: 0
   healthBarUI: {fileID: 468107544619472628}
   healthBarSlider: {fileID: 468107544151071598}
   xpBarSlider: {fileID: 0}
@@ -30797,17 +30796,17 @@ PrefabInstance:
     - target: {fileID: -4359737089610136779, guid: bbd7074a97c8c8d4c828aed8d77d2403,
         type: 3}
       propertyPath: m_Bounds.m_Center.x
-      value: 0.008270025
+      value: 0.008270502
       objectReference: {fileID: 0}
     - target: {fileID: -4359737089610136779, guid: bbd7074a97c8c8d4c828aed8d77d2403,
         type: 3}
       propertyPath: m_Bounds.m_Center.y
-      value: -0.01344347
+      value: -0.013442993
       objectReference: {fileID: 0}
     - target: {fileID: -4359737089610136779, guid: bbd7074a97c8c8d4c828aed8d77d2403,
         type: 3}
       propertyPath: m_Bounds.m_Extent.x
-      value: 3.4279099
+      value: 3.4279103
       objectReference: {fileID: 0}
     - target: {fileID: -4359737089610136779, guid: bbd7074a97c8c8d4c828aed8d77d2403,
         type: 3}

@@ -112,7 +112,7 @@ public class HUD : MonoBehaviour
             else if (i == 3)
                 parryTimerMesh.text += "br = ";
 
-            parryTimerMesh.text += "" + ((int)(10*player.parryTimer[i]))/10f;
+            parryTimerMesh.text += "" + ((int)(100*player.parryTimer[i]))/100f;
         }
 
         attributePointsMesh.text = Mathf.Round(attributePointsEased).ToString();

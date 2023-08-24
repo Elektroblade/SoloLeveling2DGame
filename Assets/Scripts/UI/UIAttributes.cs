@@ -16,11 +16,14 @@ public class UIAttributes : MonoBehaviour
     [SerializeField] private GameObject statsPanel;
     [SerializeField] private List<TextMeshProUGUI> attributeDisplays = new List<TextMeshProUGUI>();
     [SerializeField] private List<TextMeshProUGUI> statDisplays = new List<TextMeshProUGUI>();
-    [SerializeField] private Canvas mSCDropdownCanvas;
+    [SerializeField] private List<Canvas> dropdownCanvases = new List<Canvas>();
     [SerializeField] private List<StatusMenuButton> mSCDropdownButtons = new List<StatusMenuButton>();
+    [SerializeField] private List<StatusMenuButton> aRCDropdownButtons = new List<StatusMenuButton>();
+    [SerializeField] private List<StatusMenuButton> cRCDropdownButtons = new List<StatusMenuButton>();
     [SerializeField] private List<TextMeshProUGUI> capDropdownDisplays = new List<TextMeshProUGUI>();
     [SerializeField] private List<TextMeshProUGUI> inputTextDisplays = new List<TextMeshProUGUI>();
     [SerializeField] private List<TextMeshProUGUI> statCapDisplays = new List<TextMeshProUGUI>();
+    [System.NonSerialized] private List<List<StatusMenuButton>> dropdownButtons = new List<List<StatusMenuButton>>();
     [System.NonSerialized] private int[] tempAttributes = new int[5];
     [System.NonSerialized] private int tempSpentAP = 0;
     [System.NonSerialized] private int highlightedIndex = 0;
@@ -34,14 +37,17 @@ public class UIAttributes : MonoBehaviour
     [System.NonSerialized] private string currentInputText = "";
     [System.NonSerialized] private int currentPeriodCount = 0;
 
-    private void start()
+    private void Start()
     {
-        
+        dropdownButtons.Add(mSCDropdownButtons);
+        dropdownButtons.Add(aRCDropdownButtons);
+        dropdownButtons.Add(cRCDropdownButtons);
     }
 
     public void WakeMeUp()
     {
-        mSCDropdownCanvas.enabled = false;
+        for (int i = 0; i < dropdownCanvases.Count; i++)
+            dropdownCanvases[i].enabled = false;
         isDoingStuff = true;
         waitAFrame = true;
         holdArrowKeyCooldown = 10f * holdArrowKeyCooldownMax;
@@ -84,11 +90,24 @@ public class UIAttributes : MonoBehaviour
             player.capValues[0,highlightedDropdownIndex] = NewPlayer.Instance.intrinsicStats[3];
         statCapDisplays[0].text = "MOVEMENT SPEED CAP: " + player.capValues[0,highlightedDropdownIndex] + "%";
         inputTextDisplays[0].text = "" + player.capValues[0, player.capPreferences[0]];
+
+        if (player.capValues[1,highlightedDropdownIndex] < 0.0)
+            player.capValues[1,highlightedDropdownIndex] = NewPlayer.Instance.intrinsicStats[4];
+        statCapDisplays[1].text = "ATTACK RATE CAP: " + player.capValues[1,highlightedDropdownIndex] + "%";
+        inputTextDisplays[1].text = "" + player.capValues[1, player.capPreferences[1]];
+
+        if (player.capValues[2,highlightedDropdownIndex] < 0.0)
+            player.capValues[2,highlightedDropdownIndex] = NewPlayer.Instance.intrinsicStats[8];
+        statCapDisplays[1].text = "CRIT RATE CAP: " + player.capValues[2,highlightedDropdownIndex] + "%";
+        inputTextDisplays[1].text = "" + player.capValues[2, player.capPreferences[2]];
+
+
     }
 
     public void Goodbye()
     {
-        mSCDropdownCanvas.enabled = false;
+        for (int i = 0; i < dropdownCanvases.Count; i++)
+            dropdownCanvases[i].enabled = false;
         if (highlightedIndex < 10)
             attributeModifyButtons[highlightedIndex].UnhighlightMe();
         HideTempBonuses();
@@ -100,10 +119,14 @@ public class UIAttributes : MonoBehaviour
     {
         if (isDoingStuff && !waitAFrame)
         {
-            if (!mSCDropdownCanvas.enabled && !isInputingText)
+            if (!dropdownCanvases[0].enabled && !dropdownCanvases[1].enabled && !dropdownCanvases[2].enabled && !isInputingText)
                 DoUpdate();
-            else if (mSCDropdownCanvas.enabled && !isInputingText)
-                DoMSCDropdown();
+            else if (dropdownCanvases[0].enabled && !isInputingText)
+                DoDropdownCanvas(0);
+            else if (dropdownCanvases[1].enabled && !isInputingText)
+                DoDropdownCanvas(1);
+            else if (dropdownCanvases[2].enabled && !isInputingText)
+                DoDropdownCanvas(2);
             else if (isInputingText)
                 DoInputingText();
         }
@@ -126,15 +149,23 @@ public class UIAttributes : MonoBehaviour
         int prevHighlightedIndex = highlightedIndex;
 
         if (Input.GetKeyDown(KeyCode.UpArrow) && (highlightedIndex > 0 && highlightedIndex != 6 && highlightedIndex < 11))
+        {
             highlightedIndex--;
             if (highlightedIndex > 0 && highlightedIndex < 10 && !attributeModifyButtons[highlightedIndex].IsPossible())
                 highlightedIndex--;
+        }
+        else if (Input.GetKeyDown(KeyCode.UpArrow) && highlightedIndex > 10 && highlightedIndex < 17 && (highlightedIndex - 11) % 3 != 0)
+        {
+            highlightedIndex--;
+        }
         
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             if (highlightedIndex < 5)
                 highlightedIndex += 6;
-            else if (highlightedIndex < 11 && highlightedIndex > 5)
+            else if (highlightedIndex == 5)
+                highlightedIndex = 10;
+            else if (highlightedIndex > 5 && highlightedIndex < 11)
             {
                 highlightedIndex = 11;
             }
@@ -152,12 +183,16 @@ public class UIAttributes : MonoBehaviour
             else if (highlightedIndex < 10 && !attributeModifyButtons[highlightedIndex].IsPossible())
                 highlightedIndex++;
         }
+        else if (Input.GetKeyDown(KeyCode.DownArrow) && highlightedIndex > 10 && highlightedIndex < 17 && (highlightedIndex - 11) % 3 != 2)
+        {
+            highlightedIndex++;
+        }
 
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             if (highlightedIndex > 5 && highlightedIndex < 11)
                 highlightedIndex -= 6;
-            else if (highlightedIndex == 11)
+            else if (highlightedIndex >= 11 && highlightedIndex < 14)
             {
                 highlightedIndex = 6;
             }
@@ -203,14 +238,15 @@ public class UIAttributes : MonoBehaviour
             }
             else if (prevHighlightedIndex >= 11 && prevHighlightedIndex < 14)
             {
-                Debug.Log("here we are (down)");
-                mSCDropdownButtons[prevHighlightedIndex - 11].HighlightMe();
-                for (int i = 1; i < mSCDropdownButtons.Count; i++)
+                Debug.Log("here we are (down), prevHighlightedIndex - 11 = " + (prevHighlightedIndex - 11));
+                otherButtons[prevHighlightedIndex - 10].UnhighlightMe();
+                dropdownButtons[prevHighlightedIndex - 11][0].HighlightMe();
+                for (int i = 1; i < dropdownButtons[prevHighlightedIndex - 11].Count; i++)
                 {
-                    mSCDropdownButtons[i].UnhighlightMe();
+                    dropdownButtons[prevHighlightedIndex - 11][i].UnhighlightMe();
                 }
 
-                mSCDropdownCanvas.enabled = true;
+                dropdownCanvases[prevHighlightedIndex - 11].enabled = true;
                 waitAFrame = true;
                 highlightedDropdownIndex = 0;
             }
@@ -384,16 +420,18 @@ public class UIAttributes : MonoBehaviour
         }
     }
 
-    private void DoMSCDropdown()
+    private void DoDropdownCanvas(int dropdownId)
     {
+        if (dropdownId == 2)
+            Debug.Log("dropdownId = 2");
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
             Debug.Log("Down");
 
-            if (highlightedDropdownIndex < mSCDropdownButtons.Count - 1)
+            if (highlightedDropdownIndex < dropdownButtons[highlightedIndex - 11].Count - 1)
             {
-                mSCDropdownButtons[highlightedDropdownIndex].UnhighlightMe();
-                mSCDropdownButtons[highlightedDropdownIndex + 1].HighlightMe();
+                dropdownButtons[highlightedIndex - 11][highlightedDropdownIndex].UnhighlightMe();
+                dropdownButtons[highlightedIndex - 11][highlightedDropdownIndex + 1].HighlightMe();
 
                 highlightedDropdownIndex++;
             }
@@ -405,8 +443,8 @@ public class UIAttributes : MonoBehaviour
 
             if (highlightedDropdownIndex > 0)
             {
-                mSCDropdownButtons[highlightedDropdownIndex].UnhighlightMe();
-                mSCDropdownButtons[highlightedDropdownIndex - 1].HighlightMe();
+                dropdownButtons[highlightedIndex - 11][highlightedDropdownIndex].UnhighlightMe();
+                dropdownButtons[highlightedIndex - 11][highlightedDropdownIndex - 1].HighlightMe();
 
                 highlightedDropdownIndex--;
             }
@@ -415,31 +453,46 @@ public class UIAttributes : MonoBehaviour
         if (Input.GetButtonDown("Jump"))
         {
             NewPlayer player = NewPlayer.Instance;
-            player.capPreferences[0] = highlightedDropdownIndex;
-            capDropdownDisplays[0].text = mSCDropdownButtons[highlightedDropdownIndex].transform.GetComponentsInChildren<TextMeshProUGUI>()[0].text;
-            if (player.capValues[0,highlightedDropdownIndex] < 0.0)
-                player.capValues[0,highlightedDropdownIndex] = NewPlayer.Instance.intrinsicStats[3];
-            statCapDisplays[0].text = "MOVEMENT SPEED CAP: " + player.capValues[0,highlightedDropdownIndex] + "%";
-            inputTextDisplays[0].text = "" + player.capValues[0, player.capPreferences[0]];
-            mSCDropdownCanvas.enabled = false;
+            player.capPreferences[highlightedIndex - 11] = highlightedDropdownIndex;
+            capDropdownDisplays[highlightedIndex - 11].text = dropdownButtons[highlightedIndex - 11][highlightedDropdownIndex].transform.GetComponentsInChildren<TextMeshProUGUI>()[0].text;
+            if (player.capValues[highlightedIndex - 11,highlightedDropdownIndex] < 0.0)
+                player.capValues[highlightedIndex - 11,highlightedDropdownIndex] = NewPlayer.Instance.intrinsicStats[3];
 
-            mSCDropdownButtons[0].HighlightMe();
-            for (int i = 1; i < mSCDropdownButtons.Count; i++)
+            // Maybe should preview what value "would" be. Currently preference type is not taken into consideration.
+            if (highlightedIndex - 11 == 0)
+                statCapDisplays[0].text = "MOVEMENT SPEED CAP: " + player.capValues[0,highlightedDropdownIndex] + "%";
+            else if (highlightedIndex - 11 == 1)
+                statCapDisplays[1].text = "ATTACK RATE CAP: " + player.capValues[1,highlightedDropdownIndex] + "%";
+            else
+                statCapDisplays[2].text = "CRIT RATE CAP: " + player.capValues[2,highlightedDropdownIndex] + "%";
+            
+            inputTextDisplays[highlightedIndex - 11].text = "" + player.capValues[highlightedIndex - 11, player.capPreferences[highlightedIndex - 11]];
+            dropdownCanvases[highlightedIndex - 11].enabled = false;
+
+            dropdownButtons[highlightedIndex - 11][0].HighlightMe();
+            for (int i = 1; i < dropdownButtons[highlightedIndex - 11].Count; i++)
             {
-                mSCDropdownButtons[i].UnhighlightMe();
+                dropdownButtons[highlightedIndex - 11][i].UnhighlightMe();
             }
+
+            otherButtons[highlightedIndex - 10].HighlightMe();
+
+            player.RecalculateIntrinsicStats();
+            player.RecalculateExternalStats();
         }
             
 
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            mSCDropdownCanvas.enabled = false;
+            dropdownCanvases[highlightedIndex - 11].enabled = false;
 
-            mSCDropdownButtons[0].HighlightMe();
-            for (int i = 1; i < mSCDropdownButtons.Count; i++)
+            dropdownButtons[highlightedIndex - 11][0].HighlightMe();
+            for (int i = 1; i < dropdownButtons[highlightedIndex - 11].Count; i++)
             {
-                mSCDropdownButtons[i].UnhighlightMe();
+                dropdownButtons[highlightedIndex - 11][i].UnhighlightMe();
             }
+
+            otherButtons[highlightedIndex - 10].HighlightMe();
         }
     }
 
@@ -578,6 +631,8 @@ public class UIAttributes : MonoBehaviour
             player.RecalculateExternalStats();
 
             statCapDisplays[0].text = "MOVEMENT SPEED CAP: " + player.movementSpeedCap + "%";
+            statCapDisplays[1].text = "ATTACK RATE CAP: " + player.attackRateCap + "%";
+            statCapDisplays[2].text = "CRIT RATE CAP: " + player.attackRateCap + "%";
         }
     }
 
@@ -668,6 +723,14 @@ public class UIAttributes : MonoBehaviour
             }
             else
                 prospectiveMovementSpeedCap = System.Math.Ceiling(player.capValues[0,1]);
+            
+            double prospectiveAttackRateCap;
+            if (player.capPreferences[1] == 0)
+            {
+                prospectiveAttackRateCap = System.Math.Ceiling(player.capValues[1,0]/100.0*(90.0 + player.attributes[2] + tempAttributes[1] - 100.0) + 100.0);
+            }
+            else
+                prospectiveAttackRateCap = System.Math.Ceiling(player.capValues[1,1]);
 
             double prospectiveMovementSpeed = player.intrinsicStats[3] + tempAttributes[1];
             double prospectiveAttackRate = player.intrinsicStats[4] + tempAttributes[1];
@@ -681,10 +744,10 @@ public class UIAttributes : MonoBehaviour
             else
                 statDisplays[7].text = " +" + ((int)(10*(prospectiveMovementSpeed - player.intrinsicStats[3])))/10f;
 
-            if (prospectiveAttackRate > player.attackRateCap)
+            if (prospectiveAttackRate > prospectiveAttackRateCap)
             {
-                statDisplays[9].text = " +" + (player.attackRateCap - player.intrinsicStats[4]);
-                prospectiveFerocity += (prospectiveAttackRate - player.attackRateCap)/2 - player.intrinsicStats[7];
+                statDisplays[9].text = " +" + (prospectiveAttackRateCap - player.intrinsicStats[4]);
+                prospectiveFerocity += (prospectiveAttackRate - prospectiveAttackRateCap)/2 - player.intrinsicStats[7];
             }
             else
                 statDisplays[9].text = " +" + (prospectiveAttackRate - player.intrinsicStats[4]);
@@ -782,12 +845,48 @@ public class UIAttributes : MonoBehaviour
             }
             else
                 prospectiveMovementSpeedCap = System.Math.Ceiling(player.capValues[0,1]);
+            
+            double prospectiveAttackRateCap;
+            if (player.capPreferences[1] == 0)
+            {
+                prospectiveAttackRateCap = System.Math.Ceiling(player.capValues[1,0]/100.0*(90.0 + player.attributes[2] + tempAttributes[1] - 100.0) + 100.0);
+            }
+            else
+                prospectiveAttackRateCap = System.Math.Ceiling(player.capValues[1,1]);
+            
+
+            // W.I.P.:
+
+            double prospectiveCritRatePerceptionPointsCap;
+            if (player.capPreferences[2] == 2)
+            {
+                prospectiveCritRatePerceptionPointsCap = System.Math.Ceiling(player.capValues[2,2]/100.0 * (player.attributes[4] + tempAttributes[2] - 10.0));
+            }
+            else if (player.capPreferences[2] == 3)
+            {
+                prospectiveCritRatePerceptionPointsCap = System.Math.Ceiling(player.capValues[2,3]);
+            }
+            else
+            {
+                double prospectiveCritRateCap;
+
+                if (player.capPreferences[2] == 0)
+                {
+                    prospectiveCritRateCap = System.Math.Ceiling(player.capValues[2,0]*((1-System.Math.Pow(0.5,(player.attributes[4] + tempAttributes[2] - 10.0)/(100.0)))));
+                }
+                else
+                {
+                    prospectiveCritRateCap = System.Math.Ceiling(player.capValues[2,1]);
+                }
+
+                // Fix this equation: prospectiveCritRatePerceptionPointsCap = System.Math.Ceiling(100*(1-System.Math.Pow(0.5,System.Math.Ceiling(prospectiveCritRateCap)/(100.0))));
+            }
 
             double prospectiveMovementSpeed = player.intrinsicStats[3] + tempAttributes[1];
             double prospectiveAttackRate = player.intrinsicStats[4] + tempAttributes[1];
             double prospectiveFerocity = player.intrinsicStats[7];
 
-            if (prospectiveMovementSpeed > player.movementSpeedCap)
+            if (prospectiveMovementSpeed > prospectiveMovementSpeedCap)
             {
                 statDisplays[6].text = "MOVEMENT SPEED: " + ((int)(10*(prospectiveMovementSpeedCap)))/10f + "%";
                 prospectiveFerocity += (prospectiveMovementSpeed - prospectiveMovementSpeedCap)/2;
@@ -795,10 +894,10 @@ public class UIAttributes : MonoBehaviour
             else
                 statDisplays[6].text = "MOVEMENT SPEED: " + ((int)(10*(prospectiveMovementSpeed)))/10f + "%";
 
-            if (prospectiveAttackRate > player.attackRateCap)
+            if (prospectiveAttackRate > prospectiveAttackRateCap)
             {
-                statDisplays[8].text = "ATTACK RATE: " + (player.attackRateCap) + "%";
-                prospectiveFerocity += (prospectiveAttackRate - player.attackRateCap)/2;
+                statDisplays[8].text = "ATTACK RATE: " + (prospectiveAttackRateCap) + "%";
+                prospectiveFerocity += (prospectiveAttackRate - prospectiveAttackRateCap)/2;
             }
             else
                 statDisplays[8].text = "ATTACK RATE: " + (prospectiveAttackRate) + "%";
@@ -890,17 +989,71 @@ public class UIAttributes : MonoBehaviour
                     nInput = 100.0;
                 player.capValues[0,0] = nInput;
                 Debug.Log("player.capValues[0,0] = " + player.capValues[0,0] + ", (nInput*(player.intrinsicStats[3] - 100.0) + 100.0) = " + (nInput*(player.intrinsicStats[3] - 100.0) + 100.0));
-                statCapDisplays[0].text = "MOVEMENT SPEED CAP: " + System.Math.Ceiling(nInput*0.01*(player.intrinsicStats[3] - 100.0) + 100.0) + "%";
+                statCapDisplays[0].text = "MOVEMENT SPEED CAP: " + System.Math.Ceiling(nInput*0.01*(90 + player.attributes[2] - 100.0) + 100.0) + "%";
             }
-            else if (player.capPreferences[highlightedIndex-14] == 1)
+            else if (player.capPreferences[0] == 1)
             {
                 player.capValues[0,1] = nInput;
                 Debug.Log("player.capValues[0,1] = " + player.capValues[0,1]);
                 statCapDisplays[0].text = "MOVEMENT SPEED CAP: " + nInput + "%";
             }
         }
+        else if (highlightedIndex-14 == 1)
+        {
+            if (player.capPreferences[1] == 0)
+            {
+                if (nInput > 100.0)
+                    nInput = 100.0;
+                player.capValues[1,0] = nInput;
+                Debug.Log("player.capValues[1,0] = " + player.capValues[1,0] + ", (nInput*(player.intrinsicStats[4] - 100.0) + 100.0) = " + (nInput*(player.intrinsicStats[4] - 100.0) + 100.0));
+                statCapDisplays[1].text = "ATTACK RATE CAP: " + System.Math.Ceiling(nInput*0.01*(90 + player.attributes[2] - 100.0) + 100.0) + "%";
+            }
+            else if (player.capPreferences[1] == 1)
+            {
+                player.capValues[1,1] = nInput;
+                Debug.Log("player.capValues[1,1] = " + player.capValues[1,1]);
+                statCapDisplays[1].text = "ATTACK RATE CAP: " + nInput + "%";
+            }
+        }
+        else if (highlightedIndex-14 == 2)
+        {
+            if (player.capPreferences[2] == 0)
+            {
+                if (nInput > 100.0)
+                    nInput = 100.0;
+                player.capValues[2,0] = nInput;
+                Debug.Log("player.capValues[2,0] = " + player.capValues[2,0] + ", (nInput*(player.intrinsicStats[8] - 100.0) + 100.0) = " + (nInput*(player.intrinsicStats[8] - 100.0) + 100.0));
+                statCapDisplays[2].text = "CRIT RATE CAP: " + System.Math.Ceiling(nInput*0.01*(100*(1-System.Math.Pow(0.5,(player.attributes[4])/(100.0))))) + "%";
+            }
+            else if (player.capPreferences[2] == 1)
+            {
+                if (nInput > 100.0)
+                    nInput = 100.0;
+                player.capValues[2,1] = nInput;
+                Debug.Log("player.capValues[2,1] = " + player.capValues[2,1]);
+                statCapDisplays[2].text = "CRIT RATE CAP: " + nInput + "%";
+            }
+            else if (player.capPreferences[2] == 2)
+            {
+                if (nInput > 100.0)
+                    nInput = 100.0;
+                player.capValues[2,2] = nInput;
+                Debug.Log("player.capValues[2,2] = " + player.capValues[2,2]);
+                statCapDisplays[2].text = "CRIT RATE CAP: " + 100*(1-System.Math.Pow(0.5,System.Math.Ceiling(nInput*0.01*(player.attributes[4]))/(100.0))) + "%";
+            }
+            else if (player.capPreferences[2] == 3)
+            {
+                player.capValues[2,3] = System.Math.Ceiling(nInput);
+                Debug.Log("player.capValues[2,3] = " + player.capValues[2,3]);
+                statCapDisplays[2].text = "CRIT RATE CAP: " + 100*(1-System.Math.Pow(0.5,nInput/100.0)) + "%";
+            }
+        }
 
         inputTextDisplays[highlightedIndex-14].text = "" + player.capValues[highlightedIndex-14,player.capPreferences[highlightedIndex-14]];
+
+        player.RecalculateIntrinsicStats();
+        player.RecalculateExternalStats();
+
         DisplayTempBonuses();
         DisplayTempStatBonuses();
     }

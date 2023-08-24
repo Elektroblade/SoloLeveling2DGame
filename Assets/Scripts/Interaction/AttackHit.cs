@@ -19,6 +19,7 @@ public class AttackHit : MonoBehaviour
     [SerializeField] private bool isBomb = false; //Is the object a bomb that blows up when touching the player?
     [SerializeField] private double[] hitPower;    // Effects such as ferocity can make an attack hit multiple times at once
     [SerializeField] private int[] statMods;
+    [SerializeField] private GameObject parryMeshPrefab;
 
     // Use this for initialization
     void Start()
@@ -60,6 +61,18 @@ public class AttackHit : MonoBehaviour
             {
                 //Debug.Log("Parry!");
                 playerStaggeredEnemy = true;
+
+                ParryMesh parryMesh;
+                
+                if (parryMeshPrefab)
+                {
+                    parryMesh = Instantiate(parryMeshPrefab, gameObject.transform.position, Quaternion.identity).GetComponent<ParryMesh>();
+                    if (parryMesh)
+                    {
+                        parryMesh.DisplaySprite();
+                    }
+                }
+
                 parent.GetComponent<EnemyBase>().Stagger();
             }
         }

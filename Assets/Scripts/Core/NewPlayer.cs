@@ -160,7 +160,7 @@ public class NewPlayer : PhysicsObject
         
         // health pool, defence, mana pool, movement speed, attack rate, physical power, magical power, ferocity, intrinsic crit rate, crit damage, jump power
         //critRatePerceptionPointsCap = -(System.Math.Log(1-(critRateIntrinsicCap)/100))/1.01;
-        critRatePerceptionPointsCap = (attributes[4] - 10) / 2;
+        //critRatePerceptionPointsCap = System.Math.Ceiling(100.0*System.Math.Log(1.0-(intrinsicStats[8]/100.0), 0.5));
         //Debug.Log("critRatePerceptionPointsCap = " + critRatePerceptionPointsCap);
 
         intrinsicStats[0] = 100*System.Math.Pow(2,(attributes[0] - 10)/(100.0+attributes[0]/11.25));      // Health pool
@@ -171,7 +171,23 @@ public class NewPlayer : PhysicsObject
             movementSpeedCap = System.Math.Ceiling(capValues[0,0]/100.0*(movementSpeed - 100.0) + 100.0);
         else
             movementSpeedCap = System.Math.Ceiling(capValues[0,1]);
+
         double attackRate = 90 + attributes[2];
+        if (capPreferences[1] == 0)
+            attackRateCap = System.Math.Ceiling(capValues[1,0]/100.0*(attackRate - 100.0) + 100.0);
+        else
+            attackRateCap = System.Math.Ceiling(capValues[1,1]);
+
+        double critRate = 100*(1-System.Math.Pow(0.5,attributes[4]/100.0));
+        if (capPreferences[2] == 0)
+            critRatePerceptionPointsCap = System.Math.Ceiling(100.0*System.Math.Log((1.0-((capValues[2,0]/100.0*critRate))/100.0), 0.5));
+        else if (capPreferences[2] == 1)
+            critRatePerceptionPointsCap = System.Math.Ceiling(100.0*System.Math.Log((1.0-capValues[2,1]/100.0), 0.5));
+        else if (capPreferences[2] == 2)
+            critRatePerceptionPointsCap = System.Math.Ceiling(capValues[2,2]/100.0*attributes[4]);
+        else
+            critRatePerceptionPointsCap = System.Math.Ceiling(capValues[2,2]);
+
         intrinsicStats[5] = 10*System.Math.Pow(2,(attributes[0] - 10)/(100.0+attributes[0]/11.25));
         intrinsicStats[6] = 10*System.Math.Pow(2,(attributes[3] - 10)/(100.0+attributes[0]/11.25));
         intrinsicStats[7] = 0;
@@ -197,7 +213,15 @@ public class NewPlayer : PhysicsObject
         if (attributes[4] > System.Math.Ceiling(critRatePerceptionPointsCap))
         {
             intrinsicStats[8] = 100*(1-System.Math.Pow(0.5,System.Math.Ceiling(critRatePerceptionPointsCap)/(100.0)));
-            intrinsicStats[9] = 1.5*((attributes[4] - 10) - System.Math.Ceiling(critRatePerceptionPointsCap));
+            /*
+
+            intrinsicStats[8]/100 = (1-System.Math.Pow(0.5,System.Math.Ceiling(critRatePerceptionPointsCap)/(100.0)));
+            -((intrinsicStats[8]/100) - 1) = 0.5 ^ (System.Math.Ceiling(critRatePerceptionPointsCap)/(100.0));
+            System.Math.Log(1-(intrinsicStats[8]/100), 0.5) = System.Math.Ceiling(critRatePerceptionPointsCap)/(100.0);
+            System.Math.Ceiling(100*System.Math.Log(1-(intrinsicStats[8]/100), 0.5)) = critRatePerceptionPointsCap
+            
+             */
+            intrinsicStats[9] = 1.5*((attributes[4]) - System.Math.Ceiling(critRatePerceptionPointsCap));
         }
         else
         {
@@ -223,6 +247,22 @@ public class NewPlayer : PhysicsObject
 
     private void Update()
     {
+        // Increase level if xp is sufficient
+        int xpSnapshot = xp;
+        int xpConsumed = xpSnapshot;
+        while (xpConsumed != 0 && xpConsumed >= 10*System.Math.Pow(level + 1,2))
+        {
+            level++;
+            attributePoints += 5;
+            xpConsumed -= 10*level^2;
+        }
+
+        // Ensure that any xp gained during the above consumption process was not lost
+        if (xpSnapshot < xp)
+        {
+            xpConsumed += xp - xpSnapshot;
+        }
+
         // We do NOT need to recalculate stats on every update, only when attribute points are spent or items are equipped or unequipped
 
         // Replenish health by 1% per second
@@ -604,12 +644,6 @@ public class NewPlayer : PhysicsObject
     {
         //Debug.Log("Adding xp = " + xpAmount + ", Next level requires " + (10*System.Math.Pow(level + 1,2)) + " total.");
         xp += xpAmount;
-        while (xp != 0 && xp >= 10*System.Math.Pow(level + 1,2))
-        {
-            level++;
-            attributePoints += 5;
-            xp -= 10*level^2;
-        }
     }
 
     public void DetermineFerocity()
@@ -640,7 +674,7 @@ public class NewPlayer : PhysicsObject
         {
             ferocityCounter--;
             animator.SetInteger("ferocityCounter", ferocityCounter);
-            Debug.Log("Remaining Ferocity for index " + comboIndex + ": ferocityCounter = " + ferocityCounter + ", anim: " + animator.GetInteger("ferocityCounter"));
+            //Debug.Log("Remaining Ferocity for index " + comboIndex + ": ferocityCounter = " + ferocityCounter + ", anim: " + animator.GetInteger("ferocityCounter"));
         }
         //Debug.Log("Decremented ferocity to " + ferocityCounter + " from " + ferocityTotal);
     }
@@ -945,7 +979,7 @@ public class NewPlayer : PhysicsObject
         {
             animator.SetBool("attackBool", true);
 
-            Debug.Log("attack = " + animator.GetBool("attack") + ", ferocityCounter = " + animator.GetInteger(ferocityCounter));
+            //Debug.Log("attack = " + animator.GetBool("attack") + ", ferocityCounter = " + animator.GetInteger(ferocityCounter));
         }
     }
 
