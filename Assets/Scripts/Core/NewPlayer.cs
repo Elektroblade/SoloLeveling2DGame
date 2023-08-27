@@ -27,6 +27,7 @@ public class NewPlayer : PhysicsObject
     [SerializeField] public SeismicWave seismicWave;
     [SerializeField] public EarthPrism earthPrism;
     [SerializeField] private GameObject pauseMenu;
+    [SerializeField] public Transform siphonOrigin;
     public RecoveryCounter recoveryCounter;
     private System.Random random = new System.Random();
 
@@ -71,6 +72,10 @@ public class NewPlayer : PhysicsObject
     [System.NonSerialized] public bool shooting = false;
     [System.NonSerialized] public bool isLightningImbued = false;
     [System.NonSerialized] public bool isLightningDash = true;
+    [System.NonSerialized] public bool canManaCapacitor = true;
+    [System.NonSerialized] public bool canRaycastSyphon = true;
+    [System.NonSerialized] public bool canLifeSteal = true;
+    [System.NonSerialized] public bool canOptimizeInnards = true;
     [SerializeField] bool facingRight;
     private int ferocityTotal = 0;
     private int ferocityCounter = 0;
@@ -111,6 +116,9 @@ public class NewPlayer : PhysicsObject
     [SerializeField] public int attributePoints;
     public EnemyBase[] myReanimated = new EnemyBase[10];
 
+    private double healthToAdd = 0;
+    private double manaToAdd = 0;
+
     [Header ("Sounds")]
     public AudioClip deathSound;
     public AudioClip equipSound;
@@ -133,7 +141,7 @@ public class NewPlayer : PhysicsObject
         level = GameManager.Instance.testingLocalDifficulty;
         attributePoints = 5*GameManager.Instance.testingLocalDifficulty;
 
-        Debug.Log("2 ^ (1/100) = " + (System.Math.Pow(2,0.01)));
+        //Debug.Log("2 ^ (1/100) = " + (System.Math.Pow(2,0.01)));
         Cursor.visible = false;
         SetUpCheatItems();
         animatorFunctions = GetComponent<AnimatorFunctions>();
@@ -265,10 +273,24 @@ public class NewPlayer : PhysicsObject
 
         // We do NOT need to recalculate stats on every update, only when attribute points are spent or items are equipped or unequipped
 
+        // Avoid "recover by melee" gains overflowing
+        if (healthToAdd > externalStats[0])
+        {
+            healthToAdd = externalStats[0];
+        }
+        if (manaToAdd > externalStats[2])
+        {
+            manaToAdd = externalStats[2];
+        }
+
         // Replenish health by 1% per second
         if (health < externalStats[0])
         {
             health += 0.01*externalStats[0]*Time.deltaTime;
+
+            health += healthToAdd;
+
+            healthToAdd = 0;
         }
         // Avoid over-filling health
         if (health > externalStats[0])
@@ -300,7 +322,16 @@ public class NewPlayer : PhysicsObject
         if (mana < externalStats[2])
         {
             mana += 0.01*externalStats[2]*Time.deltaTime;
+
+            mana += manaToAdd;
+
+            manaToAdd = 0;
         }
+
+        // Electromancer
+        if (!canManaCapacitor)
+            manaToAdd = 0;
+
         // Avoid over-filling mana
         if (mana > externalStats[2])
         {
@@ -389,7 +420,7 @@ public class NewPlayer : PhysicsObject
                 if (ferocityCounter < ((int) (1 * externalStats[7] + 100)/100))
                 {
                     DetermineFerocity();
-                    Debug.Log("Calculated new ferocity: " + ferocityCounter);
+                    //Debug.Log("Calculated new ferocity: " + ferocityCounter);
                 }
                 aerodynamicHeating.DisplaySprite();
 
@@ -570,10 +601,23 @@ public class NewPlayer : PhysicsObject
             launch = hurtDirection * (hurtLaunchPower.x);
             recoveryCounter.ResetAllCounters();
 
-            for (int i = 0; i < hitPower.Length - 1; i++)
+            for (int i = 0; i < hitPower.Length - 2; i++)
             {
-                
-                health -= 100*hitPower[i]/(externalStats[1] + 100);
+                if (canOptimizeInnards && health < 0.5 * externalStats[0])
+                {
+                    health -= 100*hitPower[i]*(1/(1+(-2*health + externalStats[0]) * (attributes[0] / 100) / externalStats[0]))/(externalStats[1] + 100);
+
+
+                    Debug.Log("100*hitPower[i]*(1/(1+(-2*health + externalStats[0]) * (attributes[0] / 100) / externalStats[0]))/(externalStats[1] + 100) = " 
+                        + (100*hitPower[i]*(1/(1+(-2*health + externalStats[0]) * (attributes[0] / 100) / externalStats[0]))/(externalStats[1] + 100)));
+                }
+                else
+                {
+                    health -= 100*hitPower[i]/(externalStats[1] + 100);
+                    Debug.Log("100*hitPower[i]/(externalStats[1] + 100) = " 
+                        + (100*hitPower[i]/(externalStats[1] + 100)));
+                }
+
                 if (health <= 0)
                 {
                     Debug.Log("I should be dead.");
@@ -861,7 +905,7 @@ public class NewPlayer : PhysicsObject
     {
         double[] damage;
 
-        damage = new double[ferocityTotal + 1];
+        damage = new double[ferocityTotal + 2];
 
         double physicalDamage;
         double magicalDamage;
@@ -883,19 +927,29 @@ public class NewPlayer : PhysicsObject
 
         // Apply crit
         double critRoll = GameManager.Instance.GetRandomDouble(0.0, 1.0);
-        damage[damage.Length - 1] = 0;                      // Last int describes whether crit or not
+        damage[damage.Length - 2] = 0;                      // Last int describes whether crit or not
         if (critRoll < externalStats[8]*modifiers[8]/100)
         {
-            damage[damage.Length - 1] = 1;
+            damage[damage.Length - 2] = 1;
             singleHitDamage *= (externalStats[9]*modifiers[9] + 100)/100;
             //Debug.Log("Crit with a roll of " + critRoll + " for a total of " + singleHitDamage);
         }
 
         // ferocity loop
         int i;
-        for (i = 0; i < damage.Length - 1; i++)
+        for (i = 0; i < damage.Length - 2; i++)
         {
             damage[i] = singleHitDamage;
+        }
+
+        damage[damage.Length - 1] = 0;
+
+        if (canRaycastSyphon)
+        {
+            if (health/externalStats[0] < 0.34)
+            {
+                damage[damage.Length - 1] = 1;
+            }
         }
 
         return damage;
@@ -910,12 +964,21 @@ public class NewPlayer : PhysicsObject
         }
     }
 
-    public void RecoverByMelee()
+    public void RecoverByMelee(int attackType)
     {
-        if (mana < externalStats[2])
-            mana += externalStats[2]*.05;
-        if (health < externalStats[0])
-            health += externalStats[0]*.03;
+        if (attackType == 0 || (attackType == 7 && canLifeSteal && health/externalStats[0] < 0.17))
+        {
+            if (mana < externalStats[2])
+                manaToAdd += externalStats[2]*.05;
+            if (health < externalStats[0])
+                healthToAdd += externalStats[0]*.03;
+        }
+
+        // Bloodmage tings
+        if (canLifeSteal && (attackType == 0 || attackType == 7) && health < externalStats[0])
+        {
+            healthToAdd += externalStats[0]*0.05 * (1);
+        }
     }
 
     public void DisplayLightningFist()
@@ -928,7 +991,7 @@ public class NewPlayer : PhysicsObject
 
     void OnCollisionEnter(Collision collision)
     {
-        Debug.Log("layer = " + collision.gameObject.layer + ", dodging = " + dodging);    
+        //Debug.Log("layer = " + collision.gameObject.layer + ", dodging = " + dodging);    
     }
 
     public void GiveNewReanimated(EnemyBase newReanimated)

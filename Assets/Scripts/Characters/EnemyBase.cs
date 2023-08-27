@@ -26,6 +26,7 @@ public class EnemyBase : MonoBehaviour
     [SerializeField] public bool reanimated;
     [System.NonSerialized] public int reanimatedSlotIndex;
     [SerializeField] private GameObject ariseContainer;
+    [SerializeField] public Transform siphonOrigin;
     private int ferocityTotal = 0;
     private int ferocityCounter = 0;
     private float staggerTimer = 0;
@@ -179,18 +180,18 @@ public class EnemyBase : MonoBehaviour
                 // Only melee attacks trigger active recovery
                 if (attackerType == 0)
                 {
-                    if (attackType == 0)
-                        NewPlayer.Instance.RecoverByMelee();
+                    
+                    NewPlayer.Instance.RecoverByMelee(attackType);
                     
                     NewPlayer.Instance.cameraEffects.Shake(100, 1);
 
                     double critDamage = NewPlayer.Instance.externalStats[9];
                     if (staggerTimer > 0)
                     {
-                        for (int i = 0; i < hitPower.Length - 1; i++)
+                        for (int i = 0; i < hitPower.Length - 2; i++)
                         {
                             hitPower[i] *= 1.5;
-                            if ((int) hitPower[hitPower.Length - 1] == 1)
+                            if ((int) hitPower[hitPower.Length - 2] == 1)
                             {
                                 hitPower[i] *= (2.0*critDamage+100.0)/(critDamage+100.0);
                             }
@@ -201,7 +202,7 @@ public class EnemyBase : MonoBehaviour
                 {
                     if (staggerTimer > 0)
                     {
-                        for (int i = 0; i < hitPower.Length - 1; i++)
+                        for (int i = 0; i < hitPower.Length - 2; i++)
                         {
                             hitPower[i] *= 1.5;
                         }
@@ -210,7 +211,7 @@ public class EnemyBase : MonoBehaviour
 
                 string damagePopupString = "";
                 
-                for (int i = 0; i < hitPower.Length - 1; i++)
+                for (int i = 0; i < hitPower.Length - 2; i++)
                 {
                     double loss = 100*hitPower[i]/(intrinsicStats[1] + 100);
                     
@@ -366,7 +367,7 @@ public class EnemyBase : MonoBehaviour
         //Debug.Log("Enemy calc damag at level " + level);
 
         int[] modifiers = {0, 0, 0, 0, 1, 1, 0, 1, 1, 1};
-        double[] damage = new double[ferocityTotal + 1];
+        double[] damage = new double[ferocityTotal + 2];
 
         //Debug.Log("damage.Length = " + damage.Length + "");
 
@@ -381,19 +382,21 @@ public class EnemyBase : MonoBehaviour
         for (i = (double) ferocityTotal; i >= 1.0; i--)
         {
             //Debug.Log("Index = " + (((int) -i) + damage.Length) + ", i = " + i);
-            damage[((int) -i) + damage.Length - 1] = singleHitDamage;
+            damage[((int) -i) + damage.Length - 2] = singleHitDamage;
         }
 
         // The final ferocity proc is basically multiplied by (ferocity + 100) mod 100
         if (i>0)
         {
-            damage[damage.Length-2] = singleHitDamage*i;
+            damage[damage.Length-3] = singleHitDamage*i;
         }
 
         if (reanimated)
-            damage[damage.Length - 1] = -2;  // Unused value identifying critical hits
+            damage[damage.Length - 2] = -2;  // Unused value identifying critical hits
         else
-            damage[damage.Length - 1] = -1;
+            damage[damage.Length - 2] = -1;
+
+        damage[damage.Length - 1] = 0;
 
         /*
         string damageStr = "" + damage[0];

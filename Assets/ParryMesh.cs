@@ -11,7 +11,6 @@ public class ParryMesh : MonoBehaviour
 
     public void DisplaySprite()
     {
-        Debug.Log("I EXISTS");
         spriteRenderer.transform.localScale = new Vector3(2, 2f, 1);
         existenceTimer = existenceTimerMax;
         Color tmpParryMeshColour = spriteRenderer.color;

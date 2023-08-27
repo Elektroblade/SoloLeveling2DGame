@@ -9,9 +9,11 @@ public class EarthPrism : MonoBehaviour
     [SerializeField] SpriteRenderer earthPrismSide;
     [System.NonSerialized] float maxPrismHeight = 1.82f;
     [System.NonSerialized] float prismHeight = 1.82f;
+    [System.NonSerialized] int currentReceivedHitCount = 0;
     public float existenceTimer;
     [System.NonSerialized] public float existenceTimerMax = 0.15f;
-    [SerializeField] public Collider2D collider;
+    [SerializeField] public Collider2D attackCollider;
+    [SerializeField] public Collider2D receiveCollider;
     [SerializeField] public RecoveryCounter recoveryCounter;
     [SerializeField] public GameObject earthDisk;
 
@@ -30,7 +32,7 @@ public class EarthPrism : MonoBehaviour
         }
         else if (existenceTimer > 0)
         {
-            collider.enabled = false;
+            attackCollider.enabled = false;
             existenceTimer -= Time.deltaTime;
             disksRemoved.transform.position = new Vector3(transform.position.x, 
                 transform.position.y + 1.522f - maxPrismHeight * (existenceTimer / existenceTimerMax) + maxPrismHeight - prismHeight, 0);
@@ -39,6 +41,11 @@ public class EarthPrism : MonoBehaviour
         {
             disksRemoved.transform.position = new Vector3(transform.position.x, transform.position.y + 1.522f + maxPrismHeight - prismHeight, 0);
             existenceTimer = 0;
+
+            /*
+            Debug.Log("Original positions: " + (disksRemoved.transform.position.y - transform.position.y) + ", " 
+                    + (earthPrismTop.transform.position.y - disksRemoved.transform.position.y) + ", " + (maxPrismHeight - prismHeight));
+             */
         }
     }
 
@@ -54,11 +61,13 @@ public class EarthPrism : MonoBehaviour
         disksRemoved.transform.position = new Vector3(transform.position.x, transform.position.y + 1.522f - maxPrismHeight, 0);
 
         prismHeight = maxPrismHeight;
+        currentReceivedHitCount = 0;
 
         earthPrismSide.enabled = true;
         earthPrismTop.enabled = true;
 
-        collider.enabled = true;
+        receiveCollider.enabled = true;
+        attackCollider.enabled = true;
         existenceTimer = existenceTimerMax;
     }
 
@@ -66,20 +75,30 @@ public class EarthPrism : MonoBehaviour
     {
         if (recoveryCounter.counter[attackType] > recoveryCounter.recoveryTime)
         {
-            Vector3 diskPosition = new Vector3(transform.position.x, transform.position.y + 0.8f - maxPrismHeight + prismHeight, 0);
-            Instantiate(earthDisk, diskPosition, transform.rotation);
-
             prismHeight -= maxPrismHeight / (abilityLevel + 1f);
+            currentReceivedHitCount++;
+
+            Vector3 diskPosition = new Vector3(transform.position.x, transform.position.y + 0.8f - maxPrismHeight + prismHeight, 0);
+            GameObject thisEarthDisk = Instantiate(earthDisk, diskPosition, transform.rotation);
+
             //Debug.Log("prismHeight = " + prismHeight + ", 1.523f - maxPrismHeight = " + (1.523f - maxPrismHeight));
-            if (prismHeight <= 0)
+            if (currentReceivedHitCount > abilityLevel)
             {
                 earthPrismSide.enabled = false;
                 earthPrismTop.enabled = false;
+
+                receiveCollider.enabled = false;
             }
             else
             {
-                disksRemoved.transform.position = new Vector3(transform.position.x, transform.position.y + prismHeight, 0);
+                disksRemoved.transform.position = new Vector3(transform.position.x, transform.position.y + prismHeight - 0.289f, 0);
                 recoveryCounter.counter[attackType] = 0;
+
+                /*
+                Debug.Log("Slice positions: " + (disksRemoved.transform.position.y - transform.position.y) + ", " 
+                    + (earthPrismTop.transform.position.y - disksRemoved.transform.position.y) + ", " + (maxPrismHeight - prismHeight) 
+                    + (disksRemoved.transform.position.y - maxPrismHeight - transform.position.y));
+                 */
             }
         }
     }

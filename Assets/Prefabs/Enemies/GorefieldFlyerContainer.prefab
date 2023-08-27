@@ -47,6 +47,49 @@ CapsuleCollider2D:
   m_Offset: {x: -0.5289438, y: 3.491832}
   m_Size: {x: 6.9493, y: 4.493423}
   m_Direction: 1
+--- !u!1 &7046552223420059843
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2864117827541942286}
+  - component: {fileID: 8932790899666060619}
+  m_Layer: 10
+  m_Name: SiphonOrigin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2864117827541942286
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7046552223420059843}
+  m_LocalRotation: {x: -0, y: -0, z: -0.67293596, w: 0.73970073}
+  m_LocalPosition: {x: 0.679, y: 0.416, z: 0}
+  m_LocalScale: {x: 5, y: 5, z: 5}
+  m_Children: []
+  m_Father: {fileID: 9100127351894848315}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8932790899666060619
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7046552223420059843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1982ba7b3d2c3c40bc092aa4dba3070, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!50 &9086877981212448024
 Rigidbody2D:
   serializedVersion: 4
@@ -276,6 +319,7 @@ MonoBehaviour:
   reanimated: 0
   ariseContainer: {fileID: 4660103498608002820, guid: 863d5a389a1540843aaab4673a4d4c3a,
     type: 3}
+  siphonOrigin: {fileID: 2864117827541942286}
   deathParticles: {fileID: 9086877981202631667}
   healthBarUI: {fileID: 9086877981290723739}
   healthBarSlider: {fileID: 9086877980823761921}
@@ -25516,6 +25560,10 @@ MonoBehaviour:
   statMods: 
   parryMeshPrefab: {fileID: 8558461649606754561, guid: c38c7e4f0fcc74f4e88747511ea42705,
     type: 3}
+  vengefulSiphonPrefab: {fileID: 0}
+  layersToGetSiphoned:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1 &9086877982050692263
 GameObject:
   m_ObjectHideFlags: 0
@@ -30647,22 +30695,22 @@ PrefabInstance:
     - target: {fileID: -4530215006198618351, guid: 856979fcbc622a24e89704e75bf068e8,
         type: 3}
       propertyPath: m_Bounds.m_Center.x
-      value: 0.21773767
+      value: 0.21771097
       objectReference: {fileID: 0}
     - target: {fileID: -4530215006198618351, guid: 856979fcbc622a24e89704e75bf068e8,
         type: 3}
       propertyPath: m_Bounds.m_Center.y
-      value: 3.1250007
+      value: 3.1250017
       objectReference: {fileID: 0}
     - target: {fileID: -4530215006198618351, guid: 856979fcbc622a24e89704e75bf068e8,
         type: 3}
       propertyPath: m_Bounds.m_Extent.x
-      value: 4.647744
+      value: 4.6477404
       objectReference: {fileID: 0}
     - target: {fileID: -4530215006198618351, guid: 856979fcbc622a24e89704e75bf068e8,
         type: 3}
       propertyPath: m_Bounds.m_Extent.y
-      value: 2.695001
+      value: 2.6950018
       objectReference: {fileID: 0}
     - target: {fileID: -3598341510500244805, guid: 856979fcbc622a24e89704e75bf068e8,
         type: 3}
@@ -30992,6 +31040,12 @@ PrefabInstance:
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: -6442894697721942347, guid: 856979fcbc622a24e89704e75bf068e8,
     type: 3}
+--- !u!4 &9100127351894848315 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 22859935866421444, guid: 856979fcbc622a24e89704e75bf068e8,
+    type: 3}
+  m_PrefabInstance: {fileID: 9086877981429347327}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &6323507210046346645 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -6207491713393154454, guid: 856979fcbc622a24e89704e75bf068e8,

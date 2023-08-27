@@ -56,6 +56,7 @@ public class GorefieldTall : PhysicsObject
     [System.NonSerialized] public bool isAttacking = false;
     private int previousFrameState = 0;
     [System.NonSerialized] public EnemyBase targetEnemy;
+    [System.NonSerialized] private Transform target;
     
     void Start()
     {
@@ -444,22 +445,26 @@ public class GorefieldTall : PhysicsObject
 
     public void TrueIsAttacking()
     {
-        distanceFromTarget = new Vector2 (NewPlayer.Instance.gameObject.transform.position.x - transform.position.x, NewPlayer.Instance.gameObject.transform.position.y - transform.position.y);
+        if (target)
+        {
+            distanceFromTarget = new Vector2 (target.position.x - transform.position.x, target.position.y - transform.position.y);
 
-        if (distanceFromTarget.x > 0.02f)
-        {
-            if (graphic.transform.localScale.x == 1)
+            if (distanceFromTarget.x > 0.02f)
             {
-                graphic.transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
+                if (graphic.transform.localScale.x == 1)
+                {
+                    graphic.transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
+                }
+            }
+            else if (distanceFromTarget.x < -0.02f)
+            {
+                if (graphic.transform.localScale.x == -1)
+                {
+                    graphic.transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
+                }
             }
         }
-        else if (distanceFromTarget.x < -0.02f)
-        {
-            if (graphic.transform.localScale.x == -1)
-            {
-                graphic.transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
-            }
-        }
+
         attackCooldown[0] = origAttackCooldown[0];
         isAttacking = true;
         if (enemyBase.reanimated && targetEnemy != null)

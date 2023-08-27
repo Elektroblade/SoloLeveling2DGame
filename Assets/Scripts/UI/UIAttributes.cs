@@ -238,7 +238,7 @@ public class UIAttributes : MonoBehaviour
             }
             else if (prevHighlightedIndex >= 11 && prevHighlightedIndex < 14)
             {
-                Debug.Log("here we are (down), prevHighlightedIndex - 11 = " + (prevHighlightedIndex - 11));
+                //Debug.Log("here we are (down), prevHighlightedIndex - 11 = " + (prevHighlightedIndex - 11));
                 otherButtons[prevHighlightedIndex - 10].UnhighlightMe();
                 dropdownButtons[prevHighlightedIndex - 11][0].HighlightMe();
                 for (int i = 1; i < dropdownButtons[prevHighlightedIndex - 11].Count; i++)
@@ -252,7 +252,7 @@ public class UIAttributes : MonoBehaviour
             }
             else if (prevHighlightedIndex >= 14 && prevHighlightedIndex < 17)
             {
-                Debug.Log("input index + 14 = " + (prevHighlightedIndex));
+                //Debug.Log("input index + 14 = " + (prevHighlightedIndex));
                 highlightedIndex = prevHighlightedIndex;
                 isInputingText = true;
                 waitAFrame = true;
@@ -411,7 +411,7 @@ public class UIAttributes : MonoBehaviour
             else if (prevHighlightedIndex < 17)
                 otherButtons[prevHighlightedIndex - 10].UnhighlightMe();
 
-            Debug.Log("highlightedIndex = " + highlightedIndex + ", prevHighlightedIndex = " + prevHighlightedIndex);
+            //Debug.Log("highlightedIndex = " + highlightedIndex + ", prevHighlightedIndex = " + prevHighlightedIndex);
 
             if (highlightedIndex < 10)
                 attributeModifyButtons[highlightedIndex].HighlightMe();
@@ -422,11 +422,13 @@ public class UIAttributes : MonoBehaviour
 
     private void DoDropdownCanvas(int dropdownId)
     {
+        /*
         if (dropdownId == 2)
             Debug.Log("dropdownId = 2");
+         */
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            Debug.Log("Down");
+            //Debug.Log("Down");
 
             if (highlightedDropdownIndex < dropdownButtons[highlightedIndex - 11].Count - 1)
             {
@@ -439,7 +441,7 @@ public class UIAttributes : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            Debug.Log("Up, " + highlightedDropdownIndex);
+            //Debug.Log("Up, " + highlightedDropdownIndex);
 
             if (highlightedDropdownIndex > 0)
             {
@@ -531,7 +533,7 @@ public class UIAttributes : MonoBehaviour
         }
         else if (Input.GetKeyDown(KeyCode.Return))
         {
-            Debug.Log("confirming and exiting input");
+            //Debug.Log("confirming and exiting input");
             ReadStringInput(currentInputText);
             currentInputText = "";
             currentPeriodCount = 0;
@@ -556,7 +558,7 @@ public class UIAttributes : MonoBehaviour
         else if (Input.GetKeyDown("q"))
         {
             NewPlayer player = NewPlayer.Instance;
-            Debug.Log("discarding input");
+            //Debug.Log("discarding input");
             currentInputText = "";
             currentPeriodCount = 0;
             isDoingStuff = true;
@@ -974,12 +976,14 @@ public class UIAttributes : MonoBehaviour
     {
         NewPlayer player = NewPlayer.Instance;
 
+        /*
         if (player.capPreferences[highlightedIndex-14] != null)
             Debug.Log("player.capPreferences not null at " + (highlightedIndex - 14) + ". value = " + player.capPreferences[highlightedIndex-14]);
+         */
 
         double nInput = double.Parse(sInput);
 
-        Debug.Log("parsed value: " + nInput);
+        //Debug.Log("parsed value: " + nInput);
         
         if (highlightedIndex-14 == 0)
         {
@@ -988,13 +992,13 @@ public class UIAttributes : MonoBehaviour
                 if (nInput > 100.0)
                     nInput = 100.0;
                 player.capValues[0,0] = nInput;
-                Debug.Log("player.capValues[0,0] = " + player.capValues[0,0] + ", (nInput*(player.intrinsicStats[3] - 100.0) + 100.0) = " + (nInput*(player.intrinsicStats[3] - 100.0) + 100.0));
+                //Debug.Log("player.capValues[0,0] = " + player.capValues[0,0] + ", (nInput*(player.intrinsicStats[3] - 100.0) + 100.0) = " + (nInput*(player.intrinsicStats[3] - 100.0) + 100.0));
                 statCapDisplays[0].text = "MOVEMENT SPEED CAP: " + System.Math.Ceiling(nInput*0.01*(90 + player.attributes[2] - 100.0) + 100.0) + "%";
             }
             else if (player.capPreferences[0] == 1)
             {
                 player.capValues[0,1] = nInput;
-                Debug.Log("player.capValues[0,1] = " + player.capValues[0,1]);
+                //Debug.Log("player.capValues[0,1] = " + player.capValues[0,1]);
                 statCapDisplays[0].text = "MOVEMENT SPEED CAP: " + nInput + "%";
             }
         }
@@ -1005,13 +1009,13 @@ public class UIAttributes : MonoBehaviour
                 if (nInput > 100.0)
                     nInput = 100.0;
                 player.capValues[1,0] = nInput;
-                Debug.Log("player.capValues[1,0] = " + player.capValues[1,0] + ", (nInput*(player.intrinsicStats[4] - 100.0) + 100.0) = " + (nInput*(player.intrinsicStats[4] - 100.0) + 100.0));
+                //Debug.Log("player.capValues[1,0] = " + player.capValues[1,0] + ", (nInput*(player.intrinsicStats[4] - 100.0) + 100.0) = " + (nInput*(player.intrinsicStats[4] - 100.0) + 100.0));
                 statCapDisplays[1].text = "ATTACK RATE CAP: " + System.Math.Ceiling(nInput*0.01*(90 + player.attributes[2] - 100.0) + 100.0) + "%";
             }
             else if (player.capPreferences[1] == 1)
             {
                 player.capValues[1,1] = nInput;
-                Debug.Log("player.capValues[1,1] = " + player.capValues[1,1]);
+                //Debug.Log("player.capValues[1,1] = " + player.capValues[1,1]);
                 statCapDisplays[1].text = "ATTACK RATE CAP: " + nInput + "%";
             }
         }
@@ -1022,7 +1026,7 @@ public class UIAttributes : MonoBehaviour
                 if (nInput > 100.0)
                     nInput = 100.0;
                 player.capValues[2,0] = nInput;
-                Debug.Log("player.capValues[2,0] = " + player.capValues[2,0] + ", (nInput*(player.intrinsicStats[8] - 100.0) + 100.0) = " + (nInput*(player.intrinsicStats[8] - 100.0) + 100.0));
+                //Debug.Log("player.capValues[2,0] = " + player.capValues[2,0] + ", (nInput*(player.intrinsicStats[8] - 100.0) + 100.0) = " + (nInput*(player.intrinsicStats[8] - 100.0) + 100.0));
                 statCapDisplays[2].text = "CRIT RATE CAP: " + System.Math.Ceiling(nInput*0.01*(100*(1-System.Math.Pow(0.5,(player.attributes[4])/(100.0))))) + "%";
             }
             else if (player.capPreferences[2] == 1)
@@ -1030,7 +1034,7 @@ public class UIAttributes : MonoBehaviour
                 if (nInput > 100.0)
                     nInput = 100.0;
                 player.capValues[2,1] = nInput;
-                Debug.Log("player.capValues[2,1] = " + player.capValues[2,1]);
+                //Debug.Log("player.capValues[2,1] = " + player.capValues[2,1]);
                 statCapDisplays[2].text = "CRIT RATE CAP: " + nInput + "%";
             }
             else if (player.capPreferences[2] == 2)
@@ -1038,13 +1042,13 @@ public class UIAttributes : MonoBehaviour
                 if (nInput > 100.0)
                     nInput = 100.0;
                 player.capValues[2,2] = nInput;
-                Debug.Log("player.capValues[2,2] = " + player.capValues[2,2]);
+                //Debug.Log("player.capValues[2,2] = " + player.capValues[2,2]);
                 statCapDisplays[2].text = "CRIT RATE CAP: " + 100*(1-System.Math.Pow(0.5,System.Math.Ceiling(nInput*0.01*(player.attributes[4]))/(100.0))) + "%";
             }
             else if (player.capPreferences[2] == 3)
             {
                 player.capValues[2,3] = System.Math.Ceiling(nInput);
-                Debug.Log("player.capValues[2,3] = " + player.capValues[2,3]);
+                //Debug.Log("player.capValues[2,3] = " + player.capValues[2,3]);
                 statCapDisplays[2].text = "CRIT RATE CAP: " + 100*(1-System.Math.Pow(0.5,nInput/100.0)) + "%";
             }
         }

@@ -5108,6 +5108,10 @@ MonoBehaviour:
   statMods: 
   parryMeshPrefab: {fileID: 8558461649606754561, guid: c38c7e4f0fcc74f4e88747511ea42705,
     type: 3}
+  vengefulSiphonPrefab: {fileID: 0}
+  layersToGetSiphoned:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1 &468107543087776391
 GameObject:
   m_ObjectHideFlags: 0
@@ -15464,7 +15468,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!114 &468107544619472627
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30240,6 +30244,49 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &2558848619620429439
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 771475811983858306}
+  - component: {fileID: 7779716300727159638}
+  m_Layer: 10
+  m_Name: SiphonOrigin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &771475811983858306
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2558848619620429439}
+  m_LocalRotation: {x: -0, y: -0, z: -0.59090626, w: 0.8067402}
+  m_LocalPosition: {x: 0.579, y: -0.047, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4391974819439317641}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7779716300727159638
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2558848619620429439}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1982ba7b3d2c3c40bc092aa4dba3070, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!50 &5208090575583571772
 Rigidbody2D:
   serializedVersion: 4
@@ -30498,6 +30545,7 @@ MonoBehaviour:
   reanimated: 0
   ariseContainer: {fileID: 8272790181049456999, guid: 8df698c1a6a0ceb40a9a8fc8cffe702e,
     type: 3}
+  siphonOrigin: {fileID: 771475811983858306}
   deathParticles: {fileID: 468107544783053980}
   healthBarUI: {fileID: 468107544619472628}
   healthBarSlider: {fileID: 468107544151071598}
@@ -30796,22 +30844,22 @@ PrefabInstance:
     - target: {fileID: -4359737089610136779, guid: bbd7074a97c8c8d4c828aed8d77d2403,
         type: 3}
       propertyPath: m_Bounds.m_Center.x
-      value: 0.008270502
+      value: 0.008262873
       objectReference: {fileID: 0}
     - target: {fileID: -4359737089610136779, guid: bbd7074a97c8c8d4c828aed8d77d2403,
         type: 3}
       propertyPath: m_Bounds.m_Center.y
-      value: -0.013442993
+      value: -0.013450623
       objectReference: {fileID: 0}
     - target: {fileID: -4359737089610136779, guid: bbd7074a97c8c8d4c828aed8d77d2403,
         type: 3}
       propertyPath: m_Bounds.m_Extent.x
-      value: 3.4279103
+      value: 3.4279237
       objectReference: {fileID: 0}
     - target: {fileID: -4359737089610136779, guid: bbd7074a97c8c8d4c828aed8d77d2403,
         type: 3}
       propertyPath: m_Bounds.m_Extent.y
-      value: 3.3953643
+      value: 3.3953648
       objectReference: {fileID: 0}
     - target: {fileID: -4351427971259494273, guid: bbd7074a97c8c8d4c828aed8d77d2403,
         type: 3}
@@ -31660,6 +31708,12 @@ Transform:
 --- !u!1 &3531817816966243657 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8738482319856627083, guid: bbd7074a97c8c8d4c828aed8d77d2403,
+    type: 3}
+  m_PrefabInstance: {fileID: 5208090573788858562}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &4391974819439317641 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8409829212748962379, guid: bbd7074a97c8c8d4c828aed8d77d2403,
     type: 3}
   m_PrefabInstance: {fileID: 5208090573788858562}
   m_PrefabAsset: {fileID: 0}
