@@ -329,22 +329,22 @@ PrefabInstance:
     - target: {fileID: 4556061815624766702, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_Bounds.m_Center.x
-      value: 0.21774149
+      value: 0.21783304
       objectReference: {fileID: 0}
     - target: {fileID: 4556061815624766702, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_Bounds.m_Center.y
-      value: 3.1250007
+      value: 3.1250017
       objectReference: {fileID: 0}
     - target: {fileID: 4556061815624766702, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_Bounds.m_Extent.x
-      value: 4.6477404
+      value: 4.6478624
       objectReference: {fileID: 0}
     - target: {fileID: 4556061815624766702, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_Bounds.m_Extent.y
-      value: 2.695001
+      value: 2.6950018
       objectReference: {fileID: 0}
     - target: {fileID: 5385914811038534460, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
@@ -435,6 +435,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Layer
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 9086877981212448029, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
+        type: 3}
+      propertyPath: canDropXp
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9086877981212448029, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}

@@ -51,7 +51,7 @@ public class HUD : MonoBehaviour
         xpBarWidthEased = xpBarWidth;
         coins = (float)NewPlayer.Instance.coins;
         coinsEased = coins;
-        level = (float)NewPlayer.Instance.level;
+        level = (float)NewPlayer.Instance.GetLevel();
         levelEased = level;
         attributePoints = (float)NewPlayer.Instance.attributePoints;
         attributePointsEased = attributePoints;
@@ -66,7 +66,7 @@ public class HUD : MonoBehaviour
         NewPlayer player = NewPlayer.Instance;
         maxHealthAndManaMesh.text = (int) player.health + "/" + (int) player.externalStats[0]
             + "\n" + (int) player.mana + "/" + (int) player.externalStats[2];
-        maxExpMesh.text = player.xp + "/" + 10*(int)Mathf.Pow(player.level + 1, 2);
+        maxExpMesh.text = player.GetXp() + "/" + 10*(int)Mathf.Pow(player.GetLevel() + 1, 2);
         externalStatsMesh.text = "hp = " + ((int)(10*player.externalStats[0]))/10f;
         for (int i = 1; i < player.externalStats.Length; i++)
         {
@@ -117,7 +117,7 @@ public class HUD : MonoBehaviour
 
         attributePointsMesh.text = Mathf.Round(attributePointsEased).ToString();
         coinsEased += ((float)NewPlayer.Instance.coins - coinsEased) * Time.deltaTime * 5f;
-        levelEased += ((float)NewPlayer.Instance.level - levelEased) * Time.deltaTime * 5f;
+        levelEased += ((float)NewPlayer.Instance.GetLevel() - levelEased) * Time.deltaTime * 5f;
         attributePointsEased += ((float)NewPlayer.Instance.attributePoints - attributePointsEased) * Time.deltaTime * 5f;
 
         if (coinsEased >= coins)
@@ -148,14 +148,14 @@ public class HUD : MonoBehaviour
         manaBarWidthEased += (manaBarWidth - manaBarWidthEased) * 10f * Time.deltaTime * manaBarWidthEased;
         manaBar.transform.localScale = new Vector2(manaBarWidthEased, 1);
         
-        if (NewPlayer.Instance.xp == 0)
+        if (NewPlayer.Instance.GetXp() == 0)
         {
             xpBarWidth = 0f;
             xpBarWidthEased = 0f;
         }
-        else if (NewPlayer.Instance.xp <= 10*System.Math.Pow((NewPlayer.Instance.level+1),2))
+        else if (NewPlayer.Instance.GetXp() <= 10*System.Math.Pow((NewPlayer.Instance.GetLevel()+1),2))
         {
-            xpBarWidth = (float) (NewPlayer.Instance.xp / (10*System.Math.Pow((NewPlayer.Instance.level+1),2)));
+            xpBarWidth = (float) (NewPlayer.Instance.GetXp() / (10*System.Math.Pow((NewPlayer.Instance.GetLevel()+1),2)));
             xpBarWidthEased += (xpBarWidth - xpBarWidthEased) * 5f * Time.deltaTime;
         }
         else

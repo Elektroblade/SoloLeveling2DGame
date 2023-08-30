@@ -30,7 +30,7 @@ public class UIStatus : MonoBehaviour
         if (valueDisplays != null)
         {
             valueDisplays[0].text = "NAME: SUNG JIN-WOO";
-            valueDisplays[1].text = "LEVEL: " + player.level;
+            valueDisplays[1].text = "LEVEL: " + player.GetLevel();
             valueDisplays[4].text = "HP: " + player.health;
             valueDisplays[5].text = "MP: " + player.mana;
             valueDisplays[6].text = "STRENGTH: " + player.attributes[0];

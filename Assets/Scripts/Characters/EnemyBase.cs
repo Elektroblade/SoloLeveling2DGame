@@ -24,6 +24,7 @@ public class EnemyBase : MonoBehaviour
     [System.NonSerialized] private int xp;
     public double[] intrinsicStats = new double[11];
     [SerializeField] public bool reanimated;
+    [SerializeField] private bool canDropXp;
     [System.NonSerialized] public int reanimatedSlotIndex;
     [SerializeField] private GameObject ariseContainer;
     [SerializeField] public Transform siphonOrigin;
@@ -148,12 +149,12 @@ public class EnemyBase : MonoBehaviour
             health = intrinsicStats[0];
         }
 
-        if (level < NewPlayer.Instance.level - 5)
+        if (level < NewPlayer.Instance.GetLevel() - 5)
         {
             //Debug.Log("low");
             levelUIColor = new Color(73f/256, 73f/256, 73f, 255f/256);
         }
-        else if (level <= NewPlayer.Instance.level + 5)
+        else if (level <= NewPlayer.Instance.GetLevel() + 5)
         {
             //Debug.Log("Med");
             levelUIColor = new Color(255f/256, 67f/256, 0f, 255f/256);
@@ -300,11 +301,6 @@ public class EnemyBase : MonoBehaviour
         {
             healthBarUI.SetActive(false);
         }
-
-        if (xpBarSlider)
-        {
-            //Debug.Log("reanimated = " + reanimated + ", xp = " + xp);
-        }
         
         if (NewPlayer.Instance.pounding)
         {
@@ -318,9 +314,11 @@ public class EnemyBase : MonoBehaviour
         instantiator.InstantiateObjects();
         Time.timeScale = 1f;
         // Reduce this later
-        if ((GetComponent<Flyer>() == null || !isBomb) && !reanimated)
+        if (!reanimated && canDropXp && (GetComponent<Flyer>() == null || !isBomb))
         {
-            NewPlayer.Instance.addXp(2*(int)System.Math.Pow(level,2));
+            NewPlayer.Instance.addXp((int) (2.0*System.Math.Pow(level, 2.0)));
+
+            canDropXp = false;
 
             // Necromancy
             EnemyBase[] theReanimated = NewPlayer.Instance.myReanimated;
@@ -330,6 +328,7 @@ public class EnemyBase : MonoBehaviour
                 {
                     // Change multiplier back to 2
                     theReanimated[i].addXp(2*(int)System.Math.Pow(level,2));
+                    //Debug.Log("gave " + ((int) (2.0*System.Math.Pow(level, 2.0))) + " xp to reanimated #" + i);
                 }
             }
             EnemyContainer myCorpseContainer;
@@ -418,24 +417,27 @@ public class EnemyBase : MonoBehaviour
     public double CalculateXp()
     {
         //Debug.Log("Calculated xp = " + xp / (10 * System.Math.Pow(level+1, 2)));
-        return xp / (10 * System.Math.Pow(level+1, 2));
+        return xp / ((int) (10.0*System.Math.Pow(level, 2.0)));
     }
 
     public void addXp(int xpAmount)
     {
+        //Debug.Log("Giving " + xpAmount + " xp to reanimated.");
+
         if (reanimated && gameObject.active)
         {
             int oldLevel = level;
-            //Debug.Log("Adding xp = " + xpAmount + ", Next level requires " + (10*System.Math.Pow(level + 1,2)) + " total.");
+            //Debug.Log("Reanimated: adding xp = " + xpAmount + " to " + xp + ", Next level: " + (level + 1) + " - requires " + (10*System.Math.Pow(level + 1,2)) + " total.");
             xp += xpAmount;
-            while (xp != 0 && xp >= 10*System.Math.Pow(level + 1,2))
+            while (xp != 0 && xp >= ((int) (10.0*System.Math.Pow(level + 1.0, 2.0))))
             {
                 level++;
-                xp -= 10*level^2;
+                xp -= ((int) (10.0*System.Math.Pow(level, 2.0)));
             }
 
             if (level > oldLevel)
             {
+                //Debug.Log("Level " + oldLevel + " -> " + level);
                 recalculateIntrinsicStats();
             }
         }

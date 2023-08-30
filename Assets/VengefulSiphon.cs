@@ -25,13 +25,13 @@ public class VengefulSiphon : MonoBehaviour
     {
         this.attackerPosition = attackerPosition;
         this.victimPosition = victimPosition;
-        Debug.Log("Siphon!");
+        //Debug.Log("Siphon!");
 
         distanceToTargetX = victimPosition.x - attackerPosition.x;
         distanceToTargetY = victimPosition.y - attackerPosition.y;
         totalDistanceToTarget = Mathf.Sqrt(Mathf.Pow(distanceToTargetX, 2f) + Mathf.Pow(distanceToTargetY, 2f));
 
-        Debug.Log("totalDistanceToTarget = " + totalDistanceToTarget);
+        //Debug.Log("totalDistanceToTarget = " + totalDistanceToTarget);
 
         float angle = Mathf.Atan(distanceToTargetY/distanceToTargetX) * 57.2958f;
 

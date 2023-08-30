@@ -623,6 +623,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5208090575583571766, guid: 6c88642d290c96d46a93dcef6e76d59e,
         type: 3}
+      propertyPath: canDropXp
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5208090575583571766, guid: 6c88642d290c96d46a93dcef6e76d59e,
+        type: 3}
       propertyPath: reanimated
       value: 1
       objectReference: {fileID: 0}

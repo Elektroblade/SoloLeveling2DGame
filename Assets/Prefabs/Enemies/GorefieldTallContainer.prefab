@@ -30543,6 +30543,7 @@ MonoBehaviour:
   - 0
   - 0
   reanimated: 0
+  canDropXp: 1
   ariseContainer: {fileID: 8272790181049456999, guid: 8df698c1a6a0ceb40a9a8fc8cffe702e,
     type: 3}
   siphonOrigin: {fileID: 771475811983858306}

@@ -76,6 +76,8 @@ public class NewPlayer : PhysicsObject
     [System.NonSerialized] public bool canRaycastSyphon = true;
     [System.NonSerialized] public bool canLifeSteal = true;
     [System.NonSerialized] public bool canOptimizeInnards = true;
+    [System.NonSerialized] public bool canGrislyComeuppance = true;
+    [System.NonSerialized] public bool canVehementFerocity = true;
     [SerializeField] bool facingRight;
     private int ferocityTotal = 0;
     private int ferocityCounter = 0;
@@ -87,6 +89,8 @@ public class NewPlayer : PhysicsObject
     [System.NonSerialized] public double[,] capValues = new double[3,4]{ {100.0, -1.0, 0.0, 0.0}, {100.0, -1.0, 0.0, 0.0}, {90.0, -1.0, 50.0, -1.0} };
     [System.NonSerialized] public bool hasInventoryOpen = false;
     [System.NonSerialized] public bool hasStatusOpen = false;
+    [System.NonSerialized] public double frenzyBonus = 0.0;
+    [System.NonSerialized] public float frenzyTime = 0f;
 
     [Header ("Attributes")]
     // strength, stamina, agility, intellect, perception
@@ -111,9 +115,9 @@ public class NewPlayer : PhysicsObject
     public int coins;
     public double health;
     public double mana;
-    public int xp;
-    [SerializeField] public int level;
-    [SerializeField] public int attributePoints;
+    private int xp;
+    private int level;
+    public int attributePoints;
     public EnemyBase[] myReanimated = new EnemyBase[10];
 
     private double healthToAdd = 0;
@@ -248,6 +252,9 @@ public class NewPlayer : PhysicsObject
         // For balance during testing; remove later
         externalStats[1] = 100.0*System.Math.Pow(level/100.0 + 1.0, 2) - 100.0;
 
+        // Warrior Enduring Frenzy
+        externalStats[7] += frenzyBonus;
+
         // Apply attack rate and movement speed
         animator.SetFloat("animAttackRate", (float)(externalStats[4]/100f));
         maxSpeed = (float) (externalStats[3]/100f) * baseSpeed;
@@ -258,18 +265,32 @@ public class NewPlayer : PhysicsObject
         // Increase level if xp is sufficient
         int xpSnapshot = xp;
         int xpConsumed = xpSnapshot;
-        while (xpConsumed != 0 && xpConsumed >= 10*System.Math.Pow(level + 1,2))
+        int levelSnapshot = level;
+
+        while (xpConsumed != 0 && (xpConsumed >= (int) (10*System.Math.Pow(level + 1.0, 2.0))))
         {
+            //Debug.Log("Player xpConsumed to be used: " + xpConsumed + ", cost: " + ((int) (10.0*System.Math.Pow(level + 1.0, 2.0))));
+
             level++;
             attributePoints += 5;
-            xpConsumed -= 10*level^2;
+            xpConsumed -= ((int) (10.0*System.Math.Pow(level * 1.0, 2.0)));
         }
+
+        /*
+        if (levelSnapshot != level)
+        {
+            Debug.Log("Player level " + levelSnapshot + " -> " + level);
+        }
+         */
 
         // Ensure that any xp gained during the above consumption process was not lost
         if (xpSnapshot < xp)
         {
             xpConsumed += xp - xpSnapshot;
         }
+
+        // Ensure that all changes are applied to xp
+        xp = xpConsumed;
 
         // We do NOT need to recalculate stats on every update, only when attribute points are spent or items are equipped or unequipped
 
@@ -307,7 +328,7 @@ public class NewPlayer : PhysicsObject
             }
             // Other abilities
         }
-        // Stop duration abilities if there are insufficient resources
+        // Stop duration abilities if there are insufficient resources. First in last out.
         else if (isLightningImbued)
         {
             isLightningImbued = false;
@@ -339,12 +360,33 @@ public class NewPlayer : PhysicsObject
         }
 
         // Start or end duration abilities
-        if (((!hasInventoryOpen && !hasStatusOpen) && !hasStatusOpen) && Input.GetKeyDown(KeyCode.Q))
+        if (((!hasInventoryOpen && !hasStatusOpen) && !hasStatusOpen))
         {
-            if (isLightningImbued)
-                isLightningImbued = false;
-            else
-                isLightningImbued = true;
+            if (Input.GetKeyDown(KeyCode.Q))
+            {
+                if (isLightningImbued)
+                    isLightningImbued = false;
+                else
+                    isLightningImbued = true;
+            }
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                if (mana >= 40)
+                {
+                    mana -= 40;
+                    frenzyBonus += 2 * attributes[1] / 25;
+                    frenzyTime = 10f;
+                    RecalculateExternalStats();
+                }
+            }
+        }
+
+        if (frenzyTime > 0)
+            frenzyTime -= Time.deltaTime;
+        if (frenzyTime < 0)
+        {
+            frenzyTime = 0;
+            frenzyBonus = 0;
         }
 
         for (int i = 0; i < parryTimer.Length; i++)
@@ -608,14 +650,19 @@ public class NewPlayer : PhysicsObject
                     health -= 100*hitPower[i]*(1/(1+(-2*health + externalStats[0]) * (attributes[0] / 100) / externalStats[0]))/(externalStats[1] + 100);
 
 
+                    /*
                     Debug.Log("100*hitPower[i]*(1/(1+(-2*health + externalStats[0]) * (attributes[0] / 100) / externalStats[0]))/(externalStats[1] + 100) = " 
                         + (100*hitPower[i]*(1/(1+(-2*health + externalStats[0]) * (attributes[0] / 100) / externalStats[0]))/(externalStats[1] + 100)));
+                     */
                 }
                 else
                 {
                     health -= 100*hitPower[i]/(externalStats[1] + 100);
+
+                    /*
                     Debug.Log("100*hitPower[i]/(externalStats[1] + 100) = " 
                         + (100*hitPower[i]/(externalStats[1] + 100)));
+                     */
                 }
 
                 if (health <= 0)
@@ -686,8 +733,11 @@ public class NewPlayer : PhysicsObject
 
     public void addXp(int xpAmount)
     {
-        //Debug.Log("Adding xp = " + xpAmount + ", Next level requires " + (10*System.Math.Pow(level + 1,2)) + " total.");
+        //Debug.Log("Player: Adding xp = " + xpAmount + "to " + xp + ", Next level: " + (level + 1) + " - requires " + (10*System.Math.Pow(level + 1,2)) + " total.");
         xp += xpAmount;
+
+        if (frenzyBonus > 0)
+            frenzyTime = 10f;
     }
 
     public void DetermineFerocity()
@@ -744,9 +794,9 @@ public class NewPlayer : PhysicsObject
     public void Dodge(float dodgeMultiplier)
     {
         // Dodging costs 20 mana but you can dodge with 10 mana.
-        if (Mathf.Abs(velocity.x) < dodgePower && mana >= 10)
+        if (Mathf.Abs(velocity.x) < dodgePower && mana >= 10*(1/(1+((attributes[2]-10)/100))))
         {
-            mana -= 20;
+            mana -= 20*(1/(1+((attributes[2]-10)/100)));
             if (mana < 0)
                 mana = 0;
 
@@ -940,6 +990,20 @@ public class NewPlayer : PhysicsObject
         for (i = 0; i < damage.Length - 2; i++)
         {
             damage[i] = singleHitDamage;
+
+            if (canVehementFerocity)
+            {
+                damage[i] *= System.Math.Pow(1 + (attributes[1] / 10000.0), i);
+
+                //Debug.Log("VF: " + (System.Math.Pow(1 + (attributes[1] / 10000.0), i)));
+            }
+            
+            if (canGrislyComeuppance && health*2 < externalStats[0])
+            {
+                damage[i] *= (1+(-2*health + externalStats[0]) * (attributes[1] / 100) / externalStats[0]);
+
+                //Debug.Log("GC: " + (1+(-2*health + externalStats[0]) * (attributes[1] / 100) / externalStats[0]));
+            }
         }
 
         damage[damage.Length - 1] = 0;
@@ -1079,5 +1143,15 @@ public class NewPlayer : PhysicsObject
     public int GetComboIndex()
     {
         return comboIndex;
+    }
+
+    public int GetXp()
+    {
+        return xp;
+    }
+
+    public int GetLevel()
+    {
+        return level;
     }
 }
