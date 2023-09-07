@@ -11,7 +11,7 @@ public class AttackHit : MonoBehaviour
     public enum AttacksWhat { EnemyBase, NewPlayer };
     [SerializeField] private AttacksWhat attacksWhat;
     [SerializeField] private int attackType;            // Player melee, player lightningFist, shadow melee, player aerodynamicHeating, player seismicWave,
-                                                        // Player earthPrism, Player earthDisk, player vengefulSiphon
+                                                        // Player earthPrism, Player earthDisk, player vengefulSiphon, player rollingThunder
     [SerializeField] private bool oneHitKill;
     [SerializeField] private float startCollisionDelay; //Some enemy types, like EnemyBombs, should not be able blow up until a set amount of time
     private int targetSide = 1; //Is the attack target on the left or right side of this object?
@@ -38,6 +38,10 @@ public class AttackHit : MonoBehaviour
 
     void DoAttackHit(Collider2D col, bool canDoRaycastSyphon, int attackType)
     {
+        // Do not damage invincible player
+        if (col.transform.parent && col.transform.parent.GetComponent<NewPlayer>() != null && col.transform.parent.GetComponent<NewPlayer>().GetInvincible())
+            return;
+
         int attackerType = -1;
         bool playerStaggeredEnemy = false;
 

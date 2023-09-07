@@ -26,8 +26,12 @@ public class NewPlayer : PhysicsObject
     [SerializeField] public AerodynamicHeating aerodynamicHeating;
     [SerializeField] public SeismicWave seismicWave;
     [SerializeField] public EarthPrism earthPrism;
+    [SerializeField] public Collider2D rollingThunderAttackHit;
     [SerializeField] private GameObject pauseMenu;
     [SerializeField] public Transform siphonOrigin;
+    [SerializeField] public Transform frontFootLoc;
+    [SerializeField] public Transform headTopLoc;
+    [SerializeField] public GameObject[] rollingThunderTrails;
     public RecoveryCounter recoveryCounter;
     private System.Random random = new System.Random();
 
@@ -65,7 +69,9 @@ public class NewPlayer : PhysicsObject
     private bool dodging;                   // If false, invincibility may continue, but speed is no longer going to be calculated in this manner.
     private float dodgeDistanceSpent = 0f;
     private float dodgeDistance = 6.8f;
-    private float dodgeTimer = 0;
+    private float dodgeTimer = 0f;
+    private float dodgeOriginX = 0f;
+    private float rollDamageTimer = 0f;
     private Vector3 origLocalScale;
     [System.NonSerialized] public bool pounded;
     [System.NonSerialized] public bool pounding;
@@ -91,6 +97,7 @@ public class NewPlayer : PhysicsObject
     [System.NonSerialized] public bool hasStatusOpen = false;
     [System.NonSerialized] public double frenzyBonus = 0.0;
     [System.NonSerialized] public float frenzyTime = 0f;
+    [System.NonSerialized] private bool isInvincible = false;
 
     [Header ("Attributes")]
     // strength, stamina, agility, intellect, perception
@@ -142,8 +149,8 @@ public class NewPlayer : PhysicsObject
     void Start()
     {
         // Test
-        level = GameManager.Instance.testingLocalDifficulty;
-        attributePoints = 5*GameManager.Instance.testingLocalDifficulty;
+        level = GameManager.Instance.testingLocalDifficulty - 1;
+        attributePoints = 5*(GameManager.Instance.testingLocalDifficulty - 1);
 
         //Debug.Log("2 ^ (1/100) = " + (System.Math.Pow(2,0.01)));
         Cursor.visible = false;
@@ -434,8 +441,18 @@ public class NewPlayer : PhysicsObject
                 {
                     dodgeTimer = 0;
                     dodgeDistanceSpent = 0;
-                    Physics2D.IgnoreLayerCollision(10, 12, false);
-                    Physics2D.IgnoreLayerCollision(10, 15, false);
+                    isInvincible = false;
+                }
+            }
+
+            if (rollDamageTimer != 0)
+            {
+                rollDamageTimer -= Time.deltaTime;
+
+                if (rollDamageTimer <= 0)
+                {
+                    rollDamageTimer = 0;
+                    rollingThunderAttackHit.enabled = false;
                 }
             }
             
@@ -563,6 +580,7 @@ public class NewPlayer : PhysicsObject
             // Dodge maintenance
 
             dodgeTimer -= Time.deltaTime;
+
             if (dodgeDistanceSpent + Time.deltaTime * Mathf.Abs(dodgeVelocity) < dodgeDistance)
             {
                 dodgeDistanceSpent += Time.deltaTime * Mathf.Abs(dodgeVelocity);
@@ -577,16 +595,33 @@ public class NewPlayer : PhysicsObject
                 velocity.x = (dodgeDistance - dodgeDistanceSpent) * (dodgeVelocity / Mathf.Abs(dodgeVelocity));
                 velocity.y = 0;
                 dodging = false;    // Invincibility may continue, but speed is no longer going to be calculated in this manner.
+
+                if (isLightningDash)
+                {
+                    rollingThunderAttackHit.enabled = true;
+                    rollingThunderAttackHit.gameObject.transform.localScale = new Vector3(Mathf.Abs(dodgeOriginX - gameObject.transform.position.x) + 1f, 2.65f, 1f);
+                    rollingThunderAttackHit.gameObject.transform.position = new Vector3(dodgeOriginX + (gameObject.transform.position.x - dodgeOriginX)/2f, rollingThunderAttackHit.gameObject.transform.position.y, 0f);
+                    rollDamageTimer = 0.04f;
+                }
             }
             else
+            {
                 dodging = false;    // Invincibility may continue, but speed is no longer going to be calculated in this manner.
+
+                if (isLightningDash)
+                {
+                    rollingThunderAttackHit.enabled = true;
+                    rollingThunderAttackHit.gameObject.transform.localScale = new Vector3(Mathf.Abs(dodgeOriginX - gameObject.transform.position.x) + 1f, 2.65f, 1f);
+                    rollingThunderAttackHit.gameObject.transform.position = new Vector3(dodgeOriginX + (gameObject.transform.position.x - dodgeOriginX)/2f, 2.4f, 0f);
+                    rollDamageTimer = 0.04f;
+                }
+            }
 
             if (dodgeTimer <= 0)
             {
                 dodgeTimer = 0;
                 dodgeDistanceSpent = 0;
-                Physics2D.IgnoreLayerCollision(10, 12, false);
-                Physics2D.IgnoreLayerCollision(10, 15, false);
+                isInvincible = true;
             }
 
             animator.SetFloat("velocityX", Mathf.Abs(velocity.x) / baseSpeed);
@@ -709,7 +744,7 @@ public class NewPlayer : PhysicsObject
             GameManager.Instance.audioSource.PlayOneShot(deathSound);
             Hide(true);
             Time.timeScale = .6f;
-            yield return new WaitForSeconds(5f);
+            yield return new WaitForSeconds(3f);
             GameManager.Instance.hud.animator.SetTrigger("coverScreen");
             GameManager.Instance.hud.loadSceneName = SceneManager.GetActiveScene().name;
             Time.timeScale = 1f;
@@ -801,8 +836,8 @@ public class NewPlayer : PhysicsObject
                 mana = 0;
 
             dodgeTimer = 0.4f;
-            Physics2D.IgnoreLayerCollision(10, 12, true);
-            Physics2D.IgnoreLayerCollision(10, 15, true);
+            dodgeOriginX = gameObject.transform.position.x;
+            isInvincible = true;
             if (facingRight)
             {
                 dodgeVelocity = dodgePower * dodgeMultiplier; //The dodgeMultiplier allows us to use the Dodge function to also launch the player from bounce platforms
@@ -815,6 +850,58 @@ public class NewPlayer : PhysicsObject
             PlayStepSound();
             DodgeEffect();
             dodging = true;
+
+            if (isLightningDash)
+            {
+                // If an attack animation has yet to hit, recalculate ferocity. Change 1 to a modifier if such a modifier exists.
+                if (ferocityCounter < ((int) (1 * externalStats[7] + 100)/100))
+                {
+                    DetermineFerocity();
+                    //Debug.Log("Calculated new ferocity: " + ferocityCounter);
+                }
+
+                // Show visual
+                RollingThunderTrailOrigin headTopTrail;
+                RollingThunderTrailOrigin frontFootTrail;
+                RollingThunderTrailOrigin chestTrail;
+
+                float scaleMultiplier = -1;
+
+                if (facingRight)
+                    scaleMultiplier = 1;
+
+
+                if (rollingThunderTrails[0])
+                {
+                    headTopTrail = Instantiate(rollingThunderTrails[0], headTopLoc.position, Quaternion.identity).GetComponent<RollingThunderTrailOrigin>();
+                    headTopTrail.SetObjectToFollow(0, scaleMultiplier);
+                }
+                else
+                {
+                    Debug.Log("ERROR: Missing Rolling Thunder Trail 1 Prefab");
+                }
+
+                if (rollingThunderTrails[0])
+                {
+                    frontFootTrail = Instantiate(rollingThunderTrails[0], frontFootLoc.position, Quaternion.identity).GetComponent<RollingThunderTrailOrigin>();
+                    
+                    frontFootTrail.SetObjectToFollow(1, scaleMultiplier);
+                }
+                else
+                {
+                    Debug.Log("ERROR: Missing Rolling Thunder Trail 1 Prefab");
+                }
+
+                if (rollingThunderTrails[0])
+                {
+                    chestTrail = Instantiate(rollingThunderTrails[0], siphonOrigin.position, Quaternion.identity).GetComponent<RollingThunderTrailOrigin>();
+                    chestTrail.SetObjectToFollow(2, scaleMultiplier);
+                }
+                else
+                {
+                    Debug.Log("ERROR: Missing Rolling Thunder Trail 1 Prefab");
+                }
+            }
 
             if (velocity.y < 0)
             {
@@ -1153,5 +1240,10 @@ public class NewPlayer : PhysicsObject
     public int GetLevel()
     {
         return level;
+    }
+
+    public bool GetInvincible()
+    {
+        return isInvincible;
     }
 }

@@ -181,7 +181,6 @@ public class EnemyBase : MonoBehaviour
                 // Only melee attacks trigger active recovery
                 if (attackerType == 0)
                 {
-                    
                     NewPlayer.Instance.RecoverByMelee(attackType);
                     
                     NewPlayer.Instance.cameraEffects.Shake(100, 1);
@@ -189,6 +188,8 @@ public class EnemyBase : MonoBehaviour
                     double critDamage = NewPlayer.Instance.externalStats[9];
                     if (staggerTimer > 0)
                     {
+                        Debug.Log("ENEMY: I took bonus damage from the player while staggered!");
+
                         for (int i = 0; i < hitPower.Length - 2; i++)
                         {
                             hitPower[i] *= 1.5;
@@ -228,7 +229,7 @@ public class EnemyBase : MonoBehaviour
                     health -= loss;
                 }
 
-                DamagePopup.Create(new Vector3(transform.position.x, transform.position.y, transform.position.z), damagePopupString, (int) hitPower[hitPower.Length - 1]);
+                DamagePopup.Create(new Vector3(transform.position.x, transform.position.y, transform.position.z), damagePopupString, (int) hitPower[hitPower.Length - 2]);
 
                 animator.SetTrigger("hurt");
 

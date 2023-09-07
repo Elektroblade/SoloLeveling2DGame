@@ -280,10 +280,20 @@ public class UIAttributes : MonoBehaviour
             {
                 holdArrowKeyCooldown = holdArrowKeyCooldownMax;
 
-                if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.0625f)
+                if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.015625f)
+                {
+                    tempSpentAP += 100;
+                    tempAttributes[prevHighlightedIndex / 2] += 100;
+                }
+                else if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.03125f)
                 {
                     tempSpentAP += 50;
                     tempAttributes[prevHighlightedIndex / 2] += 50;
+                }
+                else if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.0625f)
+                {
+                    tempSpentAP += 20;
+                    tempAttributes[prevHighlightedIndex / 2] += 20;
                 }
                 else if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.125f)
                 {
@@ -318,10 +328,20 @@ public class UIAttributes : MonoBehaviour
             {
                 holdArrowKeyCooldown = holdArrowKeyCooldownMax;
 
-                if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.0625f)
+                if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.015625f)
+                {
+                    tempSpentAP -= 100;
+                    tempAttributes[prevHighlightedIndex / 2] -= 100;
+                }
+                else if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.03125f)
                 {
                     tempSpentAP -= 50;
                     tempAttributes[prevHighlightedIndex / 2] -= 50;
+                }
+                else if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.0625f)
+                {
+                    tempSpentAP -= 20;
+                    tempAttributes[prevHighlightedIndex / 2] -= 20;
                 }
                 else if (holdArrowKeyCooldownMax < holdArrowKeyCooldownOrig * 0.125f)
                 {
