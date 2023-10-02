@@ -744,7 +744,7 @@ public class NewPlayer : PhysicsObject
             GameManager.Instance.audioSource.PlayOneShot(deathSound);
             Hide(true);
             Time.timeScale = .6f;
-            yield return new WaitForSeconds(3f);
+            yield return new WaitForSeconds(1f);
             GameManager.Instance.hud.animator.SetTrigger("coverScreen");
             GameManager.Instance.hud.loadSceneName = SceneManager.GetActiveScene().name;
             Time.timeScale = 1f;
@@ -766,7 +766,7 @@ public class NewPlayer : PhysicsObject
         }
     }
 
-    public void addXp(int xpAmount)
+    public void AddXp(int xpAmount)
     {
         //Debug.Log("Player: Adding xp = " + xpAmount + "to " + xp + ", Next level: " + (level + 1) + " - requires " + (10*System.Math.Pow(level + 1,2)) + " total.");
         xp += xpAmount;
@@ -1038,7 +1038,7 @@ public class NewPlayer : PhysicsObject
         }
     }
 
-    public double[] CalculateDamage(int[] modifiers)
+    public double[] CalculateDamage(int[] modifiers, int attackType)
     {
         double[] damage;
 
@@ -1059,6 +1059,15 @@ public class NewPlayer : PhysicsObject
         }
 
         double singleHitDamage = physicalDamage + magicalDamage;
+
+        if (attackType == 7)    // Blood magic damage bonus
+            singleHitDamage *= (1.0 + attributes[0] / 150.0);
+        if (attackType == 3)    // Fire damage bonus
+            singleHitDamage *= (1.0 + attributes[3] / 200.0);
+        if (attackType == 4 || attackType == 5 || attackType == 6)  // Earth damage bonus
+            singleHitDamage *= (1.0 + attributes[0] / 200.0);
+        if (attackType == 1 || attackType == 8)    // Lightning damage bonus
+            singleHitDamage *= (1.0 + attributes[2] / 200.0);
 
         //Debug.Log("singleHitDamage = " + singleHitDamage + ", mod[6] = " + modifiers[6]);
 
@@ -1147,6 +1156,11 @@ public class NewPlayer : PhysicsObject
 
     public void GiveNewReanimated(EnemyBase newReanimated)
     {
+        if (newReanimated.GetComponent<GorefieldFlyer>())
+            Debug.Log("Resurrected Gorefield Flyer, lvl:" + newReanimated.GetLevel());
+        else if (newReanimated.GetComponent<GorefieldTall>())
+            Debug.Log("Resurrected Gorefield Tall, lvl:" + newReanimated.GetLevel());
+
         bool foundEmptySlot = false;
         int[] lowestLevel = new int[2];
         for (int i = 0; i < myReanimated.Length; i++)

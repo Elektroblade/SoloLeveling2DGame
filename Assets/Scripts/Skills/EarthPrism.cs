@@ -78,7 +78,7 @@ public class EarthPrism : MonoBehaviour
             prismHeight -= maxPrismHeight / (abilityLevel + 1f);
             currentReceivedHitCount++;
 
-            Vector3 diskPosition = new Vector3(transform.position.x, transform.position.y + 0.8f - maxPrismHeight + prismHeight, 0);
+            Vector3 diskPosition = new Vector3(transform.position.x, transform.position.y + 0.8f - maxPrismHeight + prismHeight + (maxPrismHeight / (abilityLevel + 1f)), 0);
             GameObject thisEarthDisk = Instantiate(earthDisk, diskPosition, transform.rotation);
 
             //Debug.Log("prismHeight = " + prismHeight + ", 1.523f - maxPrismHeight = " + (1.523f - maxPrismHeight));

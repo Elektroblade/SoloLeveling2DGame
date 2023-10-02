@@ -97,7 +97,7 @@ public class AttackHit : MonoBehaviour
         {
             NewPlayer player = parent.GetComponent<NewPlayer>();
             attackerType = 0;
-            hitPower = player.CalculateDamage(statMods);
+            hitPower = player.CalculateDamage(statMods, attackType);
 
             if ((attacksWhat == AttacksWhat.EnemyBase && col.transform.parent != null && col.transform.parent.GetComponent<EnemyBase>() != null) 
                 && attackType == 0 && hitPower[hitPower.Length - 1] == 1)

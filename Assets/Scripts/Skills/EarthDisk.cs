@@ -63,7 +63,7 @@ public class EarthDisk : MonoBehaviour
                         targetSide = -1;
                     }
 
-                    target.collider.transform.parent.GetComponent<EnemyBase>().GetHurt(targetSide, NewPlayer.Instance.CalculateDamage(statMods), attackType, 0);
+                    target.collider.transform.parent.GetComponent<EnemyBase>().GetHurt(targetSide, NewPlayer.Instance.CalculateDamage(statMods, attackType), attackType, 0);
                 }
 
                 existenceTimer -= 1f;

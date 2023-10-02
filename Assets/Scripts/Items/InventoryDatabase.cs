@@ -50,6 +50,16 @@ public class InventoryDatabase : MonoBehaviour
                 {"Stagger*", 1.5}
             }),
 
+            new InventoryItem("Gartana", "Gartana", "WEAPON", "LONGSWORD",
+            "A hungry blade.",
+            new Dictionary<string, double>
+            {
+                {"AcquisitionDifficulty", 70.0},
+                {"Agility==", 70.0},
+                {"PhysicalPower", (70.0 / 4.0) * 1.0 * 0.95},
+                {"Bleed*", 1.0}
+            }),
+
             //Helmets
             new InventoryItem("Crimson Knight's Helmet", "CrimsonKnightsHelmet", "ARMOUR", "HELMET", "",
             new Dictionary<string, double>
@@ -102,9 +112,16 @@ public class InventoryDatabase : MonoBehaviour
             new Dictionary<string, double>
             {
                 {"AcquisitionDifficulty", 20.0}
-            })
+            }),
             
-            // Next item
+            // Smithing
+            new InventoryItem("Garfield's Appetite", "GarfieldsAppetite", "MATERIAL", "SMITHING",
+            "The all-consuming hunger of Garfield, used to forge weapons with a sadistic appetite for blood and lasagna, "
+            + "and armour whose bearer shall be suave and implacable.",
+            new Dictionary<string, double>
+            {
+                {"AcquisitionDifficulty", 70.0}
+            })
         };
 
         activeSkills = new List<ActiveSkill>() {

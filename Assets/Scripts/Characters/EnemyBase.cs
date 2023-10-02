@@ -48,9 +48,36 @@ public class EnemyBase : MonoBehaviour
     void Start()
     {
         // Testing
-        level = (int) GameManager.Instance.GetRandomDouble(GameManager.Instance.testingLocalDifficulty + 1, 
-        GameManager.Instance.testingLocalDifficulty + GameManager.Instance.testingLocalDifficultyVariance);
 
+        int minValue = 1;
+        int upperDifferenceBound = 0;
+
+        int difficultyBonus = (int) ((transform.position.x - GameManager.Instance.levelScalingOrigin.gameObject.transform.position.x)
+             * GameManager.Instance.levelScalingOrigin.GetHorizontalLevelMultiplier());
+
+        Debug.Log("difficultyBonus = " + difficultyBonus);
+
+        if ((int) (GameManager.Instance.testingLocalDifficulty + 1 - Mathf.Ceil(difficultyBonus) / 2) > 0)
+        {
+            minValue = (int) (GameManager.Instance.testingLocalDifficulty + 1 - Mathf.Ceil(difficultyBonus) / 2);
+        }
+        else
+        {
+            minValue = 1;
+        }
+
+        if ((int) (GameManager.Instance.testingLocalDifficultyVariance + Mathf.Ceil(difficultyBonus) / 2) > 0)
+        {
+            upperDifferenceBound = (int) (GameManager.Instance.testingLocalDifficultyVariance + Mathf.Ceil(difficultyBonus) / 2);
+        }
+        else
+        {
+            upperDifferenceBound = 0;
+        }
+
+        level = (int) GameManager.Instance.GetRandomDouble(minValue, 
+            minValue + upperDifferenceBound);
+        
         recoveryCounter = GetComponent<RecoveryCounter>();
         audioSource = GetComponent<AudioSource>();
         animatorFunctions = GetComponent<AnimatorFunctions>();
@@ -118,6 +145,35 @@ public class EnemyBase : MonoBehaviour
 
     void Update()
     {
+        // Increase level if xp is sufficient
+        int xpSnapshot = xp;
+        int xpConsumed = xpSnapshot;
+        int levelSnapshot = level;
+
+        while (xpConsumed != 0 && (xpConsumed >= (int) (10*System.Math.Pow(level + 1.0, 2.0))))
+        {
+            //Debug.Log("Player xpConsumed to be used: " + xpConsumed + ", cost: " + ((int) (10.0*System.Math.Pow(level + 1.0, 2.0))));
+
+            level++;
+            xpConsumed -= ((int) (10.0*System.Math.Pow(level * 1.0, 2.0)));
+        }
+
+        if (level > levelSnapshot)
+        {
+            Debug.Log("Reanimated Level " + levelSnapshot + " -> " + level);
+            recalculateIntrinsicStats();
+        }
+
+        // Ensure that any xp gained during the above consumption process was not lost
+        if (xpSnapshot < xp)
+        {
+            xpConsumed += xp - xpSnapshot;
+        }
+
+        // Ensure that all changes are applied to xp
+        xp = xpConsumed;
+
+        // Display
         healthBarSlider.value = (float) CalculateHealth();
         if (xpBarSlider)
             xpBarSlider.value = (float) CalculateXp();
@@ -317,7 +373,7 @@ public class EnemyBase : MonoBehaviour
         // Reduce this later
         if (!reanimated && canDropXp && (GetComponent<Flyer>() == null || !isBomb))
         {
-            NewPlayer.Instance.addXp((int) (2.0*System.Math.Pow(level, 2.0)));
+            NewPlayer.Instance.AddXp((int) (2.0*System.Math.Pow(level, 2.0)));
 
             canDropXp = false;
 
@@ -328,8 +384,8 @@ public class EnemyBase : MonoBehaviour
                 if (theReanimated[i] != null)
                 {
                     // Change multiplier back to 2
-                    theReanimated[i].addXp(2*(int)System.Math.Pow(level,2));
-                    //Debug.Log("gave " + ((int) (2.0*System.Math.Pow(level, 2.0))) + " xp to reanimated #" + i);
+                    theReanimated[i].AddXp(2*(int)System.Math.Pow(level,2));
+                    Debug.Log("gave " + ((int) (2.0*System.Math.Pow(level, 2.0))) + " xp to reanimated #" + i);
                 }
             }
             EnemyContainer myCorpseContainer;
@@ -417,30 +473,18 @@ public class EnemyBase : MonoBehaviour
 
     public double CalculateXp()
     {
-        //Debug.Log("Calculated xp = " + xp / (10 * System.Math.Pow(level+1, 2)));
+        //Debug.Log("Calculated xp = " + (xp / ((int) (10.0*System.Math.Pow(level, 2.0)))));
         return xp / ((int) (10.0*System.Math.Pow(level, 2.0)));
     }
 
-    public void addXp(int xpAmount)
+    public void AddXp(int xpAmount)
     {
-        //Debug.Log("Giving " + xpAmount + " xp to reanimated.");
+        Debug.Log("Giving " + xpAmount + " xp to reanimated.");
 
         if (reanimated && gameObject.active)
         {
-            int oldLevel = level;
             //Debug.Log("Reanimated: adding xp = " + xpAmount + " to " + xp + ", Next level: " + (level + 1) + " - requires " + (10*System.Math.Pow(level + 1,2)) + " total.");
             xp += xpAmount;
-            while (xp != 0 && xp >= ((int) (10.0*System.Math.Pow(level + 1.0, 2.0))))
-            {
-                level++;
-                xp -= ((int) (10.0*System.Math.Pow(level, 2.0)));
-            }
-
-            if (level > oldLevel)
-            {
-                //Debug.Log("Level " + oldLevel + " -> " + level);
-                recalculateIntrinsicStats();
-            }
         }
     }
 

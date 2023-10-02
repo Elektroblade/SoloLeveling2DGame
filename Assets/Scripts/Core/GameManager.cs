@@ -12,12 +12,14 @@ public class GameManager : MonoBehaviour
     private static GameManager instance;
     [SerializeField] public AudioTrigger gameMusic;
     [SerializeField] public AudioTrigger gameAmbience;
+    [SerializeField] public LevelScalingOrigin levelScalingOrigin;
     [System.NonSerialized] public InventoryStorage inventoryItems;
     [SerializeField] public UIStatus uIStatus;
     public InventoryDatabase inventoryDatabase;
     public Transform pfDamagePopup;
     [System.NonSerialized] public int testingLocalDifficulty = 001;
-    [System.NonSerialized] public int testingLocalDifficultyVariance = 000;
+    [System.NonSerialized] public int testingLocalDifficultyVariance = 0;
+    [System.NonSerialized] System.Random random = new System.Random();
 
     // Singleton instantiation
     public static GameManager Instance
@@ -120,7 +122,6 @@ public class GameManager : MonoBehaviour
 
     public double GetRandomDouble(double minimum, double maximum)
     {
-        System.Random random = new System.Random();
         return random.NextDouble() * (maximum - minimum) + minimum;
     }
 }

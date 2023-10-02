@@ -71,7 +71,7 @@ public class GorefieldFlyer : MonoBehaviour
         // Draw a yellow sphere at the transform's position indicating the attentionRange
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, attentionRange);
-        if (enemyBase.reanimated && targetEnemy != null)
+        if (enemyBase != null && enemyBase.reanimated && targetEnemy != null)
             Gizmos.DrawWireSphere(targetEnemy.transform.position, 0.5f);
     }
 
