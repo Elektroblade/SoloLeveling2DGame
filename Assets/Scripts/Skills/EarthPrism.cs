@@ -73,7 +73,7 @@ public class EarthPrism : MonoBehaviour
 
     public void Slice(int abilityLevel, bool facingRight, int comboIndex, int attackType)
     {
-        if (recoveryCounter.counter[attackType] > recoveryCounter.recoveryTime)
+        if (recoveryCounter.counter[attackType] > recoveryCounter.recoveryTime0)
         {
             prismHeight -= maxPrismHeight / (abilityLevel + 1f);
             currentReceivedHitCount++;

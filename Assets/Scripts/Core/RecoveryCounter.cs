@@ -9,9 +9,11 @@ public class RecoveryCounter : MonoBehaviour
 
     //[System.NonSerialized] 
 
-    [System.NonSerialized] public float recoveryTime = 0.05f;
-    [System.NonSerialized] public float[] counter = new float[9];
-    [System.NonSerialized] public bool[] recovering = new bool[9];
+    [System.NonSerialized] public float recoveryTime0 = 0.05f;  // Instant damage
+    [System.NonSerialized] public float recoveryTime1 = 1f;   // DoT
+    [System.NonSerialized] public float[] counter = new float[10];      // 0 Player melee, 1 player lightningFist, 2 shadow melee, 3 player aerodynamicHeating, 4 player seismicWave,
+                                                        // 5 Player earthPrism, 6 Player earthDisk, 7 player vengefulSiphon, 8 player rollingThunder, 9 player doctorRegen
+    [System.NonSerialized] public bool[] recovering = new bool[10];
     [System.NonSerialized] public bool recoveringAtAll = false;
 
     // Update is called once per frame
@@ -20,15 +22,31 @@ public class RecoveryCounter : MonoBehaviour
         bool recoveringAtAllTemp = false;
         for (int i = 0; i < counter.Length; i++)
         {
-            if(counter[i] <= recoveryTime)
+            if (i == 9)
             {
-                counter[i] += Time.deltaTime;
-                recovering[i] = true;
-                recoveringAtAllTemp = true; 
+                if(counter[i] <= recoveryTime1)
+                {
+                    counter[i] += Time.deltaTime;
+                    recovering[i] = true;
+                    recoveringAtAllTemp = true; 
+                }
+                else
+                {
+                    recovering[i] = false;
+                }
             }
             else
             {
-                recovering[i] = false;
+                if(counter[i] <= recoveryTime0)
+                {
+                    counter[i] += Time.deltaTime;
+                    recovering[i] = true;
+                    recoveringAtAllTemp = true; 
+                }
+                else
+                {
+                    recovering[i] = false;
+                }
             }
         }
         recoveringAtAll = recoveringAtAllTemp;

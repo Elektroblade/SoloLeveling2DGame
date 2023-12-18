@@ -32,6 +32,7 @@ public class NewPlayer : PhysicsObject
     [SerializeField] public Transform frontFootLoc;
     [SerializeField] public Transform headTopLoc;
     [SerializeField] public GameObject[] rollingThunderTrails;
+    [SerializeField] public DoctorParryOrigin[] doctorParryOrigins;
     public RecoveryCounter recoveryCounter;
     private System.Random random = new System.Random();
 
@@ -90,14 +91,21 @@ public class NewPlayer : PhysicsObject
     private int comboIndex = 0;
     NextAction nextAction = NextAction.Idle;
     public float[] parryTimer = {0f, 0f, 0f, 0f};      // [0] = top left, [1] = top right, [2] = bottom left, [3] = bottom right
-    private float parryForgiveness = 0.2f;        // How early the player can parry an attack
+    private float parryForgiveness = 0.3f;        // How early the player can parry an attack
+    public float doctorParryTimer = 0f;
+    private float doctorParryForgiveness = 0.35f;
+    private float doctorParryInvincibleTimer = 0f;
+    private float doctorParryInvincibleDuration = 2f;
+    private float doctorRegenerateTimer = 0f;
+    private float doctorRegenerateDuration = 60f;
     [System.NonSerialized] public int[] capPreferences = {0, 0, 0};
     [System.NonSerialized] public double[,] capValues = new double[3,4]{ {100.0, -1.0, 0.0, 0.0}, {100.0, -1.0, 0.0, 0.0}, {90.0, -1.0, 50.0, -1.0} };
     [System.NonSerialized] public bool hasInventoryOpen = false;
     [System.NonSerialized] public bool hasStatusOpen = false;
     [System.NonSerialized] public double frenzyBonus = 0.0;
     [System.NonSerialized] public float frenzyTime = 0f;
-    [System.NonSerialized] private bool isInvincible = false;
+    [System.NonSerialized] private bool isDodgeInvincible = false;
+    [System.NonSerialized] private bool isDoctorInvincible = false;
 
     [Header ("Attributes")]
     // strength, stamina, agility, intellect, perception
@@ -386,6 +394,13 @@ public class NewPlayer : PhysicsObject
                     RecalculateExternalStats();
                 }
             }
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                if (doctorParryTimer <= 0 && doctorParryInvincibleTimer <= 0)
+                {
+                    doctorParryTimer = doctorParryForgiveness;
+                }
+            }
         }
 
         if (frenzyTime > 0)
@@ -403,6 +418,23 @@ public class NewPlayer : PhysicsObject
             else
                 parryTimer[i] = 0;
         }
+
+        if (doctorParryTimer > 0)
+            doctorParryTimer -= Time.deltaTime;
+        else
+            doctorParryTimer = 0;
+
+        if (doctorParryInvincibleTimer > 0)
+        {
+            doctorParryInvincibleTimer -= Time.deltaTime;
+
+            if (doctorParryInvincibleTimer <= 0)
+            {
+                isDoctorInvincible = false;
+                doctorParryInvincibleTimer = 0;
+            }
+        }
+        Debug.Log("isDoctorInvincible = " + isDoctorInvincible);
         
         ComputeVelocity();
     }
@@ -441,7 +473,7 @@ public class NewPlayer : PhysicsObject
                 {
                     dodgeTimer = 0;
                     dodgeDistanceSpent = 0;
-                    isInvincible = false;
+                    isDodgeInvincible = false;
                 }
             }
 
@@ -514,6 +546,43 @@ public class NewPlayer : PhysicsObject
                 facingRight = false;
                 graphic.transform.localScale = new Vector3(-origLocalScale.x, transform.localScale.y, transform.localScale.z);
             }
+
+            if (doctorRegenerateTimer > 0)
+            {
+                doctorParryInvincibleTimer -= Time.deltaTime;
+            
+                // 0 is up, -1 is right, -2 is down, 1 is left
+                if (Input.GetKey(KeyCode.UpArrow) && !Input.GetKeyDown(KeyCode.DownArrow))
+                {
+                    foreach (DoctorParryOrigin element in doctorParryOrigins)
+                    {
+                        element.rotation = 0;
+                    }
+                }
+                else if (Input.GetKey(KeyCode.DownArrow) && !Input.GetKeyDown(KeyCode.UpArrow))
+                {
+                    foreach (DoctorParryOrigin element in doctorParryOrigins)
+                    {
+                        element.rotation = -2;
+                    }
+                }
+                else if (facingRight)
+                {
+                    foreach (DoctorParryOrigin element in doctorParryOrigins)
+                    {
+                        element.rotation = -1;
+                    }
+                }
+                else
+                {
+                    foreach (DoctorParryOrigin element in doctorParryOrigins)
+                    {
+                        element.rotation = 1;
+                    }
+                }
+            }
+            else if (doctorRegenerateTimer < 0)
+                doctorRegenerateTimer = 0;
 
             //Punch
             if (Input.GetButtonDown("Fire1"))
@@ -621,7 +690,7 @@ public class NewPlayer : PhysicsObject
             {
                 dodgeTimer = 0;
                 dodgeDistanceSpent = 0;
-                isInvincible = true;
+                isDodgeInvincible = true;
             }
 
             animator.SetFloat("velocityX", Mathf.Abs(velocity.x) / baseSpeed);
@@ -837,7 +906,7 @@ public class NewPlayer : PhysicsObject
 
             dodgeTimer = 0.4f;
             dodgeOriginX = gameObject.transform.position.x;
-            isInvincible = true;
+            isDodgeInvincible = true;
             if (facingRight)
             {
                 dodgeVelocity = dodgePower * dodgeMultiplier; //The dodgeMultiplier allows us to use the Dodge function to also launch the player from bounce platforms
@@ -1042,6 +1111,15 @@ public class NewPlayer : PhysicsObject
     {
         double[] damage;
 
+        if (attackType == 9)
+        {
+            if (ferocityCounter < ((int) (1 * externalStats[7] + 100)/100))
+            {
+                DetermineFerocity();
+                //Debug.Log("Calculated new ferocity: " + ferocityCounter);
+            }
+        }
+
         damage = new double[ferocityTotal + 2];
 
         double physicalDamage;
@@ -1060,14 +1138,16 @@ public class NewPlayer : PhysicsObject
 
         double singleHitDamage = physicalDamage + magicalDamage;
 
-        if (attackType == 7)    // Blood magic damage bonus
+        if (attackType == 7)    // Blood magic damage multiplier
             singleHitDamage *= (1.0 + attributes[0] / 150.0);
-        if (attackType == 3)    // Fire damage bonus
+        if (attackType == 3 || attackType == 9)    // Fire damage multiplier
             singleHitDamage *= (1.0 + attributes[3] / 200.0);
-        if (attackType == 4 || attackType == 5 || attackType == 6)  // Earth damage bonus
+        if (attackType == 4 || attackType == 5 || attackType == 6)  // Earth damage multiplier
             singleHitDamage *= (1.0 + attributes[0] / 200.0);
-        if (attackType == 1 || attackType == 8)    // Lightning damage bonus
+        if (attackType == 1 || attackType == 8)    // Lightning damage multiplier
             singleHitDamage *= (1.0 + attributes[2] / 200.0);
+        if (attackType == 9)    // attack speed multiplier (for DoT)
+            singleHitDamage *= (externalStats[2]/100.0);
 
         //Debug.Log("singleHitDamage = " + singleHitDamage + ", mod[6] = " + modifiers[6]);
 
@@ -1126,18 +1206,26 @@ public class NewPlayer : PhysicsObject
 
     public void RecoverByMelee(int attackType)
     {
+        double multiplier = 1;
+
+        // Apply Doctor regeneration bonus
+        if (doctorParryInvincibleTimer > 0)
+        {
+            multiplier *= (1 + attributes[3] / 200);
+        }
+
         if (attackType == 0 || (attackType == 7 && canLifeSteal && health/externalStats[0] < 0.17))
         {
             if (mana < externalStats[2])
-                manaToAdd += externalStats[2]*.05;
+                manaToAdd += multiplier * externalStats[2]*.05;
             if (health < externalStats[0])
-                healthToAdd += externalStats[0]*.03;
+                healthToAdd += multiplier * externalStats[0]*.03;
         }
 
         // Bloodmage tings
         if (canLifeSteal && (attackType == 0 || attackType == 7) && health < externalStats[0])
         {
-            healthToAdd += externalStats[0]*0.05 * (1);
+            healthToAdd += multiplier * externalStats[0]*0.05 * (1);
         }
     }
 
@@ -1258,6 +1346,21 @@ public class NewPlayer : PhysicsObject
 
     public bool GetInvincible()
     {
-        return isInvincible;
+        return isDodgeInvincible || isDoctorInvincible;
+    }
+
+    public void DoctorParry()
+    {
+        doctorParryInvincibleTimer = doctorParryInvincibleDuration;
+        isDoctorInvincible = true;
+    }
+
+    public void DoctorRegenerate()
+    {
+        doctorRegenerateTimer = doctorRegenerateDuration * (1 + attributes[3] / 200);
+        foreach (DoctorParryOrigin element in doctorParryOrigins)
+        {
+            element.DisplaySprite(doctorRegenerateTimer);
+        }
     }
 }

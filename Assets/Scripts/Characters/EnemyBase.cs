@@ -230,7 +230,7 @@ public class EnemyBase : MonoBehaviour
 
         //Hit the enemy, causing a damage effect, and decreasing health. Allows for requiring a downward pound attack
         if ((GetComponent<Walker>() != null || GetComponent<Flyer>() != null || GetComponent<GorefieldFlyer>() != null 
-            || GetComponent<GorefieldTall>() != null) && recoveryCounter.counter[attackType] > recoveryCounter.recoveryTime)
+            || GetComponent<GorefieldTall>() != null) && !recoveryCounter.recovering[attackType])
         {
             if (!requirePoundAttack || (requirePoundAttack && NewPlayer.Instance.pounding))
             {

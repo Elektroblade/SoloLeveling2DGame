@@ -5108,6 +5108,8 @@ MonoBehaviour:
   statMods: 
   parryMeshPrefab: {fileID: 8558461649606754561, guid: c38c7e4f0fcc74f4e88747511ea42705,
     type: 3}
+  doctorParryMeshPrefab: {fileID: 4247494493098377318, guid: b5b933d73d161a54cbd7e8aa38180dda,
+    type: 3}
   vengefulSiphonPrefab: {fileID: 0}
   layersToGetSiphoned:
     serializedVersion: 2

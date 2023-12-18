@@ -17,7 +17,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] public UIStatus uIStatus;
     public InventoryDatabase inventoryDatabase;
     public Transform pfDamagePopup;
-    [System.NonSerialized] public int testingLocalDifficulty = 001;
+    [System.NonSerialized] public int testingLocalDifficulty = 100;
     [System.NonSerialized] public int testingLocalDifficultyVariance = 0;
     [System.NonSerialized] System.Random random = new System.Random();
 

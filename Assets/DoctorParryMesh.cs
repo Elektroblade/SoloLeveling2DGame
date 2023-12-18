@@ -2,16 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ParryMesh : MonoBehaviour
+public class DoctorParryMesh : MonoBehaviour
 {
     [SerializeField] SpriteRenderer spriteRenderer;
     [System.NonSerialized] public float existenceTimer;
-    [System.NonSerialized] public float existenceTimerMax = 0.15f;
+    [System.NonSerialized] public float existenceTimerMax = 2f;
     [System.NonSerialized] public bool deleteNextFrame = false;
 
     public void DisplaySprite()
     {
-        spriteRenderer.transform.localScale = new Vector3(2, 2f, 1);
+        spriteRenderer.transform.localScale = new Vector3(0f, 0f, 1);
         existenceTimer = existenceTimerMax;
         Color tmpParryMeshColour = spriteRenderer.color;
         tmpParryMeshColour.a = 1f;
@@ -23,6 +23,7 @@ public class ParryMesh : MonoBehaviour
     {
         if (deleteNextFrame)
         {
+            NewPlayer.Instance.DoctorRegenerate();
             Destroy(gameObject);
         }
 
@@ -46,5 +47,8 @@ public class ParryMesh : MonoBehaviour
             existenceTimer = 0;
             deleteNextFrame = true;
         }
+
+        spriteRenderer.transform.localScale = new Vector3(2 * (existenceTimerMax - existenceTimer) / existenceTimerMax, 
+            2 * (existenceTimerMax - existenceTimer) / existenceTimerMax, 1);
     }
 }

@@ -10,8 +10,8 @@ public class AttackHit : MonoBehaviour
 {
     public enum AttacksWhat { EnemyBase, NewPlayer };
     [SerializeField] private AttacksWhat attacksWhat;
-    [SerializeField] private int attackType;            // Player melee, player lightningFist, shadow melee, player aerodynamicHeating, player seismicWave,
-                                                        // Player earthPrism, Player earthDisk, player vengefulSiphon, player rollingThunder
+    [SerializeField] private int attackType;            // 0 Player melee, 1 player lightningFist, 2 shadow melee, 3 player aerodynamicHeating, 4 player seismicWave,
+                                                        // 5 Player earthPrism, 6 Player earthDisk, 7 player vengefulSiphon, 8 player rollingThunder, 9 player doctorRegen
     [SerializeField] private bool oneHitKill;
     [SerializeField] private float startCollisionDelay; //Some enemy types, like EnemyBombs, should not be able blow up until a set amount of time
     private int targetSide = 1; //Is the attack target on the left or right side of this object?
@@ -20,6 +20,7 @@ public class AttackHit : MonoBehaviour
     [SerializeField] private double[] hitPower;    // Effects such as ferocity can make an attack hit multiple times at once
     [SerializeField] private int[] statMods;
     [SerializeField] private GameObject parryMeshPrefab;
+    [SerializeField] private GameObject doctorParryMeshPrefab;
     [SerializeField] private GameObject vengefulSiphonPrefab;
     [SerializeField] private LayerMask layersToGetSiphoned;
 
@@ -43,6 +44,7 @@ public class AttackHit : MonoBehaviour
             return;
 
         int attackerType = -1;
+        bool playerCancelledHit = false;
         bool playerStaggeredEnemy = false;
 
         //Determine which side the target is on in relation to the parent
@@ -61,9 +63,12 @@ public class AttackHit : MonoBehaviour
         if (parent.GetComponent<EnemyBase>() != null && col.transform.parent && col.transform.parent.GetComponent<NewPlayer>() != null)
         {
             float[] parryTimer = col.transform.parent.GetComponent<NewPlayer>().parryTimer;
-            if ((parent.transform.position.x - col.transform.parent.transform.position.x < 0 && ((parent.transform.position.y - col.transform.parent.transform.position.y > 0 && parryTimer[0] <= 0) 
+
+            if ((parent.transform.position.x - col.transform.parent.transform.position.x < 0 
+            && ((parent.transform.position.y - col.transform.parent.transform.position.y > 0 && parryTimer[0] <= 0) 
             || (parent.transform.position.y - col.transform.parent.transform.position.y <= 0 && parryTimer[2] <= 0))) 
-            || (parent.transform.position.x - col.transform.parent.transform.position.x >= 0 && ((parent.transform.position.y - col.transform.parent.transform.position.y > 0 && parryTimer[1] <= 0) 
+            || (parent.transform.position.x - col.transform.parent.transform.position.x >= 0 
+            && ((parent.transform.position.y - col.transform.parent.transform.position.y > 0 && parryTimer[1] <= 0) 
             || (parent.transform.position.y - col.transform.parent.transform.position.y <= 0 && parryTimer[3] <= 0))))
             {
                 hitPower = parent.GetComponent<EnemyBase>().CalculateDamage();
@@ -72,6 +77,7 @@ public class AttackHit : MonoBehaviour
             {
                 //Debug.Log("Parry!");
                 playerStaggeredEnemy = true;
+                playerCancelledHit = true;
 
                 ParryMesh parryMesh;
                 
@@ -89,6 +95,34 @@ public class AttackHit : MonoBehaviour
                 }
 
                 parent.GetComponent<EnemyBase>().Stagger();
+            }
+
+            if (col.transform.parent.GetComponent<NewPlayer>().doctorParryTimer > 0)
+            {
+                if (hitPower == null)
+                {
+                    hitPower = parent.GetComponent<EnemyBase>().CalculateDamage();
+                }
+
+                if (GetDamageTotal(hitPower) >= col.transform.parent.GetComponent<NewPlayer>().health)
+                {
+                    playerCancelledHit = true;
+                    DoctorParryMesh doctorParryMesh;
+                    col.transform.parent.GetComponent<NewPlayer>().DoctorParry();
+
+                    if (doctorParryMeshPrefab)
+                    {
+                        doctorParryMesh = Instantiate(doctorParryMeshPrefab, gameObject.transform.position, Quaternion.identity).GetComponent<DoctorParryMesh>();
+                        if (doctorParryMesh)
+                        {
+                            doctorParryMesh.DisplaySprite();
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log("ERROR: Missing Doctor Parry Mesh Prefab");
+                    }
+                }
             }
         }
 
@@ -122,7 +156,7 @@ public class AttackHit : MonoBehaviour
                             RecoveryCounter enemyHitRecoveryCounter = raycastSiphonHit.collider.transform.parent.GetComponent<EnemyBase>().recoveryCounter;
 
                             // The test:
-                            if (enemyHitRecoveryCounter.counter[7] > enemyHitRecoveryCounter.recoveryTime)
+                            if (enemyHitRecoveryCounter.counter[7] > enemyHitRecoveryCounter.recoveryTime0)
                             {
                                 EnemyBase siphonedEnemy = raycastSiphonHit.collider.transform.parent.GetComponent<EnemyBase>();
                                 foundCandidate = true;
@@ -170,7 +204,7 @@ public class AttackHit : MonoBehaviour
         {
             if (col.transform.parent && col.transform.parent.GetComponent<NewPlayer>() != null)
             {
-                if (!playerStaggeredEnemy)
+                if (!playerCancelledHit)
                 {
                     NewPlayer.Instance.GetHurt(targetSide, hitPower);
                     if (isBomb) transform.parent.GetComponent<EnemyBase>().Die();
@@ -235,5 +269,17 @@ public class AttackHit : MonoBehaviour
         collider.enabled = false;
         yield return new WaitForSeconds(startCollisionDelay);
         GetComponent<Collider2D>().enabled = true;
+    }
+
+    double GetDamageTotal(double[] damage)
+    {
+        double output = 0;
+        double defence = NewPlayer.Instance.externalStats[1];
+        for (int i = 0; i < damage.Length - 2; i++)
+        {
+            output += 100*hitPower[i]/(defence + 100);
+        }
+
+        return output;
     }
 }
