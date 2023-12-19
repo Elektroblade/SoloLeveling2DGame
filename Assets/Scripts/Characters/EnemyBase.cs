@@ -230,7 +230,8 @@ public class EnemyBase : MonoBehaviour
 
         //Hit the enemy, causing a damage effect, and decreasing health. Allows for requiring a downward pound attack
         if ((GetComponent<Walker>() != null || GetComponent<Flyer>() != null || GetComponent<GorefieldFlyer>() != null 
-            || GetComponent<GorefieldTall>() != null) && !recoveryCounter.recovering[attackType])
+            || GetComponent<GorefieldTall>() != null || GetComponent<GorefieldEternal>() != null)
+            && !recoveryCounter.recovering[attackType])
         {
             if (!requirePoundAttack || (requirePoundAttack && NewPlayer.Instance.pounding))
             {
@@ -297,7 +298,8 @@ public class EnemyBase : MonoBehaviour
                 
                 if (attackerType == 0)
                 {
-                    NewPlayer.Instance.recoveryCounter.counter[attackType] = 0;
+                    if (attackType != 9)
+                        NewPlayer.Instance.recoveryCounter.counter[attackType] = 0;
 
                     if (NewPlayer.Instance.pounding)
                     {
@@ -307,50 +309,87 @@ public class EnemyBase : MonoBehaviour
 
                 //Debug.Log("recoveryCounter after = " + recoveryCounter.counter[attackType] + "");
 
-                
-
                 //The Walker being launched after getting hit is a little different than the Flyer getting launched by a hit.
-                if (GetComponent<Walker>() != null)
-                {
-                    Walker walker = GetComponent<Walker>();
-                    walker.launch = launchDirection * walker.hurtLaunchPower / 25;
-                    walker.velocity.y = walker.hurtLaunchPower / 5;
-                    walker.directionSmooth = launchDirection;
-                    walker.direction = walker.directionSmooth;
-                }
 
-                if (GetComponent<GorefieldTall>() != null)
+                if (attackType != 9)
                 {
-                    GorefieldTall walker = GetComponent<GorefieldTall>();
-                    walker.launch = launchDirection * walker.hurtLaunchPower / 25;
-                    walker.velocity.y = walker.hurtLaunchPower / 5;
-                    walker.directionSmooth = launchDirection;
-                    walker.direction = walker.directionSmooth;
-                }
+                    if (GetComponent<Walker>() != null)
+                    {
+                        Walker walker = GetComponent<Walker>();
+                        walker.launch = launchDirection * walker.hurtLaunchPower / 25;
+                        walker.velocity.y = walker.hurtLaunchPower / 5;
+                        walker.directionSmooth = launchDirection;
+                        walker.direction = walker.directionSmooth;
+                    }
 
-                if (GetComponent<Flyer>() != null)
-                {
-                    Flyer flyer = GetComponent<Flyer>();
-                    flyer.speedEased.x = launchDirection * 2;
-                    flyer.speedEased.y = 4;
-                    flyer.speed.x = flyer.speedEased.x;
-                    flyer.speed.y = flyer.speedEased.y;
-                }
+                    if (GetComponent<GorefieldTall>() != null)
+                    {
+                        GorefieldTall walker = GetComponent<GorefieldTall>();
+                        walker.launch = launchDirection * walker.hurtLaunchPower / 25;
+                        walker.velocity.y = walker.hurtLaunchPower / 5;
+                        walker.directionSmooth = launchDirection;
+                        walker.direction = walker.directionSmooth;
+                    }
 
-                if (GetComponent<GorefieldFlyer>() != null)
-                {
-                    GorefieldFlyer flyer = GetComponent<GorefieldFlyer>();
-                    flyer.speedEased.x = launchDirection * 2;
-                    flyer.speedEased.y = 4;
-                    flyer.speed.x = flyer.speedEased.x;
-                    flyer.speed.y = flyer.speedEased.y;
-                }
+                    if (GetComponent<Flyer>() != null)
+                    {
+                        Flyer flyer = GetComponent<Flyer>();
+                        flyer.speedEased.x = launchDirection * 2;
+                        flyer.speedEased.y = 4;
+                        flyer.speed.x = flyer.speedEased.x;
+                        flyer.speed.y = flyer.speedEased.y;
+                    }
 
-                if (attackerType == 0)
-                    NewPlayer.Instance.FreezeFrameEffect();
+                    if (GetComponent<GorefieldFlyer>() != null)
+                    {
+                        GorefieldFlyer flyer = GetComponent<GorefieldFlyer>();
+                        flyer.speedEased.x = launchDirection * 2;
+                        flyer.speedEased.y = 4;
+                        flyer.speed.x = flyer.speedEased.x;
+                        flyer.speed.y = flyer.speedEased.y;
+                    }
+
+                    if (attackerType == 0)
+                        NewPlayer.Instance.FreezeFrameEffect();
+                }
+                
             }
         }
     }
+    public void GetHealed(double[] hitPower, int attackType, int attackerType)
+    {
+        //Debug.Log("recoveryCounter[" + attackType + "] before = " + recoveryCounter.counter[attackType] + ", recovering = " + recoveryCounter.recovering[attackType]);
+
+        //Hit the enemy, causing a damage effect, and decreasing health. Allows for requiring a downward pound attack
+        if ((GetComponent<Walker>() != null || GetComponent<Flyer>() != null || GetComponent<GorefieldFlyer>() != null 
+            || GetComponent<GorefieldTall>() != null || GetComponent<GorefieldEternal>() != null)
+            && !recoveryCounter.recovering[attackType])
+        {
+            string damagePopupString = "";
+                
+            for (int i = 0; i < hitPower.Length - 2; i++)
+            {
+                double loss = 100*hitPower[i]/(intrinsicStats[1] + 100);
+                    
+                //Debug.Log("Enemy position = " + transform.position.ToString() + ", loss = " + loss);
+
+                if (i != 0)
+                {
+                    damagePopupString += "\n";
+                }
+
+                damagePopupString += "+" + ((int) loss);
+                    
+                health += loss;
+            }
+
+            DamagePopup.Create(new Vector3(transform.position.x, transform.position.y, transform.position.z), damagePopupString, (int) hitPower[hitPower.Length - 2]);
+
+            //Ensure the enemy and also the player cannot engage in hitting each other for the max recoveryTime for each
+            recoveryCounter.counter[attackType] = 0;
+        }
+    }
+
 
     public void Die()
     {
@@ -373,7 +412,7 @@ public class EnemyBase : MonoBehaviour
         // Reduce this later
         if (!reanimated && canDropXp && (GetComponent<Flyer>() == null || !isBomb))
         {
-            NewPlayer.Instance.AddXp((int) (2.0*System.Math.Pow(level, 2.0)));
+            NewPlayer.Instance.Kill();
 
             canDropXp = false;
 

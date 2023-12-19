@@ -28,12 +28,7 @@ public class DoctorParryOrigin : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (existenceTimer > existenceTimerMax - 2f && existenceTimer > 0)
-        {
-            transform.position = homePosition.transform.position;
-            existenceTimer -= Time.deltaTime;
-        }
-        else if (existenceTimer > 0)
+        if (existenceTimer > 0)
         {
             transform.position = homePosition.transform.position;
             transform.rotation = Quaternion.Euler(0,0,rotation * 90f + 90f);

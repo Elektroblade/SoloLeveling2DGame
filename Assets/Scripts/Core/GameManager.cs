@@ -124,4 +124,16 @@ public class GameManager : MonoBehaviour
     {
         return random.NextDouble() * (maximum - minimum) + minimum;
     }
+
+    public static double GetDamageTotal(double[] damage)
+    {
+        double output = 0;
+        double defence = NewPlayer.Instance.externalStats[1];
+        for (int i = 0; i < damage.Length - 2; i++)
+        {
+            output += 100*damage[i]/(defence + 100);
+        }
+
+        return output;
+    }
 }

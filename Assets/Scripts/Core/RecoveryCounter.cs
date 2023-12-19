@@ -11,9 +11,9 @@ public class RecoveryCounter : MonoBehaviour
 
     [System.NonSerialized] public float recoveryTime0 = 0.05f;  // Instant damage
     [System.NonSerialized] public float recoveryTime1 = 1f;   // DoT
-    [System.NonSerialized] public float[] counter = new float[10];      // 0 Player melee, 1 player lightningFist, 2 shadow melee, 3 player aerodynamicHeating, 4 player seismicWave,
-                                                        // 5 Player earthPrism, 6 Player earthDisk, 7 player vengefulSiphon, 8 player rollingThunder, 9 player doctorRegen
-    [System.NonSerialized] public bool[] recovering = new bool[10];
+    [System.NonSerialized] public float[] counter = new float[11];      // 0 Player melee, 1 player lightningFist, 2 shadow melee, 3 player aerodynamicHeating, 4 player seismicWave,
+                                                        // 5 Player earthPrism, 6 Player earthDisk, 7 player vengefulSiphon, 8 player rollingThunder, 9 player doctorRegen, 10 player parryStorm
+    [System.NonSerialized] public bool[] recovering = new bool[11];
     [System.NonSerialized] public bool recoveringAtAll = false;
 
     // Update is called once per frame

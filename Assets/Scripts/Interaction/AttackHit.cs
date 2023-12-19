@@ -39,6 +39,7 @@ public class AttackHit : MonoBehaviour
 
     void DoAttackHit(Collider2D col, bool canDoRaycastSyphon, int attackType)
     {
+        hitPower = null;
         // Do not damage invincible player
         if (col.transform.parent && col.transform.parent.GetComponent<NewPlayer>() != null && col.transform.parent.GetComponent<NewPlayer>().GetInvincible())
             return;
@@ -79,6 +80,11 @@ public class AttackHit : MonoBehaviour
                 playerStaggeredEnemy = true;
                 playerCancelledHit = true;
 
+                if (hitPower == null)
+                {
+                    hitPower = parent.GetComponent<EnemyBase>().CalculateDamage();
+                }
+
                 ParryMesh parryMesh;
                 
                 if (parryMeshPrefab)
@@ -95,6 +101,7 @@ public class AttackHit : MonoBehaviour
                 }
 
                 parent.GetComponent<EnemyBase>().Stagger();
+                col.transform.parent.GetComponent<NewPlayer>().Parry(parent.transform);
             }
 
             if (col.transform.parent.GetComponent<NewPlayer>().doctorParryTimer > 0)
@@ -104,7 +111,7 @@ public class AttackHit : MonoBehaviour
                     hitPower = parent.GetComponent<EnemyBase>().CalculateDamage();
                 }
 
-                if (GetDamageTotal(hitPower) >= col.transform.parent.GetComponent<NewPlayer>().health)
+                if (GameManager.GetDamageTotal(hitPower) >= col.transform.parent.GetComponent<NewPlayer>().health)
                 {
                     playerCancelledHit = true;
                     DoctorParryMesh doctorParryMesh;
@@ -229,15 +236,19 @@ public class AttackHit : MonoBehaviour
         //Attack Enemies
         else if (attacksWhat == AttacksWhat.EnemyBase && col.transform.parent != null && col.transform.parent.GetComponent<EnemyBase>() != null)
         {
+            /*
             if (col.transform.parent.GetComponent<GorefieldTall>() != null)
             {
                 //Debug.Log("damaging a tall gorefield!, dealing " + hitPower[0] + " per hit to non-reanimated.");
             }
+             */
+            /*
             if (parent.GetComponent<EnemyBase>())
             {
                 if (parent.GetComponent<EnemyBase>().reanimated) {}
                     //Debug.Log("Reanimated is dealing " + hitPower[0] + " per hit to non-reanimated.");
             }
+             */
 
             if (!col.transform.parent.GetComponent<EnemyBase>().reanimated)
             {
@@ -245,6 +256,10 @@ public class AttackHit : MonoBehaviour
                 //{
                     col.transform.parent.GetComponent<EnemyBase>().GetHurt(targetSide, hitPower, attackType, attackerType);
                 //}
+            }
+            else if (attackType == 9)
+            {
+                col.transform.parent.GetComponent<EnemyBase>().GetHealed(hitPower, attackType, attackType);
             }
         }
         //Attack Breakables
@@ -269,17 +284,5 @@ public class AttackHit : MonoBehaviour
         collider.enabled = false;
         yield return new WaitForSeconds(startCollisionDelay);
         GetComponent<Collider2D>().enabled = true;
-    }
-
-    double GetDamageTotal(double[] damage)
-    {
-        double output = 0;
-        double defence = NewPlayer.Instance.externalStats[1];
-        for (int i = 0; i < damage.Length - 2; i++)
-        {
-            output += 100*hitPower[i]/(defence + 100);
-        }
-
-        return output;
     }
 }

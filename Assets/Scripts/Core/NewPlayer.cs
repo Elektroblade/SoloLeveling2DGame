@@ -33,6 +33,8 @@ public class NewPlayer : PhysicsObject
     [SerializeField] public Transform headTopLoc;
     [SerializeField] public GameObject[] rollingThunderTrails;
     [SerializeField] public DoctorParryOrigin[] doctorParryOrigins;
+    [SerializeField] public TrailRenderer[] doctorParryTrails;
+    [SerializeField] public ParryStorm parryStorm;
     public RecoveryCounter recoveryCounter;
     private System.Random random = new System.Random();
 
@@ -85,6 +87,10 @@ public class NewPlayer : PhysicsObject
     [System.NonSerialized] public bool canOptimizeInnards = true;
     [System.NonSerialized] public bool canGrislyComeuppance = true;
     [System.NonSerialized] public bool canVehementFerocity = true;
+    [System.NonSerialized] public bool canRewardProficiency = true;
+    [System.NonSerialized] public bool hasStrengthTraining = true;
+    [System.NonSerialized] public bool hasPolishedTechnique = true;
+    [System.NonSerialized] public bool canParryStorm = true;
     [SerializeField] bool facingRight;
     private int ferocityTotal = 0;
     private int ferocityCounter = 0;
@@ -104,6 +110,8 @@ public class NewPlayer : PhysicsObject
     [System.NonSerialized] public bool hasStatusOpen = false;
     [System.NonSerialized] public double frenzyBonus = 0.0;
     [System.NonSerialized] public float frenzyTime = 0f;
+    private double rewardingProficiencyDefenceInitial = 0.0;
+    private double rewardingProficiencyDefenceCurrent = 0.0;
     [System.NonSerialized] private bool isDodgeInvincible = false;
     [System.NonSerialized] private bool isDoctorInvincible = false;
 
@@ -428,13 +436,31 @@ public class NewPlayer : PhysicsObject
         {
             doctorParryInvincibleTimer -= Time.deltaTime;
 
+            if (doctorParryInvincibleTimer < 0.5f)
+            {
+                foreach (TrailRenderer element in doctorParryTrails)
+                {
+                    element.emitting = true;
+                }
+            }
+
             if (doctorParryInvincibleTimer <= 0)
             {
                 isDoctorInvincible = false;
                 doctorParryInvincibleTimer = 0;
             }
         }
-        Debug.Log("isDoctorInvincible = " + isDoctorInvincible);
+
+        if (rewardingProficiencyDefenceCurrent > 0)
+        {
+            rewardingProficiencyDefenceCurrent -= Time.deltaTime * rewardingProficiencyDefenceInitial / 10.0;
+
+            if (rewardingProficiencyDefenceCurrent <= 0)
+            {
+                rewardingProficiencyDefenceCurrent = 0;
+                rewardingProficiencyDefenceInitial = 0;
+            }
+        }
         
         ComputeVelocity();
     }
@@ -507,12 +533,8 @@ public class NewPlayer : PhysicsObject
             {
                 // AerodynamicHeating start
 
-                // If an attack animation has yet to hit, recalculate ferocity. Change 1 to a modifier if such a modifier exists.
-                if (ferocityCounter < ((int) (1 * externalStats[7] + 100)/100))
-                {
-                    DetermineFerocity();
-                    //Debug.Log("Calculated new ferocity: " + ferocityCounter);
-                }
+                // Removed: If an attack animation has yet to hit, recalculate ferocity. Change 1 to a modifier if such a modifier exists.
+
                 aerodynamicHeating.DisplaySprite();
 
                 // AerodynamicHeating end
@@ -547,9 +569,23 @@ public class NewPlayer : PhysicsObject
                 graphic.transform.localScale = new Vector3(-origLocalScale.x, transform.localScale.y, transform.localScale.z);
             }
 
-            if (doctorRegenerateTimer > 0)
+            if ((doctorRegenerateTimer > doctorRegenerateDuration * (1 + attributes[3] / 200) - 2f) && (doctorRegenerateTimer > 0))
             {
-                doctorParryInvincibleTimer -= Time.deltaTime;
+                doctorRegenerateTimer -= Time.deltaTime;
+                if (facingRight)
+                {
+                    doctorParryOrigins[1].rotation = 1;
+                    doctorParryOrigins[2].rotation = -1;
+                }
+                else
+                {
+                    doctorParryOrigins[1].rotation = -1;
+                    doctorParryOrigins[2].rotation = 1;
+                }
+            }
+            else if (doctorRegenerateTimer > 0)
+            {
+                doctorRegenerateTimer -= Time.deltaTime;
             
                 // 0 is up, -1 is right, -2 is down, 1 is left
                 if (Input.GetKey(KeyCode.UpArrow) && !Input.GetKeyDown(KeyCode.DownArrow))
@@ -580,9 +616,17 @@ public class NewPlayer : PhysicsObject
                         element.rotation = 1;
                     }
                 }
+
+                if (doctorRegenerateTimer <= 0)
+                {
+                    doctorRegenerateTimer = 0;
+
+                    foreach (TrailRenderer element in doctorParryTrails)
+                    {
+                        element.emitting = false;
+                    }
+                }
             }
-            else if (doctorRegenerateTimer < 0)
-                doctorRegenerateTimer = 0;
 
             //Punch
             if (Input.GetButtonDown("Fire1"))
@@ -747,12 +791,13 @@ public class NewPlayer : PhysicsObject
             launch = hurtDirection * (hurtLaunchPower.x);
             recoveryCounter.ResetAllCounters();
 
+            Debug.Log("rewardingProficiencyCurrent = " + rewardingProficiencyDefenceCurrent);
+
             for (int i = 0; i < hitPower.Length - 2; i++)
             {
                 if (canOptimizeInnards && health < 0.5 * externalStats[0])
                 {
-                    health -= 100*hitPower[i]*(1/(1+(-2*health + externalStats[0]) * (attributes[0] / 100) / externalStats[0]))/(externalStats[1] + 100);
-
+                    health -= 100*hitPower[i]*(1/(1+(-2*health + externalStats[0]) * (attributes[0] / 100) / externalStats[0]))/(externalStats[1] + rewardingProficiencyDefenceCurrent + 100);
 
                     /*
                     Debug.Log("100*hitPower[i]*(1/(1+(-2*health + externalStats[0]) * (attributes[0] / 100) / externalStats[0]))/(externalStats[1] + 100) = " 
@@ -761,7 +806,7 @@ public class NewPlayer : PhysicsObject
                 }
                 else
                 {
-                    health -= 100*hitPower[i]/(externalStats[1] + 100);
+                    health -= 100*hitPower[i]/(externalStats[1] + rewardingProficiencyDefenceCurrent + 100);
 
                     /*
                     Debug.Log("100*hitPower[i]/(externalStats[1] + 100) = " 
@@ -844,7 +889,17 @@ public class NewPlayer : PhysicsObject
             frenzyTime = 10f;
     }
 
-    public void DetermineFerocity()
+    public void DetermineFerocityVisual()
+    {
+        ferocityTotal = DetermineFerocityLogical();
+        ferocityCounter = ferocityTotal;
+        //Debug.Log("Determining Ferocity for index " + comboIndex + ": ferocityTotal = " + ferocityTotal);
+        animator.SetFloat("animAttackRate", (float)(externalStats[4]/100f));
+        animator.SetFloat("animFerocRate", (float)((externalStats[4]/100f)*ferocityTotal));
+        animator.SetInteger("ferocityCounter", ferocityTotal);
+    }
+
+    public int DetermineFerocityLogical()
     {
         double tempModifier = 1.0;
         double ferocRoll = GameManager.Instance.GetRandomDouble(0.0, 1.0);
@@ -853,17 +908,12 @@ public class NewPlayer : PhysicsObject
         for (ferocityMod = externalStats[7]*tempModifier + 100; ferocityMod >= 100; ferocityMod-=100) {}
         if (ferocRoll < ferocityMod/100)
         {
-            ferocityTotal = (int) (tempModifier*externalStats[7] + 100)/100 + 1;
+            return (int) (tempModifier*externalStats[7] + 100)/100 + 1;
         }
         else
         {
-            ferocityTotal = (int) (tempModifier*externalStats[7] + 100)/100 + 0;
+            return (int) (tempModifier*externalStats[7] + 100)/100 + 0;
         }
-        ferocityCounter = ferocityTotal;
-        //Debug.Log("Determining Ferocity for index " + comboIndex + ": ferocityTotal = " + ferocityTotal);
-        animator.SetFloat("animAttackRate", (float)(externalStats[4]/100f));
-        animator.SetFloat("animFerocRate", (float)((externalStats[4]/100f)*ferocityTotal));
-        animator.SetInteger("ferocityCounter", ferocityTotal);
     }
 
     public void decrementFerocityCounter()
@@ -923,11 +973,13 @@ public class NewPlayer : PhysicsObject
             if (isLightningDash)
             {
                 // If an attack animation has yet to hit, recalculate ferocity. Change 1 to a modifier if such a modifier exists.
+                /*
                 if (ferocityCounter < ((int) (1 * externalStats[7] + 100)/100))
                 {
-                    DetermineFerocity();
+                    DetermineFerocityVisual();
                     //Debug.Log("Calculated new ferocity: " + ferocityCounter);
                 }
+                 */
 
                 // Show visual
                 RollingThunderTrailOrigin headTopTrail;
@@ -1110,25 +1162,34 @@ public class NewPlayer : PhysicsObject
     public double[] CalculateDamage(int[] modifiers, int attackType)
     {
         double[] damage;
+        int tmpFerocityTotal;
 
-        if (attackType == 9)
+        if (attackType != 0)
         {
-            if (ferocityCounter < ((int) (1 * externalStats[7] + 100)/100))
-            {
-                DetermineFerocity();
-                //Debug.Log("Calculated new ferocity: " + ferocityCounter);
-            }
+            tmpFerocityTotal = DetermineFerocityLogical();
+        }
+        else
+        {
+            tmpFerocityTotal = ferocityTotal;
         }
 
-        damage = new double[ferocityTotal + 2];
+        damage = new double[tmpFerocityTotal + 2];
 
         double physicalDamage;
         double magicalDamage;
         // Combo-specific multipliers
-        if (comboIndex == 3)
+        if (comboIndex == 3 && (attackType == 0 || attackType == 1 || attackType == 6 || attackType == 7))
         {
-            physicalDamage = modifiers[5]*externalStats[5] * 2;
-            magicalDamage = modifiers[6]*externalStats[6] * 2;
+            if (hasPolishedTechnique)
+            {
+                physicalDamage = modifiers[5]*externalStats[5] * (2 + attributes[0]/1000.0);
+                magicalDamage = modifiers[6]*externalStats[6] * (2 + attributes[0]/1000.0);
+            }
+            else
+            {
+                physicalDamage = modifiers[5]*externalStats[5] * 2;
+                magicalDamage = modifiers[6]*externalStats[6] * 2;
+            }
         }
         else
         {
@@ -1144,10 +1205,18 @@ public class NewPlayer : PhysicsObject
             singleHitDamage *= (1.0 + attributes[3] / 200.0);
         if (attackType == 4 || attackType == 5 || attackType == 6)  // Earth damage multiplier
             singleHitDamage *= (1.0 + attributes[0] / 200.0);
-        if (attackType == 1 || attackType == 8)    // Lightning damage multiplier
+        if (attackType == 1 || attackType == 8 || attackType == 10)    // Lightning damage multiplier
             singleHitDamage *= (1.0 + attributes[2] / 200.0);
         if (attackType == 9)    // attack speed multiplier (for DoT)
-            singleHitDamage *= (externalStats[2]/100.0);
+            singleHitDamage *= (externalStats[4]/100.0);
+        if (attackType == 0 && hasStrengthTraining) // Knight Strength Training Multiplier
+            singleHitDamage *= (1.0 + attributes[0] / 200.0);
+
+        if (attackType == 9)
+        {
+            Debug.Log("singleHitDamage = " + singleHitDamage + ", mod[6] = " + modifiers[6]
+                + ", attributes[3] = " + attributes[3] + ", externalStats[4] = " + externalStats[4]);
+        }
 
         //Debug.Log("singleHitDamage = " + singleHitDamage + ", mod[6] = " + modifiers[6]);
 
@@ -1349,6 +1418,37 @@ public class NewPlayer : PhysicsObject
         return isDodgeInvincible || isDoctorInvincible;
     }
 
+    public void Parry(Transform colliderTransform)
+    {
+        if (canRewardProficiency)
+        {
+            RewardProficiency();
+        }
+
+        if (canParryStorm)
+        {
+            parryStorm.gameObject.transform.position = colliderTransform.position;
+            parryStorm.DisplaySprite();
+        }
+    }
+
+    public void Kill()
+    {
+        if (canRewardProficiency)
+        {
+            RewardProficiency();
+        }
+
+        AddXp((int) (2.0*System.Math.Pow(level, 2.0)));
+    }
+
+    public void RewardProficiency()
+    {
+        healthToAdd += externalStats[0] * 0.04;
+        rewardingProficiencyDefenceInitial = rewardingProficiencyDefenceCurrent += externalStats[0] / 10.0;
+        rewardingProficiencyDefenceCurrent = rewardingProficiencyDefenceInitial;
+    }
+
     public void DoctorParry()
     {
         doctorParryInvincibleTimer = doctorParryInvincibleDuration;
@@ -1358,6 +1458,20 @@ public class NewPlayer : PhysicsObject
     public void DoctorRegenerate()
     {
         doctorRegenerateTimer = doctorRegenerateDuration * (1 + attributes[3] / 200);
+
+        if (facingRight)
+        {
+            doctorParryOrigins[0].rotation = 0;
+            doctorParryOrigins[1].rotation = 1;
+            doctorParryOrigins[2].rotation = -1;
+        }
+        else
+        {
+            doctorParryOrigins[0].rotation = 0;
+            doctorParryOrigins[1].rotation = -1;
+            doctorParryOrigins[2].rotation = 1;
+        }
+
         foreach (DoctorParryOrigin element in doctorParryOrigins)
         {
             element.DisplaySprite(doctorRegenerateTimer);
