@@ -10,7 +10,7 @@ using TMPro;
 
 public class EnemyBase : MonoBehaviour
 {
-    public enum EnemyType { GorefieldFlyer, GorefieldTall };
+    public enum EnemyType { GorefieldFlyer, GorefieldTall, GorefieldEternal };
     [Header ("Reference")]
     [SerializeField] EnemyType enemyType;
     private double avgHitsToKill = 10;
@@ -51,6 +51,7 @@ public class EnemyBase : MonoBehaviour
 
         int minValue = 1;
         int upperDifferenceBound = 0;
+        int naturalLevelBonus = 0;
 
         int difficultyBonus = (int) ((transform.position.x - GameManager.Instance.levelScalingOrigin.gameObject.transform.position.x)
              * GameManager.Instance.levelScalingOrigin.GetHorizontalLevelMultiplier());
@@ -75,15 +76,6 @@ public class EnemyBase : MonoBehaviour
             upperDifferenceBound = 0;
         }
 
-        level = (int) GameManager.Instance.GetRandomDouble(minValue, 
-            minValue + upperDifferenceBound);
-        
-        recoveryCounter = GetComponent<RecoveryCounter>();
-        audioSource = GetComponent<AudioSource>();
-        animatorFunctions = GetComponent<AnimatorFunctions>();
-
-        //Debug.Log("starting level = " + level);
-
         if (enemyType == EnemyType.GorefieldFlyer)
         {
             avgHitsToKill = 2.5;
@@ -93,7 +85,23 @@ public class EnemyBase : MonoBehaviour
         {
             avgHitsToKill = 7;
             avgAttacksToDie = 5;
+            naturalLevelBonus = 5;
         }
+        else if (enemyType == EnemyType.GorefieldEternal)
+        {
+            avgHitsToKill = 12;
+            avgAttacksToDie = 3;
+            naturalLevelBonus = 20;
+        }
+
+        level = (int) GameManager.Instance.GetRandomDouble(minValue, 
+            minValue + upperDifferenceBound) + naturalLevelBonus;
+        
+        recoveryCounter = GetComponent<RecoveryCounter>();
+        audioSource = GetComponent<AudioSource>();
+        animatorFunctions = GetComponent<AnimatorFunctions>();
+
+        //Debug.Log("starting level = " + level);
 
         recalculateIntrinsicStats();
 

@@ -329,7 +329,7 @@ PrefabInstance:
     - target: {fileID: 4556061815624766702, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
       propertyPath: m_Bounds.m_Center.x
-      value: 0.21783304
+      value: 0.21771097
       objectReference: {fileID: 0}
     - target: {fileID: 4556061815624766702, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}
@@ -465,6 +465,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: EnemyAriseHealthCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 9086877981290723743, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
+        type: 3}
+      propertyPath: m_PresetInfoIsWorld
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9086877981334873696, guid: 58f24a9d63cc1e045b00d1b5cc3d20e8,
         type: 3}

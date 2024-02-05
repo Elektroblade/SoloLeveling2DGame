@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ActiveSkill : MonoBehaviour
+public class ActiveSkill : MonoBehaviour, Skill
 {
     public string name;
     public string id;
@@ -12,6 +12,10 @@ public class ActiveSkill : MonoBehaviour
     public double durationCost;
     public string description;
     public Sprite icon;
+
+    public int xp;
+
+    public int level;
 
     public ActiveSkill(string name, string id, string source, int slotCost, double instantCost, double durationCost, string description)
     {
@@ -36,5 +40,25 @@ public class ActiveSkill : MonoBehaviour
         }
 
         this.icon = Resources.Load<Sprite>("UI/Skills/" + id);
+
+        this.xp = 0;
+        this.level = 0;
+    }
+
+    public void AddXp(int xpAmount)
+    {
+        this.xp += xpAmount;
+    }
+
+    public string ToString()
+    {
+        return name;
+    }
+
+    public int CompareTo(object incomingObject)
+    {
+        Skill incomingSkill = incomingObject as Skill;
+
+        return this.ToString().CompareTo(incomingSkill.ToString());
     }
 }

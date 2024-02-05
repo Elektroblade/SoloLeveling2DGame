@@ -7,6 +7,7 @@ public class InventoryDatabase : MonoBehaviour
     public List<InventoryItem> inventoryItems = new List<InventoryItem>();
     public List<ActiveSkill> activeSkills = new List<ActiveSkill>();
     public List<PassiveSkill> passiveSkills = new List<PassiveSkill>();
+    public List<ClassItem> classItems = new List<ClassItem>();
 
     private void Awake()
     {
@@ -202,6 +203,39 @@ public class InventoryDatabase : MonoBehaviour
 
             new PassiveSkill("Vital Protraction", "Vital Protraction", "SCOURGE OF VITALITY", false,
                 "While below 50% HP, reduces the amount of damage taken multiplicatively by 0-1% of your Strength, increasing linearly based on amount of HP missing below 50%.")
+        };
+
+        classItems = new List<ClassItem>() {
+            // Electromancer
+            new ClassItem(new string[2] {"ELECTROMANCER", "THUNDERLORD"}, "ELECTROMANCER", "AGILITY", "Harnesses AGILITY to generate deadly lightning attacks."),
+
+            // Geomancer
+            new ClassItem(new string[2] {"GEOMANCER", "TECTONIC EMPEROR"}, "GEOMANCER", "STRENGTH", "Harnesses STRENGTH to manipulate terrain."),
+
+            // Pyromancer
+            new ClassItem(new string[2] {"PYROMANCER", "FIRELORD"}, "PYROMANCER", "INTELLIGENCE", "Harnesses INTELLIGENCE to increase the temperature."),
+
+            // Healer
+            new ClassItem(new string[2] {"HEALER", "DOCTOR"}, "HEALER", "INTELLIGENCE", "Harnesses INTELLIGENCE to heal self and allies."),
+
+            // Bloodmage
+            new ClassItem(new string[2] {"BLOODMAGE", "SCOURGE OF VITALITY"}, "BLOODMAGE", "STRENGTH", "Harnesses STRENGTH to dynamically control one's own innards " 
+                + "and turn the blood of opponents against them."),
+
+            // Warrior
+            new ClassItem(new string[2] {"WARRIOR", "BERSERKER"}, "WARRIOR", "STAMINA", "Harnesses STAMINA to ferociously overwhelm foes"),
+
+            // Tank
+            new ClassItem(new string[2] {"TANK", "IMPERVIOUS MASTODON"}, "TANK", "STAMINA", "Harnesses STAMINA to fortify oneself and draw foes away from allies."),
+
+            // Knight
+            new ClassItem(new string[2] {"KNIGHT", "SWORDMASTER"}, "KNIGHT", "STRENGTH", "Harnesses STRENGTH and technique with large, sharpened pieces of metal to sunder foes"),
+
+            // Assassin
+            new ClassItem(new string[2] {"ASSASSIN", "SILENT DEATH"}, "ASSASSIN", "AGILITY", "Harnesses AGILITY to strike unseen."),
+
+            // Ranger
+            new ClassItem(new string[2] {"RANGER", "TELEPATH"}, "RANGER", "PERCEPTION", "Harnesses PERCEPTION to increase the bounds of knowledge.")
         };
     }
 }
