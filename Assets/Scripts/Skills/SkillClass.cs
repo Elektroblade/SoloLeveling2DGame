@@ -61,4 +61,9 @@ public class SkillClass : MonoBehaviour
         skills.Sort();
         return skills;
     }
+
+    public string ToString()
+    {
+        return className;
+    }
 }

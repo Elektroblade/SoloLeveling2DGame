@@ -105,9 +105,10 @@ public class NewPlayer : PhysicsObject
     private float doctorRegenerateTimer = 0f;
     private float doctorRegenerateDuration = 60f;
     [System.NonSerialized] public int[] capPreferences = {0, 0, 0};
-    [System.NonSerialized] public double[,] capValues = new double[3,4]{ {100.0, -1.0, 0.0, 0.0}, {100.0, -1.0, 0.0, 0.0}, {90.0, -1.0, 50.0, -1.0} };
+    [System.NonSerialized] public double[,] capValues = new double[3,4] { {100.0, -1.0, 0.0, 0.0}, {100.0, -1.0, 0.0, 0.0}, {90.0, -1.0, 50.0, -1.0} };
     [System.NonSerialized] public bool hasInventoryOpen = false;
     [System.NonSerialized] public bool hasStatusOpen = false;
+    [System.NonSerialized] public bool hasSkillOpen = false;
     [System.NonSerialized] public double frenzyBonus = 0.0;
     [System.NonSerialized] public float frenzyTime = 0f;
     private double rewardingProficiencyDefenceInitial = 0.0;
@@ -383,7 +384,7 @@ public class NewPlayer : PhysicsObject
         }
 
         // Start or end duration abilities
-        if (((!hasInventoryOpen && !hasStatusOpen) && !hasStatusOpen))
+        if (((!hasInventoryOpen && !hasStatusOpen && !hasSkillOpen) && !hasStatusOpen))
         {
             if (Input.GetKeyDown(KeyCode.Q))
             {
@@ -474,7 +475,7 @@ public class NewPlayer : PhysicsObject
         //Lerp launch back to zero at all times
         launch += (0 - launch) * Time.deltaTime * launchRecovery;
 
-        if ((!hasInventoryOpen && !hasStatusOpen) && Input.GetButtonDown("Cancel"))
+        if ((!hasInventoryOpen && !hasStatusOpen && !hasSkillOpen) && Input.GetButtonDown("Cancel"))
         {
             pauseMenu.SetActive(true);
         }
@@ -483,8 +484,10 @@ public class NewPlayer : PhysicsObject
             Cursor.visible = false;
             hasInventoryOpen = false;
             hasStatusOpen = false;
+            hasSkillOpen = false;
             GameManager.Instance.inventoryItems.inventoryUI.gameObject.SetActive(false);
             GameManager.Instance.uIStatus.Goodbye();
+            //GameManager.Instance.uISkill.Goodbye();
         }
 
         //Movement, jumping, and attacking!
@@ -514,22 +517,22 @@ public class NewPlayer : PhysicsObject
                 }
             }
             
-            if ((!hasInventoryOpen && !hasStatusOpen))
+            if ((!hasInventoryOpen && !hasStatusOpen && !hasSkillOpen))
                 move.x = Input.GetAxis("Horizontal") + launch;
 
-            if ((((!hasInventoryOpen && !hasStatusOpen) && Input.GetButtonDown("Jump")) || jumpEarlinessCounter > 0)
+            if ((((!hasInventoryOpen && !hasStatusOpen && !hasSkillOpen) && Input.GetButtonDown("Jump")) || jumpEarlinessCounter > 0)
                 && (animator.GetBool("grounded") == true || fallForgivenessCounter < fallForgiveness) && !jumping)
             {
                 animator.SetBool("pounded", false);
                 jumpEarlinessCounter = 0;
                 Jump(1f);
             }
-            else if (((!hasInventoryOpen && !hasStatusOpen) && Input.GetButtonDown("Jump")) && animator.GetBool("grounded") == false && !jumping)
+            else if (((!hasInventoryOpen && !hasStatusOpen && !hasSkillOpen) && Input.GetButtonDown("Jump")) && animator.GetBool("grounded") == false && !jumping)
             {
                 jumpEarlinessCounter = jumpEarliness;
             }
 
-            if (((!hasInventoryOpen && !hasStatusOpen) && Input.GetButtonUp("Jump")) && animator.GetBool("grounded") == false && jumping && velocity.y > 0.01)
+            if (((!hasInventoryOpen && !hasStatusOpen && !hasSkillOpen) && Input.GetButtonUp("Jump")) && animator.GetBool("grounded") == false && jumping && velocity.y > 0.01)
             {
                 // AerodynamicHeating start
 
@@ -542,7 +545,7 @@ public class NewPlayer : PhysicsObject
                 velocity.y = 0;
                 jumping = false;
             }
-            else if (((!hasInventoryOpen && !hasStatusOpen) && Input.GetButtonUp("Jump")) && !jumping)
+            else if (((!hasInventoryOpen && !hasStatusOpen && !hasSkillOpen) && Input.GetButtonUp("Jump")) && !jumping)
             {
                 jumpEarlinessCounter = 0;
             }
@@ -558,12 +561,12 @@ public class NewPlayer : PhysicsObject
             }
 
             //Flip the graphic's localScale
-            if ((!hasInventoryOpen && !hasStatusOpen) && Input.GetAxis("Horizontal") > 0.01f)
+            if ((!hasInventoryOpen && !hasStatusOpen && !hasSkillOpen) && Input.GetAxis("Horizontal") > 0.01f)
             {
                 graphic.transform.localScale = new Vector3(origLocalScale.x, transform.localScale.y, transform.localScale.z);
                 facingRight = true;
             }
-            else if ((!hasInventoryOpen && !hasStatusOpen) && Input.GetAxis("Horizontal") < -0.01f)
+            else if ((!hasInventoryOpen && !hasStatusOpen && !hasSkillOpen) && Input.GetAxis("Horizontal") < -0.01f)
             {
                 facingRight = false;
                 graphic.transform.localScale = new Vector3(-origLocalScale.x, transform.localScale.y, transform.localScale.z);
@@ -680,7 +683,7 @@ public class NewPlayer : PhysicsObject
             //Set each animator float, bool, and trigger to it knows which animation to fire
             animator.SetFloat("velocityX", Mathf.Abs(velocity.x) / baseSpeed);
             animator.SetFloat("velocityY", velocity.y);
-            if ((!hasInventoryOpen && !hasStatusOpen))
+            if ((!hasInventoryOpen && !hasStatusOpen && !hasSkillOpen))
             {
                 animator.SetInteger("attackDirectionY", (int)Input.GetAxis("VerticalDirection"));
                 animator.SetInteger("moveDirection", (int)Input.GetAxis("HorizontalDirection"));

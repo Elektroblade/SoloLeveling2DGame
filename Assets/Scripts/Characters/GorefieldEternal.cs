@@ -100,7 +100,7 @@ public class GorefieldEternal : PhysicsObject
         {
             FindTarget();
         }
-        if (!enemyBase.reanimated || targetEnemy != null)
+        if (targetEnemy != null)
         {
             Transform target;
             // Attack player or targeted enemy, depending on whether I am alive
@@ -115,7 +115,7 @@ public class GorefieldEternal : PhysicsObject
 
             if (!isAttacking)
             {
-                DoIdle(target);
+                Pursue(target);
             }
             else
             {
@@ -123,10 +123,22 @@ public class GorefieldEternal : PhysicsObject
                 DoAttack1(target);
             }
         }
-        // If reanimated and there is no target, follow player around instead
+        // If reanimated and there is no target, follow player around insteads
         else
         {
-            DoIdle(NewPlayer.Instance.transform);
+            if (enemyBase.reanimated)
+            {
+                Pursue(NewPlayer.Instance.transform);
+            }
+            else
+            {
+                Transform target = NewPlayer.Instance.transform;
+                distanceFromTarget = new Vector2 (target.position.x - transform.position.x, target.position.y - transform.position.y);
+                if ((Mathf.Abs(distanceFromTarget.x) < attentionRange) && (Mathf.Abs(distanceFromTarget.y) < attentionRange))
+                {
+                    Pursue(target);
+                }
+            }
         }
     }
 
@@ -143,7 +155,7 @@ public class GorefieldEternal : PhysicsObject
         }
     }
 
-    protected void DoIdle(Transform target)
+    protected void Pursue(Transform target)
     {
         Vector2 move = Vector2.zero;
 
@@ -236,7 +248,7 @@ public class GorefieldEternal : PhysicsObject
                         else if (enemyBase.animator.GetBool("charge"))
                         {
                             attentionRange = origAttentionRange * 2.5f;
-                            maxSpeed = origMaxSpeed * 2.5f;
+                            maxSpeed = origMaxSpeed * 1.5f;
                             followPlayer = true;
                             sitStillMultiplier = 1;
                         }

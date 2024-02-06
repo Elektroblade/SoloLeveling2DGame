@@ -7,11 +7,11 @@ using UnityEngine.SceneManagement;
 
 public class UISkillCategory : MonoBehaviour
 {
-    [System.NonSerialized] public UIClassItem[] uIClassItems;
-    [System.NonSerialized] public int uISkillCategorySize = 12;
-    public GameObject slotPrefab;
+    [System.NonSerialized] public List<UIClassItem> uIClassItems;
+    [System.NonSerialized] public float uISkillCategoryDenominator = 0f;
+    public GameObject classSlotPrefab;
     public Transform slotPanel;
-    [System.NonSerialized] private int numberOfSlots = 12;
+    [SerializeField] public TextMeshProUGUI highlightedDescription;
     [System.NonSerialized] public int highlightedIndex = 0;
     [System.NonSerialized] public int selectedIndex = -1;
     [System.NonSerialized] private float holdArrowKeyCooldown = 0f;
@@ -19,15 +19,13 @@ public class UISkillCategory : MonoBehaviour
 
     private void Awake()
     {
-        uIClassItems = new UIClassItem[9];
+        uIClassItems = new List<UIClassItem>();
 
-        for (int i = 0; i < numberOfSlots; i++)
+        if (uIClassItems.Count > 0)
         {
-            instance.transform.SetParent(slotPanel);
-            uIClassItems[i] = instance.GetComponentInChildren<UIClassItem>();
+            uIClassItems[highlightedIndex].highlighted = true;
+            highlightedDescription.text = uIClassItems[highlightedIndex].classItem.description;
         }
-
-        uIClassItems[highlightedIndex].highlighted = true;
 
         if (selectedIndex >= 0)
         {
@@ -46,6 +44,12 @@ public class UISkillCategory : MonoBehaviour
 
     private void Update()
     {
+        if (uIClassItems.Count > 0)
+            HandleUserInput();
+    }
+
+    private void HandleUserInput()
+    {
         if (holdArrowKeyCooldown > 0f)
         {
             holdArrowKeyCooldown -= Time.deltaTime;
@@ -63,20 +67,20 @@ public class UISkillCategory : MonoBehaviour
             holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
             highlightedIndex -= 9;
         }
-        if (Input.GetKeyDown(KeyCode.RightArrow) && highlightedIndex % 9 < 8 && highlightedIndex < uISkillCategorySize - 1)
+        if (Input.GetKeyDown(KeyCode.RightArrow) && highlightedIndex % 9 < 8 && highlightedIndex < uIClassItems.Count - 1)
         {
             holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
             highlightedIndex++;
         }
-        if (Input.GetKeyDown(KeyCode.DownArrow) && highlightedIndex < uISkillCategorySize - 9)
+        if (Input.GetKeyDown(KeyCode.DownArrow) && highlightedIndex < uIClassItems.Count - 9)
         {
             holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
             highlightedIndex += 9;
         }
-        else if (Input.GetKeyDown(KeyCode.DownArrow) && highlightedIndex < uISkillCategorySize - 1)
+        else if (Input.GetKeyDown(KeyCode.DownArrow) && highlightedIndex < uIClassItems.Count - 1)
         {
             holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
-            highlightedIndex = uISkillCategorySize - 1;
+            highlightedIndex = uIClassItems.Count - 1;
         }
         if (Input.GetKeyDown(KeyCode.LeftArrow) && highlightedIndex % 9 > 0)
         {
@@ -89,12 +93,12 @@ public class UISkillCategory : MonoBehaviour
             holdArrowKeyCooldown = holdArrowKeyCooldownMax;
             highlightedIndex -= 9;
         }
-        if (Input.GetKey(KeyCode.RightArrow) && highlightedIndex % 9 < 8 && holdArrowKeyCooldown == 0 && highlightedIndex < uISkillCategorySize - 1)
+        if (Input.GetKey(KeyCode.RightArrow) && highlightedIndex % 9 < 8 && holdArrowKeyCooldown == 0 && highlightedIndex < uIClassItems.Count - 1)
         {
             holdArrowKeyCooldown = holdArrowKeyCooldownMax;
             highlightedIndex++;
         }
-        if (Input.GetKey(KeyCode.DownArrow) && highlightedIndex < uISkillCategorySize - 9 && holdArrowKeyCooldown == 0)
+        if (Input.GetKey(KeyCode.DownArrow) && highlightedIndex < uIClassItems.Count - 9 && holdArrowKeyCooldown == 0)
         {
             holdArrowKeyCooldown = holdArrowKeyCooldownMax;
             highlightedIndex += 9;
@@ -109,7 +113,6 @@ public class UISkillCategory : MonoBehaviour
             || Input.GetKeyDown(KeyCode.Alpha7) || Input.GetKeyDown(KeyCode.Alpha8) || Input.GetKeyDown(KeyCode.Alpha9))
         {
             Debug.Log("Pressed an Alpha key");
-            int realSelectedIndex = selectedIndex;
 
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {
@@ -148,21 +151,19 @@ public class UISkillCategory : MonoBehaviour
                 selectedIndex = 8;
             }
 
-            Debug.Log("selectedIndex num = " + selectedIndex);
-            DoASwap();
-            selectedIndex = realSelectedIndex;
-            if (highlightedIndex >= uISkillCategorySize)
+            if (highlightedIndex >= uIClassItems.Count)
             {
-                highlightedIndex = uISkillCategorySize - 1;
+                highlightedIndex = uIClassItems.Count - 1;
             }
         }
 
         if (Input.GetButtonDown("Jump"))
         {
-            if (selectedIndex != highlightedIndex && selectedIndex >= 0 && selectedIndex < uISkillCategorySize && highlightedIndex < uISkillCategorySize 
+            // Change to the Hollow Knight charm system but for classes
+            if (selectedIndex != highlightedIndex && selectedIndex >= 0 && selectedIndex < uIClassItems.Count && highlightedIndex < uIClassItems.Count 
                 && (uIClassItems[selectedIndex].classItem != null || uIClassItems[highlightedIndex].classItem != null))
             {
-                DoASwap();
+                //DoASwap();
 
                 selectedIndex = -1;
             }
@@ -174,18 +175,7 @@ public class UISkillCategory : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            if (selectedIndex >= 0)
-            {
-                selectedIndex = -1;
-            }
-            else if (highlightedIndex < 9)
-            {
-                InventoryStorage inventoryStorage = GameManager.Instance.classItems;
-                ClassItem classItemToMove = uIClassItems[highlightedIndex].classItem;
-                inventoryStorage.RemoveItem(classItemToMove);       // Removal must occur first, otherwise the item will simply be stacked upon itself
-                inventoryStorage.AddItem(classItemToMove, true, -1);
-                UpdateSlot(highlightedIndex, null);
-            }
+            // Do nothing
         }
         
         if (uIClassItems[highlightedIndex].classItem != null && highlightedIndex != prevHighlightedIndex)
@@ -197,48 +187,52 @@ public class UISkillCategory : MonoBehaviour
         {
             highlightedDescription.text = "";
         }
-        if (highlightedIndex != prevHighlightedIndex && prevHighlightedIndex < uISkillCategorySize)
+        if (highlightedIndex != prevHighlightedIndex && prevHighlightedIndex < uIClassItems.Count)
         {
             uIClassItems[prevHighlightedIndex].UnhighlightMe();
         }
 
-        if (selectedIndex >= 0 && selectedIndex < uISkillCategorySize && selectedIndex != prevSelectedIndex)
+        if (selectedIndex >= 0 && selectedIndex < uIClassItems.Count && selectedIndex != prevSelectedIndex)
         {
             uIClassItems[selectedIndex].SelectMe();
         }
-        if (prevSelectedIndex >= 0 && prevSelectedIndex < uISkillCategorySize && prevSelectedIndex != selectedIndex)
+        if (prevSelectedIndex >= 0 && prevSelectedIndex < uIClassItems.Count && prevSelectedIndex != selectedIndex)
         {
             uIClassItems[prevSelectedIndex].UnselectMe();
         }
     }
 
-    public void UpdateSlot(int slot, ClassItem classItem)
+    public void RebuildList(List<List<ClassItem>> classItemCategories)
     {
-        if (classItem != null)
+        for (int i = 0; i < uIClassItems.Count; i++)
         {
-            uIClassItems[slot].UpdateClassItem(classItem);
+            Destroy(uIClassItems[i].gameObject);
         }
-        else
+        uIClassItems.Clear();
+        uISkillCategoryDenominator = 1;
+
+        for (int i = 0; i < classItemCategories.Count; i++)
         {
-            Debug.Log("updating slot " + slot + " to null..." + ", uISkillCategorySize = " + uISkillCategorySize);
-            uIClassItems[slot].UpdateClassItem(null);
-        }
-    }
+            for (int j = 0; j < classItemCategories[i].Count; j++)
+            {
+                GameObject instance = Instantiate(classSlotPrefab);
+                instance.transform.SetParent(slotPanel);
+                instance.GetComponentInChildren<UIClassItem>().UpdateClassItem(classItemCategories[i][j], uISkillCategoryDenominator + 1);
+                uIClassItems.Add(instance.GetComponentInChildren<UIClassItem>());
 
-    public void AddNewClassItem(ClassItem classItem)
-    {
-        if (uISkillCategorySize >= uIClassItems.Length)
+                uISkillCategoryDenominator += 2;
+            }
+
+            uISkillCategoryDenominator++;
+        }
+
+        for (int i = 0; i < uIClassItems.Count; i++)
         {
-            UIClassItem[] biggerStorage = new UIClassItem[uISkillCategorySize + 1];
-            uIClassItems.CopyTo(biggerStorage, 0);
-            uIClassItems = biggerStorage;
+            RectTransform rectTransform = uIClassItems[i].transform.parent.GetComponent<RectTransform>();
+
+            rectTransform.anchorMin = new Vector2((uIClassItems[i].numerator/uISkillCategoryDenominator), 0.5f);
+            rectTransform.anchorMax = new Vector2((uIClassItems[i].numerator/uISkillCategoryDenominator), 0.5f);
+            rectTransform.anchoredPosition = new Vector3(0f, 0f, 0f);
         }
-        uISkillCategorySize++;
-
-        GameObject instance = Instantiate(slotPrefab);
-        instance.transform.SetParent(slotPanel);
-        uIClassItems[uISkillCategorySize - 1] = instance.GetComponentInChildren<UIClassItem>();
-
-        UpdateSlot((uISkillCategorySize - 1), classItem);
     }
 }

@@ -219,6 +219,14 @@ public class UIInventory : MonoBehaviour
     {
         if (inventoryItem != null)
         {
+            if (uIInventoryItems == null)
+            {
+                Debug.Log("list of slots does not exist");
+            }
+            if (uIInventoryItems[slot] == null)
+            {
+                Debug.Log("slot does not exist");
+            }
             uIInventoryItems[slot].UpdateInventoryItem(inventoryItem);
         }
         else

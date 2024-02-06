@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] public AudioTrigger gameAmbience;
     [SerializeField] public LevelScalingOrigin levelScalingOrigin;
     [System.NonSerialized] public InventoryStorage inventoryItems;
+    [System.NonSerialized] public SkillStorage skillStorage;
     [SerializeField] public UIStatus uIStatus;
     public InventoryDatabase inventoryDatabase;
     public Transform pfDamagePopup;
@@ -38,8 +39,12 @@ public class GameManager : MonoBehaviour
 
         audioSource = GetComponent<AudioSource>();
         inventoryItems = GetComponent<InventoryStorage>();
+        skillStorage = GetComponent<SkillStorage>();
+        inventoryItems.inventoryUI.gameObject.SetActive(true);
         inventoryItems.inventoryUI.gameObject.SetActive(false);
+        skillStorage.uISkillCategory.gameObject.SetActive(false);
         uIStatus.Goodbye();
+
         GiveItem("BarcasDagger");
         GiveItem("MorgulFlail");
         GiveItem("CrimsonKnightsHelmet");
@@ -49,6 +54,17 @@ public class GameManager : MonoBehaviour
         GiveItem("HighRankMagesRing");
         GiveItem("MidRankAssassinsBoots");
         GiveItem("TheOneRing");
+
+        GiveClass("ELECTROMANCER");
+        GiveClass("KNIGHT");
+        GiveClass("GEOMANCER");
+        GiveClass("HEALER");
+        GiveClass("ASSASSIN");
+        GiveClass("BLOODMAGE");
+        GiveClass("WARRIOR");
+        GiveClass("RANGER");
+        GiveClass("NECROMANCER");
+        GiveClass("PYROMANCER");
 
         //RemoveInventoryItem("MidRankAssassinsBoots");
         //RemoveInventoryItem("CrimsonKnightsHelmet");
@@ -83,6 +99,20 @@ public class GameManager : MonoBehaviour
                 NewPlayer.Instance.hasStatusOpen = false;
                 uIStatus.Goodbye();
             }
+        }
+
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            if (!skillStorage.uISkillCategory.gameObject.activeSelf)
+            {
+                NewPlayer.Instance.hasSkillOpen = true;
+            }
+            else
+            {
+                NewPlayer.Instance.hasSkillOpen = false;
+            }
+            
+            skillStorage.uISkillCategory.gameObject.SetActive(!skillStorage.uISkillCategory.gameObject.activeSelf);
         }
     }
 
@@ -135,5 +165,11 @@ public class GameManager : MonoBehaviour
         }
 
         return output;
+    }
+
+    public void GiveClass(string id)
+    {
+        ClassItem classItemToAdd = inventoryDatabase.GetClassItem(id);
+        skillStorage.AddClassItem(classItemToAdd);
     }
 }

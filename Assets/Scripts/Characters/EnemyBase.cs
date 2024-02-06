@@ -56,7 +56,7 @@ public class EnemyBase : MonoBehaviour
         int difficultyBonus = (int) ((transform.position.x - GameManager.Instance.levelScalingOrigin.gameObject.transform.position.x)
              * GameManager.Instance.levelScalingOrigin.GetHorizontalLevelMultiplier());
 
-        Debug.Log("difficultyBonus = " + difficultyBonus);
+        //Debug.Log("difficultyBonus = " + difficultyBonus);
 
         if ((int) (GameManager.Instance.testingLocalDifficulty + 1 - Mathf.Ceil(difficultyBonus) / 2) > 0)
         {

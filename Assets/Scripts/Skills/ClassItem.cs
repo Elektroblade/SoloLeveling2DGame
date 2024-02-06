@@ -16,6 +16,8 @@ public class ClassItem
 
     public ClassItem(string[] names, string id, string baseAttribute, string description)
     {
+        this.names = new string[names.Length];
+
         for (int i = 0; i < names.Length; i++)
         {
             this.names[i] = names[i];
@@ -32,5 +34,10 @@ public class ClassItem
     public void AddXp(int xpAmount)
     {
         this.xp += xpAmount;
+    }
+
+    public string ToString()
+    {
+        return this.id;
     }
 }

@@ -77,7 +77,7 @@ public class UIInventoryItem : MonoBehaviour
             spriteImage.color = tmpImageColour;
             spriteImage.enabled = false;
 
-            Debug.Log("slot should be invisible now");
+            //Debug.Log("slot should be invisible now");
         }
     }
 

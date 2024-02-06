@@ -4,10 +4,11 @@ using UnityEngine;
 
 public class InventoryDatabase : MonoBehaviour
 {
-    public List<InventoryItem> inventoryItems = new List<InventoryItem>();
-    public List<ActiveSkill> activeSkills = new List<ActiveSkill>();
-    public List<PassiveSkill> passiveSkills = new List<PassiveSkill>();
-    public List<ClassItem> classItems = new List<ClassItem>();
+    [System.NonSerialized] public List<InventoryItem> inventoryItems = new List<InventoryItem>();
+    [System.NonSerialized] public List<ActiveSkill> activeSkills = new List<ActiveSkill>();
+    [System.NonSerialized] public List<PassiveSkill> passiveSkills = new List<PassiveSkill>();
+    [System.NonSerialized] public List<ClassItem> classItems = new List<ClassItem>();
+    [System.NonSerialized] public Dictionary<string, int> categoryOrder;
 
     private void Awake()
     {
@@ -26,8 +27,23 @@ public class InventoryDatabase : MonoBehaviour
         return inventoryItems.Find(inventoryItem => (inventoryItem.id.CompareTo(id) == 0));
     }
 
+    public ClassItem GetClassItem(string id)
+    {
+        return classItems.Find(classItem => (classItem.ToString().CompareTo(id) == 0));
+    }
+
     void BuildDatabase()
     {
+        categoryOrder = new Dictionary<string, int>
+        {
+            {"STRENGTH", 0},
+            {"STAMINA", 1},
+            {"AGILITY", 2},
+            {"INTELLIGENCE", 3},
+            {"PERCEPTION", 4},
+            {"WORLD", 5}
+        };
+
         inventoryItems = new List<InventoryItem>() {
 
             // Weapons
@@ -235,7 +251,10 @@ public class InventoryDatabase : MonoBehaviour
             new ClassItem(new string[2] {"ASSASSIN", "SILENT DEATH"}, "ASSASSIN", "AGILITY", "Harnesses AGILITY to strike unseen."),
 
             // Ranger
-            new ClassItem(new string[2] {"RANGER", "TELEPATH"}, "RANGER", "PERCEPTION", "Harnesses PERCEPTION to increase the bounds of knowledge.")
+            new ClassItem(new string[2] {"RANGER", "TELEPATH"}, "RANGER", "PERCEPTION", "Harnesses PERCEPTION to increase the bounds of knowledge."),
+
+            // Necromancer
+            new ClassItem(new string[2] {"NECROMANCER", "SHADOW MONARCH"}, "NECROMANCER", "INTELLIGENCE", "Harnesses INTELLIGENCE to summon an army of shadows from the dead.")
         };
     }
 }

@@ -10,7 +10,7 @@ public class UIClassItem : MonoBehaviour
     private Image spriteImage;
     private UIClassItem selectedClassItem;
     private Tooltip tooltip;
-    [SerializeField] public bool isHotbarSlot;
+    [System.NonSerialized] public float numerator;
     [System.NonSerialized] public Vector3 origScale = Vector3.zero;
     [System.NonSerialized] public bool highlighted = false;
     [System.NonSerialized] public bool selected = false;
@@ -18,7 +18,6 @@ public class UIClassItem : MonoBehaviour
     private void Awake()
     {
         spriteImage = GetComponent<Image>();
-        UpdateClassItem(null);  // Testing purposes
         if (GameObject.Find("SelectedClassItem") != null)
         {
             selectedClassItem = GameObject.Find("SelectedClassItem").GetComponent<UIClassItem>();
@@ -35,8 +34,10 @@ public class UIClassItem : MonoBehaviour
         }
     }
 
-    public void UpdateClassItem(ClassItem classItem)
+    public void UpdateClassItem(ClassItem classItem, float numerator)
     {
+        this.numerator = numerator;
+
         if (classItem != null)
             this.classItem = classItem;
         else
