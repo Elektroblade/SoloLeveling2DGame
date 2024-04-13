@@ -5,46 +5,45 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 
-public class UISkillCategory : MonoBehaviour
+public class UISkillCategory : MonoBehaviour, SubMenu
 {
-    [System.NonSerialized] public List<UIClassItem> uIClassItems;
+    [System.NonSerialized] public List<UIClassItem> uIClassItems = new List<UIClassItem>();
+    [SerializeField] public UISkillSelected uISkillSelected;
     [System.NonSerialized] public float uISkillCategoryDenominator = 0f;
     public GameObject classSlotPrefab;
     public Transform slotPanel;
     [SerializeField] public TextMeshProUGUI highlightedDescription;
     [System.NonSerialized] public int highlightedIndex = 0;
-    [System.NonSerialized] public int selectedIndex = -1;
+    [System.NonSerialized] public List<int> selectedIndices = new List<int>();
     [System.NonSerialized] private float holdArrowKeyCooldown = 0f;
     [System.NonSerialized] private float holdArrowKeyCooldownMax = 0.08f;
+    [System.NonSerialized] public bool isDoingStuff = false;
 
-    private void Awake()
+    public void WakeMeUp()
     {
-        uIClassItems = new List<UIClassItem>();
-
+        isDoingStuff = true;
         if (uIClassItems.Count > 0)
         {
             uIClassItems[highlightedIndex].highlighted = true;
             highlightedDescription.text = uIClassItems[highlightedIndex].classItem.description;
         }
 
-        if (selectedIndex >= 0)
+        if (uIClassItems[highlightedIndex].classItem != null)
         {
-            uIClassItems[selectedIndex].selected = true;
-        }
-
-        /*
-        uIClassItems[highlightedIndex].HighlightMe();
-
-        if (highlightedIndex < uISkillCategorySize && uIClassItems[highlightedIndex] != null)
-        {
+            highlightedDescription.text = uIClassItems[highlightedIndex].classItem.description;
             uIClassItems[highlightedIndex].HighlightMe();
+            GameManager.Instance.skillStorage.RebuildUISkillListFor(uIClassItems[highlightedIndex].classItem.id);
         }
-        */
+    }
+
+    public void Goodbye()
+    {
+        isDoingStuff = false;
     }
 
     private void Update()
     {
-        if (uIClassItems.Count > 0)
+        if (isDoingStuff && uIClassItems.Count > 0)
             HandleUserInput();
     }
 
@@ -60,50 +59,29 @@ public class UISkillCategory : MonoBehaviour
         }
 
         int prevHighlightedIndex = highlightedIndex;    // Remember previous highlighted index to unhighlight if another index is highlighted.
-        int prevSelectedIndex = selectedIndex;
 
-        if (Input.GetKeyDown(KeyCode.UpArrow) && highlightedIndex >= 9)
-        {
-            holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
-            highlightedIndex -= 9;
-        }
-        if (Input.GetKeyDown(KeyCode.RightArrow) && highlightedIndex % 9 < 8 && highlightedIndex < uIClassItems.Count - 1)
+        if (Input.GetKeyDown(KeyCode.RightArrow) && highlightedIndex < uIClassItems.Count - 1)
         {
             holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
             highlightedIndex++;
         }
-        if (Input.GetKeyDown(KeyCode.DownArrow) && highlightedIndex < uIClassItems.Count - 9)
+        if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
-            highlightedIndex += 9;
+            this.gameObject.transform.parent.GetComponent<UISkills>().SetActivePanel(1);
+            return;
         }
-        else if (Input.GetKeyDown(KeyCode.DownArrow) && highlightedIndex < uIClassItems.Count - 1)
-        {
-            holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
-            highlightedIndex = uIClassItems.Count - 1;
-        }
-        if (Input.GetKeyDown(KeyCode.LeftArrow) && highlightedIndex % 9 > 0)
+        if (Input.GetKeyDown(KeyCode.LeftArrow) && highlightedIndex > 0)
         {
             holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
             highlightedIndex--;
         }
 
-        if (Input.GetKey(KeyCode.UpArrow) && highlightedIndex >= 9 && holdArrowKeyCooldown == 0)
-        {
-            holdArrowKeyCooldown = holdArrowKeyCooldownMax;
-            highlightedIndex -= 9;
-        }
-        if (Input.GetKey(KeyCode.RightArrow) && highlightedIndex % 9 < 8 && holdArrowKeyCooldown == 0 && highlightedIndex < uIClassItems.Count - 1)
+        if (Input.GetKey(KeyCode.RightArrow) && holdArrowKeyCooldown == 0 && highlightedIndex < uIClassItems.Count - 1)
         {
             holdArrowKeyCooldown = holdArrowKeyCooldownMax;
             highlightedIndex++;
         }
-        if (Input.GetKey(KeyCode.DownArrow) && highlightedIndex < uIClassItems.Count - 9 && holdArrowKeyCooldown == 0)
-        {
-            holdArrowKeyCooldown = holdArrowKeyCooldownMax;
-            highlightedIndex += 9;
-        }
-        if (Input.GetKey(KeyCode.LeftArrow) && highlightedIndex % 9 > 0 && holdArrowKeyCooldown == 0)
+        if (Input.GetKey(KeyCode.LeftArrow) && holdArrowKeyCooldown == 0)
         {
             holdArrowKeyCooldown = holdArrowKeyCooldownMax;
             highlightedIndex--;
@@ -116,72 +94,89 @@ public class UISkillCategory : MonoBehaviour
 
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {
-                selectedIndex = 0;
+                highlightedIndex = 0;
             }
             else if (Input.GetKeyDown(KeyCode.Alpha2))
             {
-                selectedIndex = 1;
+                highlightedIndex = 1;
             }
             else if (Input.GetKeyDown(KeyCode.Alpha3))
             {
-                selectedIndex = 2;
+                highlightedIndex = 2;
             }
             else if (Input.GetKeyDown(KeyCode.Alpha4))
             {
-                selectedIndex = 3;
+                highlightedIndex = 3;
             }
             else if (Input.GetKeyDown(KeyCode.Alpha5))
             {
-                selectedIndex = 4;
+                highlightedIndex = 4;
             }
             else if (Input.GetKeyDown(KeyCode.Alpha6))
             {
-                selectedIndex = 5;
+                highlightedIndex = 5;
             }
             else if (Input.GetKeyDown(KeyCode.Alpha7))
             {
-                selectedIndex = 6;
+                highlightedIndex = 6;
             }
             else if (Input.GetKeyDown(KeyCode.Alpha8))
             {
-                selectedIndex = 7;
+                highlightedIndex = 7;
             }
             else if (Input.GetKeyDown(KeyCode.Alpha9))
             {
-                selectedIndex = 8;
+                highlightedIndex = 8;
             }
-
-            if (highlightedIndex >= uIClassItems.Count)
+            else if (Input.GetKeyDown(KeyCode.Alpha0))
             {
-                highlightedIndex = uIClassItems.Count - 1;
+                highlightedIndex = 9;
             }
         }
 
-        if (Input.GetButtonDown("Jump"))
+        if (highlightedIndex >= uIClassItems.Count)
         {
-            // Change to the Hollow Knight charm system but for classes
-            if (selectedIndex != highlightedIndex && selectedIndex >= 0 && selectedIndex < uIClassItems.Count && highlightedIndex < uIClassItems.Count 
-                && (uIClassItems[selectedIndex].classItem != null || uIClassItems[highlightedIndex].classItem != null))
-            {
-                //DoASwap();
+            highlightedIndex = uIClassItems.Count - 1;
+        }
+        if (highlightedIndex < 0)
+        {
+            highlightedIndex = 0;
+        }
 
-                selectedIndex = -1;
-            }
-            else if (selectedIndex < 0)
+        if (Input.GetButtonDown("Jump") && highlightedIndex < uIClassItems.Count)
+        {
+            bool foundMatch = false;
+            if (uISkillSelected.uISlotItems[3] != null)
             {
-                selectedIndex = highlightedIndex;
+                for (int i = 0; i < uISkillSelected.uISlotItems[3].Count; i++)
+                {
+                    if (uIClassItems[highlightedIndex].classItem.id == uISkillSelected.uISlotItems[3][i].GetItemId())
+                    {
+                        foundMatch = true;
+                        uISkillSelected.RemoveElement(3, i);
+                        uIClassItems[highlightedIndex].UnselectMe();
+                        break;
+                    }
+                }
+            }
+            if (!foundMatch && (uISkillSelected.uISlotItems[3] == null || uISkillSelected.uISlotItems[3].Count < NewPlayer.Instance.maxSkillSlots[3]))
+            {
+                uISkillSelected.AddElement(3, uIClassItems[highlightedIndex]);
+                uIClassItems[highlightedIndex].SelectMe();
             }
         }
 
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            // Do nothing
+            this.gameObject.transform.parent.GetComponent<UISkills>().SetActivePanel(2);
+            return;
         }
         
         if (uIClassItems[highlightedIndex].classItem != null && highlightedIndex != prevHighlightedIndex)
         {
             highlightedDescription.text = uIClassItems[highlightedIndex].classItem.description;
             uIClassItems[highlightedIndex].HighlightMe();
+            GameManager.Instance.skillStorage.RebuildUISkillListFor(uIClassItems[highlightedIndex].classItem.id);
         }
         else if (highlightedIndex != prevHighlightedIndex)
         {
@@ -190,15 +185,6 @@ public class UISkillCategory : MonoBehaviour
         if (highlightedIndex != prevHighlightedIndex && prevHighlightedIndex < uIClassItems.Count)
         {
             uIClassItems[prevHighlightedIndex].UnhighlightMe();
-        }
-
-        if (selectedIndex >= 0 && selectedIndex < uIClassItems.Count && selectedIndex != prevSelectedIndex)
-        {
-            uIClassItems[selectedIndex].SelectMe();
-        }
-        if (prevSelectedIndex >= 0 && prevSelectedIndex < uIClassItems.Count && prevSelectedIndex != selectedIndex)
-        {
-            uIClassItems[prevSelectedIndex].UnselectMe();
         }
     }
 
@@ -234,5 +220,12 @@ public class UISkillCategory : MonoBehaviour
             rectTransform.anchorMax = new Vector2((uIClassItems[i].numerator/uISkillCategoryDenominator), 0.5f);
             rectTransform.anchoredPosition = new Vector3(0f, 0f, 0f);
         }
+    }
+
+    public bool IsEmpty()
+    {
+        bool result = (uIClassItems.Count == 0);
+
+        return result;
     }
 }

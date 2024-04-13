@@ -23,6 +23,7 @@ public class DoctorParryOrigin : MonoBehaviour
         transform.position = homePosition.transform.position;
         transform.rotation = Quaternion.Euler(0,0,featureType*90f + 90f);
         collider.enabled = true;
+        spriteRenderer.enabled = true;
     }
 
     // Update is called once per frame
@@ -37,6 +38,7 @@ public class DoctorParryOrigin : MonoBehaviour
             {
                 existenceTimer = 0;
                 collider.enabled = false;
+                spriteRenderer.enabled = false;
                 Color tmpParryMeshColour = spriteRenderer.color;
                 tmpParryMeshColour.a = 0f;
                 spriteRenderer.color = tmpParryMeshColour;

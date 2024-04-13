@@ -4,12 +4,12 @@ using UnityEngine;
 using System;
 using System.Linq;
 
-public class SkillClass : MonoBehaviour
+public class SkillClass
 {
     public string className;
-    public List<ActiveSkill> activeSkills;
-    public List<PassiveSkill> slottablePassiveSkills;
-    public List<PassiveSkill> autoPassiveSkills;
+    public List<ActiveSkill> activeSkills = new List<ActiveSkill>();
+    public List<PassiveSkill> slottablePassiveSkills = new List<PassiveSkill>();
+    public List<PassiveSkill> autoPassiveSkills = new List<PassiveSkill>();
 
     public SkillClass(string className)
     {
@@ -50,6 +50,7 @@ public class SkillClass : MonoBehaviour
         if (isNew)
         {
             skills.Add(skill);
+            Debug.Log(skill.ToString() + " was added to the " + skill.GetSource() + " class.");
             return SortSkills(skills);
         }
 
@@ -65,5 +66,26 @@ public class SkillClass : MonoBehaviour
     public string ToString()
     {
         return className;
+    }
+
+    public List<List<Skill>> GetSkills()
+    {
+        List<List<Skill>> result = new List<List<Skill>>();
+        result.Add(new List<Skill>());
+        foreach(ActiveSkill activeSkill in activeSkills)
+        {
+            result[0].Add((Skill) activeSkill);
+        }
+        result.Add(new List<Skill>());
+        foreach(PassiveSkill passiveSkill in slottablePassiveSkills)
+        {
+            result[1].Add((Skill) passiveSkill);
+        }
+        result.Add(new List<Skill>());
+        foreach(PassiveSkill passiveSkill in autoPassiveSkills)
+        {
+            result[2].Add((Skill) passiveSkill);
+        }
+        return result;
     }
 }

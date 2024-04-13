@@ -32,6 +32,8 @@ public class EnemyBase : MonoBehaviour
     private int ferocityCounter = 0;
     private float staggerTimer = 0;
 
+    [System.NonSerialized] int naturalRank = 0;
+
     [Header ("Properties")]
     [SerializeField] private GameObject deathParticles;
     [System.NonSerialized] public double health;
@@ -86,12 +88,14 @@ public class EnemyBase : MonoBehaviour
             avgHitsToKill = 7;
             avgAttacksToDie = 5;
             naturalLevelBonus = 5;
+            naturalRank = 1;
         }
         else if (enemyType == EnemyType.GorefieldEternal)
         {
             avgHitsToKill = 12;
             avgAttacksToDie = 3;
             naturalLevelBonus = 20;
+            naturalRank = 3;
         }
 
         level = (int) GameManager.Instance.GetRandomDouble(minValue, 
@@ -420,7 +424,18 @@ public class EnemyBase : MonoBehaviour
         // Reduce this later
         if (!reanimated && canDropXp && (GetComponent<Flyer>() == null || !isBomb))
         {
-            NewPlayer.Instance.Kill();
+            double xpMultiplier = 1.0;
+
+            if (naturalRank == 1)
+                xpMultiplier = 1.5;
+            else if (naturalRank == 2)
+                xpMultiplier = 3.2;
+            else if (naturalRank == 3)
+                xpMultiplier = 10.0;
+
+            NewPlayer.Instance.Kill(level, xpMultiplier);
+            int randInt = GameManager.Instance.GetRandomInt(0, 3);
+            NewPlayer.Instance.GiveSkillSlot(randInt);
 
             canDropXp = false;
 
@@ -431,8 +446,8 @@ public class EnemyBase : MonoBehaviour
                 if (theReanimated[i] != null)
                 {
                     // Change multiplier back to 2
-                    theReanimated[i].AddXp(2*(int)System.Math.Pow(level,2));
-                    Debug.Log("gave " + ((int) (2.0*System.Math.Pow(level, 2.0))) + " xp to reanimated #" + i);
+                    theReanimated[i].AddXp((int) (xpMultiplier * 2.0*System.Math.Pow(level, 2.0)));
+                    Debug.Log("gave " + ((int) (xpMultiplier * 2.0*System.Math.Pow(level, 2.0))) + " xp to reanimated #" + i);
                 }
             }
             EnemyContainer myCorpseContainer;
@@ -521,6 +536,7 @@ public class EnemyBase : MonoBehaviour
     public double CalculateXp()
     {
         //Debug.Log("Calculated xp = " + (xp / ((int) (10.0*System.Math.Pow(level, 2.0)))));
+        
         return xp / ((int) (10.0*System.Math.Pow(level, 2.0)));
     }
 

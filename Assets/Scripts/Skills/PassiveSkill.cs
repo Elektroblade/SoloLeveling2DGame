@@ -2,14 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PassiveSkill : MonoBehaviour, Skill
+public class PassiveSkill : Skill
 {
     public string name;
     public string id;
     public string source;
+    public Sprite icon;
     public bool isAutomatic;
     public string description;
-    public Sprite icon;
 
     public int xp;
 
@@ -21,6 +21,7 @@ public class PassiveSkill : MonoBehaviour, Skill
         this.id = id;
         this.source = source;
         this.isAutomatic = isAutomatic;
+        this.icon = Resources.Load<Sprite>("UI/Classes/" + source);
         this.description = "SOURCE: " + source + "\n";
         this.description += "TYPE: PASSIVE";
 
@@ -52,5 +53,30 @@ public class PassiveSkill : MonoBehaviour, Skill
         Skill incomingSkill = incomingObject as Skill;
 
         return this.ToString().CompareTo(incomingSkill.ToString());
+    }
+
+    public string GetId()
+    {
+        return id;
+    }
+
+    public string GetSource()
+    {
+        return source;
+    }
+
+    public int GetLevel()
+    {
+        return level;
+    }
+
+    public Sprite GetSprite()
+    {
+        return icon;
+    }
+
+    public string GetDescription()
+    {
+        return description;
     }
 }

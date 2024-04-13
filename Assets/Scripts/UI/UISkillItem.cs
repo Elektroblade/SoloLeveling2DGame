@@ -4,11 +4,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class UIClassItem : MonoBehaviour, UIItem
+public class UISkillItem : MonoBehaviour, UIItem
 {
-    public ClassItem classItem;
+    public Skill skill;
     private Image spriteImage;
-    private UIClassItem selectedClassItem;
+    private UISkillItem selectedSkillItem;
     private Tooltip tooltip;
     [System.NonSerialized] public float numerator;
     [SerializeField] public Vector3 origScale;
@@ -18,14 +18,14 @@ public class UIClassItem : MonoBehaviour, UIItem
     private void Awake()
     {
         spriteImage = GetComponent<Image>();
-        if (GameObject.Find("SelectedClassItem") != null)
+        if (GameObject.Find("SelectedSkillItem") != null)
         {
-            selectedClassItem = GameObject.Find("SelectedClassItem").GetComponent<UIClassItem>();
+            selectedSkillItem = GameObject.Find("SelectedSkillItem").GetComponent<UISkillItem>();
             tooltip = GameObject.Find("Tooltip").GetComponent<Tooltip>();
         }
         else
         {
-            selectedClassItem = null;
+            selectedSkillItem = null;
         }
         if (origScale == Vector3.zero)
         {
@@ -33,15 +33,15 @@ public class UIClassItem : MonoBehaviour, UIItem
         }
     }
 
-    public void UpdateClassItem(ClassItem classItem, float numerator)
+    public void UpdateSkillItem(Skill skill, float numerator)
     {
         this.numerator = numerator;
 
-        if (classItem != null)
-            this.classItem = classItem;
+        if (skill != null)
+            this.skill = skill;
         else
-            this.classItem = null;
-        if (this.classItem != null)
+            this.skill = null;
+        if (this.skill != null)
         {
             if (!selected)
             {
@@ -56,7 +56,7 @@ public class UIClassItem : MonoBehaviour, UIItem
                 spriteImage.color = tmpImageColour;
             }
 
-            spriteImage.sprite = this.classItem.icon;
+            spriteImage.sprite = this.skill.GetSprite();
             spriteImage.enabled = true;
 
             if (highlighted)
@@ -131,17 +131,17 @@ public class UIClassItem : MonoBehaviour, UIItem
 
     public string GetDescription()
     {
-        return classItem.description;
+        return skill.GetDescription();
     }
 
     public bool ItemIsNull()
     {
-        return classItem == null;
+        return skill == null;
     }
 
     public string GetItemId()
     {
-        return classItem.id;
+        return skill.GetId();
     }
     public Transform GetTransform()
     {

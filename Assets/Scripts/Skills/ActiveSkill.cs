@@ -2,16 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ActiveSkill : MonoBehaviour, Skill
+public class ActiveSkill : Skill
 {
     public string name;
     public string id;
     public string source;
+    public Sprite icon;
     public int slotCost;
     public double instantCost;
     public double durationCost;
     public string description;
-    public Sprite icon;
 
     public int xp;
 
@@ -22,6 +22,7 @@ public class ActiveSkill : MonoBehaviour, Skill
         this.name = name;
         this.id = id;
         this.source = source;
+        this.icon = Resources.Load<Sprite>("UI/Classes/" + source);
         this.slotCost = slotCost;
         this.instantCost = instantCost;
         this.durationCost = durationCost;
@@ -32,7 +33,7 @@ public class ActiveSkill : MonoBehaviour, Skill
 
         if (instantCost > 0.0)
         {
-            this.description += "INSANT COST -" + instantCost + "\n";
+            this.description += "INSTANT COST -" + instantCost + "\n";
         }
         if (durationCost > 0.0)
         {
@@ -60,5 +61,30 @@ public class ActiveSkill : MonoBehaviour, Skill
         Skill incomingSkill = incomingObject as Skill;
 
         return this.ToString().CompareTo(incomingSkill.ToString());
+    }
+
+    public string GetId()
+    {
+        return id;
+    }
+
+    public string GetSource()
+    {
+        return source;
+    }
+
+    public int GetLevel()
+    {
+        return level;
+    }
+
+    public Sprite GetSprite()
+    {
+        return icon;
+    }
+
+    public string GetDescription()
+    {
+        return description;
     }
 }

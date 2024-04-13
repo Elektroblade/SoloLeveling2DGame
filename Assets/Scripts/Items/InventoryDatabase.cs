@@ -32,6 +32,16 @@ public class InventoryDatabase : MonoBehaviour
         return classItems.Find(classItem => (classItem.ToString().CompareTo(id) == 0));
     }
 
+    public Skill GetSkillItem(string id)
+    {
+        PassiveSkill passiveSkill = passiveSkills.Find(passiveSkill => (passiveSkill.GetId().CompareTo(id) == 0));
+        ActiveSkill activeSkill = activeSkills.Find(activeSkill => (activeSkill.GetId().CompareTo(id) == 0));
+
+        if (passiveSkill != null)
+            return (Skill) passiveSkill;
+        return (Skill) activeSkill;
+    }
+
     void BuildDatabase()
     {
         categoryOrder = new Dictionary<string, int>
@@ -41,7 +51,7 @@ public class InventoryDatabase : MonoBehaviour
             {"AGILITY", 2},
             {"INTELLIGENCE", 3},
             {"PERCEPTION", 4},
-            {"WORLD", 5}
+            {"MISCELLANEOUS", 5}
         };
 
         inventoryItems = new List<InventoryItem>() {
@@ -157,17 +167,17 @@ public class InventoryDatabase : MonoBehaviour
                 + "and the more time passed since the target's death."),
 
             // Shadow Monarch
-            new ActiveSkill("Summon Shadow", "SummonShadow", "SHADOW MONARCH", 2, -1.0, -1.0,
+            new ActiveSkill("Summon Shadow", "SummonShadow", "NECROMANCER", 2, -1.0, -1.0,
                 "Saved Soldiers can be summoned and reabsorbed whenever and wherever the animator desires. You must set another Active Skill slot to reabsorb summoned Shadows."),
             
             // Scourge of Vitality
-            new ActiveSkill("Bloodbend", "Bloodbend", "SCOURGE OF VITALITY", 1, 20.0, 2.0,
+            new ActiveSkill("Bloodbend", "Bloodbend", "BLOODMAGE", 1, 20.0, 2.0,
                 "Cast at the closest enemy you are facing. The enemy attacks wildly and their attacks can hit other enemies. Other enemies can be hit by an affected enemy "
                 + "and these attacks trigger 50% of your life steal. Each new enemy you bloodbend has an instant cost and a drains your HP over time. You can die from this drain "
                 + "and the only ways to stop bloodbending are to kill all affected creatures or leave the room. Upgrade to increase maximum enemies under your control."),
 
             // Great Ranger
-            new ActiveSkill("Eye of Sung", "EyeOfSung", "TELEPATH", 1, 100.0, -1.0,
+            new ActiveSkill("Eye of Sung", "EyeOfSung", "RANGER", 1, 100.0, -1.0,
                 "Obtained by felling Sauron, Lord of the Rings. Tap to open ally selection menu. Select an ally to monitor. If there are enemies in range, "
                 + "tap again to teleport to the enemy nearest to that ally. Monitoring has no cost, but teleport has large instant cost."),
 
@@ -186,11 +196,11 @@ public class InventoryDatabase : MonoBehaviour
                 "When charging normal attacks, breathe fire in a cone. Contact damage falls off with distance."),
 
             // Firelord
-            new PassiveSkill("Aerodynamic Heating", "AerodynamicHeating", "FIRELORD", true,
+            new PassiveSkill("Aerodynamic Heating", "AerodynamicHeating", "PYROMANCER", true,
                 "When ending your jump early, a burst of intense thermal energy flares above you as you begin your descent towards earth."),
 
             // Thunderlord
-            new PassiveSkill("Lightning Dash", "LightningDash", "THUNDERLORD", false,
+            new PassiveSkill("Lightning Dash", "LightningDash", "ELECTROMANCER", false,
                 "You move the same distance twice as fast while dodging, but still retain the same invincibility window. Enemies in your wake are electrocuted."),
 
             // Geomancer
@@ -198,7 +208,7 @@ public class InventoryDatabase : MonoBehaviour
                 "When jumping, your feet emit an tremor that deals physical damage."),
 
             // Tectonic Emperor
-            new PassiveSkill("Earth Prism", "EarthPrism", "TECTONIC EMPEROR", false,
+            new PassiveSkill("Earth Prism", "EarthPrism", "GEOMANCER", false,
                 "When jumping, in addition to a tremor, a rock prism emerges from the ground. Strike this rock with your weapon to hurl disks of rock. "
                 + "The maximum number of disks you can produce from a single prism is based on your Strength stat."),
 
@@ -214,11 +224,15 @@ public class InventoryDatabase : MonoBehaviour
                 + "This tendril gives you the same regeneration as your weapon attacks."),
 
             // Scourge of Vitality
-            new PassiveSkill("Blood Alliance", "BloodAlliance", "SCOURGE OF VITALITY", true,
+            new PassiveSkill("Blood Alliance", "BloodAlliance", "BLOODMAGE", true,
                 "Weapon and tendril life stealing also heals allies within a small radius. Upgrade to increase healing range."),
 
-            new PassiveSkill("Vital Protraction", "Vital Protraction", "SCOURGE OF VITALITY", false,
-                "While below 50% HP, reduces the amount of damage taken multiplicatively by 0-1% of your Strength, increasing linearly based on amount of HP missing below 50%.")
+            new PassiveSkill("Vital Protraction", "VitalProtraction", "BLOODMAGE", false,
+                "While below 50% HP, reduces the amount of damage taken multiplicatively by 0-1% of your Strength, increasing linearly based on amount of HP missing below 50%."),
+
+            // World
+            new PassiveSkill("Maiar Strike", "MaiarStrike", "WORLD", false,
+                "Increases CRIT RATE by 2%, CRIT DAMAGE is multiplied by CRIT RATE if CRIT RATE > 100%")
         };
 
         classItems = new List<ClassItem>() {
@@ -254,7 +268,10 @@ public class InventoryDatabase : MonoBehaviour
             new ClassItem(new string[2] {"RANGER", "TELEPATH"}, "RANGER", "PERCEPTION", "Harnesses PERCEPTION to increase the bounds of knowledge."),
 
             // Necromancer
-            new ClassItem(new string[2] {"NECROMANCER", "SHADOW MONARCH"}, "NECROMANCER", "INTELLIGENCE", "Harnesses INTELLIGENCE to summon an army of shadows from the dead.")
+            new ClassItem(new string[2] {"NECROMANCER", "SHADOW MONARCH"}, "NECROMANCER", "INTELLIGENCE", "Harnesses INTELLIGENCE to summon an army of shadows from the dead."),
+
+            // World
+            new ClassItem(new string[2] {"WORLD", "WORLD"}, "WORLD", "MISCELLANEOUS", "Skills discovered through exploration.")
         };
     }
 }

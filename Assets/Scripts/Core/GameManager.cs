@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] public UIStatus uIStatus;
     public InventoryDatabase inventoryDatabase;
     public Transform pfDamagePopup;
-    [System.NonSerialized] public int testingLocalDifficulty = 100;
+    [System.NonSerialized] public int testingLocalDifficulty = 1;
     [System.NonSerialized] public int testingLocalDifficultyVariance = 0;
     [System.NonSerialized] System.Random random = new System.Random();
 
@@ -42,7 +42,9 @@ public class GameManager : MonoBehaviour
         skillStorage = GetComponent<SkillStorage>();
         inventoryItems.inventoryUI.gameObject.SetActive(true);
         inventoryItems.inventoryUI.gameObject.SetActive(false);
-        skillStorage.uISkillCategory.gameObject.SetActive(false);
+        skillStorage.uISkills = skillStorage.uISkills.GetComponent<UISkills>();
+        skillStorage.BuildSkillClasses();
+        skillStorage.uISkills.gameObject.SetActive(false);
         uIStatus.Goodbye();
 
         GiveItem("BarcasDagger");
@@ -65,6 +67,12 @@ public class GameManager : MonoBehaviour
         GiveClass("RANGER");
         GiveClass("NECROMANCER");
         GiveClass("PYROMANCER");
+
+        GiveSkill("Rakurai");
+        GiveSkill("AerodynamicHeating");
+        GiveSkill("LightningDash");
+        GiveSkill("TumultuousTakeoff");
+        GiveSkill("EarthPrism");
 
         //RemoveInventoryItem("MidRankAssassinsBoots");
         //RemoveInventoryItem("CrimsonKnightsHelmet");
@@ -103,16 +111,25 @@ public class GameManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.G))
         {
-            if (!skillStorage.uISkillCategory.gameObject.activeSelf)
+            if (!skillStorage.uISkills.gameObject.activeSelf)
             {
                 NewPlayer.Instance.hasSkillOpen = true;
+                skillStorage.uISkills.gameObject.SetActive(true);
+                if (!skillStorage.uISkills.GetComponent<SubMenu>().IsEmpty())
+                {
+                    skillStorage.uISkills.WakeMeUp();
+                }
+                else
+                {
+                    NewPlayer.Instance.hasSkillOpen = false;
+                }
+
             }
             else
             {
                 NewPlayer.Instance.hasSkillOpen = false;
+                skillStorage.uISkills.Goodbye();
             }
-            
-            skillStorage.uISkillCategory.gameObject.SetActive(!skillStorage.uISkillCategory.gameObject.activeSelf);
         }
     }
 
@@ -155,6 +172,11 @@ public class GameManager : MonoBehaviour
         return random.NextDouble() * (maximum - minimum) + minimum;
     }
 
+    public int GetRandomInt(int minimum, int maximum)
+    {
+        return random.Next(minimum, maximum);
+    }
+
     public static double GetDamageTotal(double[] damage)
     {
         double output = 0;
@@ -171,5 +193,20 @@ public class GameManager : MonoBehaviour
     {
         ClassItem classItemToAdd = inventoryDatabase.GetClassItem(id);
         skillStorage.AddClassItem(classItemToAdd);
+    }
+
+    public void GiveSkill(string id)
+    {
+        Skill skillItemToAdd = inventoryDatabase.GetSkillItem(id);
+        if (skillItemToAdd == null)
+        {
+            Debug.Log("ERROR: There is no skill with id \"" + id + "\".");
+        }
+        else
+        {
+            if (skillItemToAdd.GetSource().Equals("WORLD"))
+                GiveClass("WORLD");
+            skillStorage.AddSkillItem(skillItemToAdd);
+        }
     }
 }

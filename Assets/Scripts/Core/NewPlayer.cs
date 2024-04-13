@@ -37,6 +37,10 @@ public class NewPlayer : PhysicsObject
     [SerializeField] public ParryStorm parryStorm;
     public RecoveryCounter recoveryCounter;
     private System.Random random = new System.Random();
+    [System.NonSerialized] public int[] maxSkillSlots = {2, 2, -2, 1};
+    [System.NonSerialized] public ActiveSkill[] myActiveSkills;
+    [System.NonSerialized] public PassiveSkill[] myPassiveSkills;
+    [System.NonSerialized] public ClassItem[] myClasses;
 
     // Singleton instantiation
     private static NewPlayer instance;
@@ -1215,11 +1219,13 @@ public class NewPlayer : PhysicsObject
         if (attackType == 0 && hasStrengthTraining) // Knight Strength Training Multiplier
             singleHitDamage *= (1.0 + attributes[0] / 200.0);
 
+        /*
         if (attackType == 9)
         {
             Debug.Log("singleHitDamage = " + singleHitDamage + ", mod[6] = " + modifiers[6]
                 + ", attributes[3] = " + attributes[3] + ", externalStats[4] = " + externalStats[4]);
         }
+         */
 
         //Debug.Log("singleHitDamage = " + singleHitDamage + ", mod[6] = " + modifiers[6]);
 
@@ -1241,7 +1247,7 @@ public class NewPlayer : PhysicsObject
 
             if (canVehementFerocity)
             {
-                damage[i] *= System.Math.Pow(1 + (attributes[1] / 10000.0), i);
+                damage[i] *= System.Math.Pow(1 + (attributes[1] / (10000.0 + attributes[1]/1125.0)), i);
 
                 //Debug.Log("VF: " + (System.Math.Pow(1 + (attributes[1] / 10000.0), i)));
             }
@@ -1435,14 +1441,14 @@ public class NewPlayer : PhysicsObject
         }
     }
 
-    public void Kill()
+    public void Kill(int level, double xpMultiplier)
     {
         if (canRewardProficiency)
         {
             RewardProficiency();
         }
 
-        AddXp((int) (2.0*System.Math.Pow(level, 2.0)));
+        AddXp((int) (xpMultiplier * 2.0*System.Math.Pow(level, 2.0)));
     }
 
     public void RewardProficiency()
@@ -1478,6 +1484,16 @@ public class NewPlayer : PhysicsObject
         foreach (DoctorParryOrigin element in doctorParryOrigins)
         {
             element.DisplaySprite(doctorRegenerateTimer);
+        }
+
+        Debug.Log("Displaying regeneration!");
+    }
+
+    public void GiveSkillSlot(int slot)
+    {
+        if (slot != 2)
+        {
+            maxSkillSlots[slot]++;
         }
     }
 }
