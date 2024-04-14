@@ -119,6 +119,11 @@ public class UIClassItem : MonoBehaviour, UIItem
         this.numerator -= 2;
     }
 
+    public void IncrementNumerator()
+    {
+        this.numerator += 2;
+    }
+
     public bool GetHighlighted()
     {
         return highlighted;
@@ -156,5 +161,10 @@ public class UIClassItem : MonoBehaviour, UIItem
     public GameObject GetGameObject()
     {
         return gameObject;
+    }
+
+    public string GetName()
+    {
+        return classItem.GetName();
     }
 }

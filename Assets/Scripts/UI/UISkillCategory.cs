@@ -30,7 +30,8 @@ public class UISkillCategory : MonoBehaviour, SubMenu
 
         if (uIClassItems[highlightedIndex].classItem != null)
         {
-            highlightedDescription.text = uIClassItems[highlightedIndex].classItem.description;
+            highlightedDescription.text = uIClassItems[highlightedIndex].classItem.GetName() + "\n\n" 
+                + uIClassItems[highlightedIndex].classItem.description;
             uIClassItems[highlightedIndex].HighlightMe();
             GameManager.Instance.skillStorage.RebuildUISkillListFor(uIClassItems[highlightedIndex].classItem.id);
         }
@@ -174,7 +175,8 @@ public class UISkillCategory : MonoBehaviour, SubMenu
         
         if (uIClassItems[highlightedIndex].classItem != null && highlightedIndex != prevHighlightedIndex)
         {
-            highlightedDescription.text = uIClassItems[highlightedIndex].classItem.description;
+            highlightedDescription.text = uIClassItems[highlightedIndex].classItem.GetName() + "\n\n" 
+                + uIClassItems[highlightedIndex].classItem.description;
             uIClassItems[highlightedIndex].HighlightMe();
             GameManager.Instance.skillStorage.RebuildUISkillListFor(uIClassItems[highlightedIndex].classItem.id);
         }

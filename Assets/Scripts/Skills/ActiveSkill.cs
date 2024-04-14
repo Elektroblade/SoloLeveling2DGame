@@ -23,6 +23,10 @@ public class ActiveSkill : Skill
         this.id = id;
         this.source = source;
         this.icon = Resources.Load<Sprite>("UI/Classes/" + source);
+        if (this.icon == null)
+        {
+            Debug.Log("Aye!");
+        }
         this.slotCost = slotCost;
         this.instantCost = instantCost;
         this.durationCost = durationCost;
@@ -40,7 +44,7 @@ public class ActiveSkill : Skill
             this.description += "DURATION COST -" + durationCost + " PER SECOND";
         }
 
-        this.icon = Resources.Load<Sprite>("UI/Skills/" + id);
+        //this.icon = Resources.Load<Sprite>("UI/Skills/" + id);
 
         this.xp = 0;
         this.level = 0;

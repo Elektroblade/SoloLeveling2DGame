@@ -9,6 +9,8 @@ public interface UIItem
     public void SelectMe();
     public void UnselectMe();
     public void DecrementNumerator();
+
+    public void IncrementNumerator();
     public bool GetHighlighted();
     public bool GetSelected();
     public string GetDescription();
@@ -17,4 +19,5 @@ public interface UIItem
     public Transform GetTransform();
     public float GetNumerator();
     public GameObject GetGameObject();
+    public string GetName();
 }

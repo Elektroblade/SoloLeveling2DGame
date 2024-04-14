@@ -153,13 +153,22 @@ public class InventoryDatabase : MonoBehaviour
 
         activeSkills = new List<ActiveSkill>() {
             
+            // Swordmaster
+            new ActiveSkill("Greatsword Huck", "GreatswordHuck", "KNIGHT", 1, 50.0, -1.0,
+                "Huck a greatsword."),
+
             // Electromancer
             new ActiveSkill("Rakurai", "Rakurai", "ELECTROMANCER", 1, -1.0, 1.5,
                 "While channeling this skill, imbue all weapon attacks with a bolt of directional lightning. Tap to start channeling, tap again to stop."),
 
             // Geomancer
-            new ActiveSkill("Seismic Tsunami", "SeismicTsumani", "GEOMANCER", 1, 20.0, -1.0,
+            new ActiveSkill("Seismic Tsunami", "SeismicTsunami", "GEOMANCER", 1, 20.0, -1.0,
                 "Summon a giant seismic wave in front of you, launching enemies diagonally and dealing massive physical damage."),
+
+            // Tectonic Emperor
+            new ActiveSkill("Earth Capsule", "EarthCapsule", "GEOMANCER", 1, 100.0, -1.0,
+                "Multiply incoming damage by (100 / ((Capsule HP / Capsule MAX HP) * STRENGTH + 100)). The capsule takes all damage you would have taken, "
+                + "without DEFENCE reduction, but multiplied by (100 / (STRENGTH + 100)). Capsule can be protected by Barrier of Resistance."),
 
             // Necromancer
             new ActiveSkill("Shadow Extraction", "ShadowExtraction", "NECROMANCER", 1, -1.0, -1.0,
@@ -173,8 +182,30 @@ public class InventoryDatabase : MonoBehaviour
             // Scourge of Vitality
             new ActiveSkill("Bloodbend", "Bloodbend", "BLOODMAGE", 1, 20.0, 2.0,
                 "Cast at the closest enemy you are facing. The enemy attacks wildly and their attacks can hit other enemies. Other enemies can be hit by an affected enemy "
-                + "and these attacks trigger 50% of your life steal. Each new enemy you bloodbend has an instant cost and a drains your HP over time. You can die from this drain "
+                + "and these attacks trigger 50% of your life steal. Each new enemy you bloodbend has an instant cost and drains your HP over time. You can die from this drain "
                 + "and the only ways to stop bloodbending are to kill all affected creatures or leave the room. Upgrade to increase maximum enemies under your control."),
+            
+            // Warrior
+            new ActiveSkill("Enduring Frenzy", "EnduringFrenzy", "WARRIOR", 1, 40.0, -1.0, 
+                "Gain a bonus of 2 * STAMINA / 25 to FEROCITY for 10s. Every use resets the timer and stacks the bonus. Kills also reset the timer."),
+
+            // Tank
+            new ActiveSkill("Barrier of Resistance", "BarrierOfResistance", "TANK", 1, 100.0, -1.0, 
+                "Take 30 -> 35 -> 40 -> 45 -> 50% less damage from all sources for 30 -> 60 -> 90 -> 120 -> 150 sec."),
+
+            // Impervious Mastodon
+            new ActiveSkill("Redirect", "Redirect", "TANK", 1, -1.0, -1.0, 
+                "Store up damage you blocked or parried. Activate to fire a directional chest laser returning that damage."),
+
+            new ActiveSkill("Barrier of Invulnerability", "BarrierOfInvulnerability", "TANK", 1, 100.0, -1.0, 
+                "Cast a barrier around yourself and all nearby allies that absorbs all damage until it breaks or expires. Barrier durability scales off STAMINA, "
+                + "lasts (20 -> 40 -> 60 -> 80 -> 100s) * (1 + STAMINA/100). Barrier durability is enhanced by Barrier of Resistance."),
+
+            // Doctor
+            new ActiveSkill("Regenerate", "Regenerate", "HEALER", 1, -1.0, -1.0, 
+                "Activate this ability within 0.35s before receiving a killing blow, to \"parry\" death. Gain 2s of invincibility followed by "
+                + "60s * (1 + INTELLIGENCE/200) emitting continuous jets of fire that hurt enemies and heal allies, not including yourself. "
+                + "During this time your health and mana recovery from weapon attacks is multiplied by (1 + INTELLIGENCE/200)"),
 
             // Great Ranger
             new ActiveSkill("Eye of Sung", "EyeOfSung", "RANGER", 1, 100.0, -1.0,
@@ -191,6 +222,21 @@ public class InventoryDatabase : MonoBehaviour
         };
 
         passiveSkills = new List<PassiveSkill>() {
+            // Knight
+            new PassiveSkill("Strength Training", "StrengthTraining", "KNIGHT", true, 
+                "All melee attacks are multiplied by (1 + STRENGTH / 200)."),
+            
+            new PassiveSkill("Rewarding Proficiency", "RewardingProficiency", "KNIGHT", false, 
+                "On parry and/or kill, restore 4% HP and gain 10% of MAX HP as DEFENCE. This DEFENCE bonus decays at 10% per second. "
+                + "Parrying again adds the decayed total to the initial bonus."),
+
+            // Swordmaster
+            new PassiveSkill("Shattering Morale", "ShatteringMorale", "KNIGHT", true, 
+                "Application of stagger is doubled."),
+
+            new PassiveSkill("Polished Technique", "PolishedTechnique", "KNIGHT", true, 
+                "Final combo hit damage multiplier changed from 2 to (2 + STRENGTH/1000)."),
+
             // Pyromancer
             new PassiveSkill("Fire Breathing", "FireBreathing", "PYROMANCER", false,
                 "When charging normal attacks, breathe fire in a cone. Contact damage falls off with distance."),
@@ -229,6 +275,26 @@ public class InventoryDatabase : MonoBehaviour
 
             new PassiveSkill("Vital Protraction", "VitalProtraction", "BLOODMAGE", false,
                 "While below 50% HP, reduces the amount of damage taken multiplicatively by 0-1% of your Strength, increasing linearly based on amount of HP missing below 50%."),
+            
+            // Warrior
+            new PassiveSkill("Ambidextrous", "Ambidextrous", "WARRIOR", true, 
+                "Multiplies dual wielding damage by (1 + STAMINA/100)."),
+
+            // Tank
+            new PassiveSkill("Patient Endurance", "PatientEndurance", "TANK", false,
+                "STRENGTH + STAMINA is used to calculate HP."),
+            
+            new PassiveSkill("Defensive Stance", "DefensiveStance", "TANK", true, 
+                "Halves cost of blocking."),
+
+            // Impervious Mastodon
+
+            // Berserker
+            new PassiveSkill("Grisly Comeuppance", "GrislyComeuppance", "WARRIOR", false, 
+                "While below 50% HP, your damage is multiplied by (1 + (-2 * HP + MAX HP) * (STAMINA / 100) / MAX HP)."),
+            
+            new PassiveSkill("Vehement Ferocity", "VehementFerocity", "WARRIOR", false, "The damage of every FEROCITY proc after the initial attack is increased to "
+                + "PREVIOUS DAMAGE * (1 + (STAMINA / (10000.0 + STAMINA/1125.0))."),
 
             // World
             new PassiveSkill("Maiar Strike", "MaiarStrike", "WORLD", false,

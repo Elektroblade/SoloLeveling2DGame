@@ -42,7 +42,9 @@ public class AttackHit : MonoBehaviour
         hitPower = null;
         // Do not damage invincible player
         if (col.transform.parent && col.transform.parent.GetComponent<NewPlayer>() != null && col.transform.parent.GetComponent<NewPlayer>().GetInvincible())
+        {
             return;
+        }
 
         int attackerType = -1;
         bool playerCancelledHit = false;
@@ -81,8 +83,14 @@ public class AttackHit : MonoBehaviour
                 playerCancelledHit = true;
 
                 if (hitPower == null)
-                {
                     hitPower = parent.GetComponent<EnemyBase>().CalculateDamage();
+
+                if (NewPlayer.Instance.SearchActiveSkill("Redirect") != null)
+                {
+                    for (int i = 0; i < hitPower.Length - 2; i++)
+                    {
+                        NewPlayer.Instance.IncrementRedirectSum(hitPower[i]);
+                    }
                 }
 
                 ParryMesh parryMesh;
@@ -111,9 +119,15 @@ public class AttackHit : MonoBehaviour
                     hitPower = parent.GetComponent<EnemyBase>().CalculateDamage();
                 }
 
-                if (GameManager.GetDamageTotal(hitPower) >= col.transform.parent.GetComponent<NewPlayer>().health)
+                double totalHitPower = GameManager.GetDamageTotal(hitPower);
+                if (totalHitPower >= col.transform.parent.GetComponent<NewPlayer>().health)
                 {
                     playerCancelledHit = true;
+                    if (NewPlayer.Instance.SearchActiveSkill("Redirect") != null)
+                    {
+                        NewPlayer.Instance.IncrementRedirectSum(totalHitPower);
+                    }
+
                     DoctorParryMesh doctorParryMesh;
                     col.transform.parent.GetComponent<NewPlayer>().DoctorParry();
 
@@ -146,8 +160,6 @@ public class AttackHit : MonoBehaviour
                 RaycastHit2D[] raycastSiphon = new RaycastHit2D[64];
                 col.Raycast(new Vector2(targetSide, 0), raycastSiphon, 10f, layersToGetSiphoned);
                 Debug.DrawRay(new Vector2(col.transform.position.x, col.transform.position.y), new Vector2(targetSide*10f, 0), Color.green, 30f);
-
-                // ahaha
 
                 int siphonIndex = 0;
                 bool foundCandidate = false;

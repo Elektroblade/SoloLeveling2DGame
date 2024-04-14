@@ -40,4 +40,16 @@ public class ClassItem
     {
         return this.id;
     }
+
+    public string GetName()
+    {
+        if (level < 100)
+        {
+            return names[0];
+        }
+        else
+        {
+            return names[1];
+        }
+    }
 }

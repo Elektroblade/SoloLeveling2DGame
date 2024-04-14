@@ -12,25 +12,14 @@ public class SkillStorage : MonoBehaviour
 
     public void BuildSkillClasses()
     {
-        skillClasses = new List<SkillClass>[6];
-        skillClasses[0] = new List<SkillClass>(3);
-        skillClasses[0].Add(new SkillClass("KNIGHT"));
-        skillClasses[0].Add(new SkillClass("GEOMANCER"));
-        skillClasses[0].Add(new SkillClass("BLOODMAGE"));
-        skillClasses[1] = new List<SkillClass>(2);
-        skillClasses[1].Add(new SkillClass("TANK"));
-        skillClasses[1].Add(new SkillClass("WARRIOR"));
-        skillClasses[2] = new List<SkillClass>(2);
-        skillClasses[2].Add(new SkillClass("ASSASSIN"));
-        skillClasses[2].Add(new SkillClass("ELECTROMANCER"));
-        skillClasses[3] = new List<SkillClass>(2);
-        skillClasses[3].Add(new SkillClass("HEALER"));
-        skillClasses[3].Add(new SkillClass("PYROMANCER"));
-        skillClasses[4] = new List<SkillClass>(1);
-        skillClasses[4].Add(new SkillClass("RANGER"));
-        skillClasses[5] = new List<SkillClass>(1);
-        skillClasses[5].Add(new SkillClass("WORLD"));
-        Debug.Log("skillClasses[0].Count = " + skillClasses[0].Count + ", skillClasses[0][0] == null is " + (skillClasses[0][0] == null));
+        skillClasses = new List<SkillClass>[6] {
+            new List<SkillClass>() {new SkillClass("KNIGHT"), new SkillClass("GEOMANCER"), new SkillClass("BLOODMAGE")},
+            new List<SkillClass>() {new SkillClass("TANK"), new SkillClass("WARRIOR")},
+            new List<SkillClass>() {new SkillClass("ASSASSIN"), new SkillClass("ELECTROMANCER")},
+            new List<SkillClass>() {new SkillClass("HEALER"), new SkillClass("PYROMANCER"), new SkillClass("NECROMANCER")},
+            new List<SkillClass>() {new SkillClass("RANGER")},
+            new List<SkillClass>() {new SkillClass("WORLD")}
+        };
     }
 
     

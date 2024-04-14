@@ -38,9 +38,9 @@ public class NewPlayer : PhysicsObject
     public RecoveryCounter recoveryCounter;
     private System.Random random = new System.Random();
     [System.NonSerialized] public int[] maxSkillSlots = {2, 2, -2, 1};
-    [System.NonSerialized] public ActiveSkill[] myActiveSkills;
-    [System.NonSerialized] public PassiveSkill[] myPassiveSkills;
-    [System.NonSerialized] public ClassItem[] myClasses;
+    [System.NonSerialized] public List<ActiveSkill> myActiveSkills = new List<ActiveSkill>();
+    [System.NonSerialized] public List<PassiveSkill> myPassiveSkills = new List<PassiveSkill>();
+    [System.NonSerialized] public List<ClassItem> myClasses = new List<ClassItem>();
 
     // Singleton instantiation
     private static NewPlayer instance;
@@ -119,6 +119,12 @@ public class NewPlayer : PhysicsObject
     private double rewardingProficiencyDefenceCurrent = 0.0;
     [System.NonSerialized] private bool isDodgeInvincible = false;
     [System.NonSerialized] private bool isDoctorInvincible = false;
+    [System.NonSerialized] private double earthCapsuleMaxHealth = 1.0;
+    [System.NonSerialized] private double earthCapsuleHealth = 0;
+    [System.NonSerialized] private double earthCapsuleDefence = 0;
+    [System.NonSerialized] private double redirectSum = 0;
+    [System.NonSerialized] private float resistanceBarrierTimer = 0;
+    [System.NonSerialized] private double resistanceBarrierMult = 1f;
 
     [Header ("Attributes")]
     // strength, stamina, agility, intellect, perception
@@ -272,7 +278,14 @@ public class NewPlayer : PhysicsObject
 
     public void RecalculateExternalStats()
     {
-        for (int i = 0; i < 11; i++)
+        if (SearchPassiveSkill("PatientEndurance") != null)
+        {
+            externalStats[0] = intrinsicStats[0] + 100*System.Math.Pow(2,(attributes[1] - 10)/(100.0+attributes[1]/11.25));      // Health pool
+        }
+        else
+            externalStats[0] = intrinsicStats[0];
+
+        for (int i = 1; i < 11; i++)
         {
             externalStats[i] = intrinsicStats[i];
         }
@@ -352,7 +365,7 @@ public class NewPlayer : PhysicsObject
         {
             if (isLightningImbued)
             {
-                mana -= 1.5*Time.deltaTime;
+                mana -= 1.5f*Time.deltaTime;
             }
             // Other abilities
         }
@@ -392,27 +405,31 @@ public class NewPlayer : PhysicsObject
         {
             if (Input.GetKeyDown(KeyCode.Q))
             {
-                if (isLightningImbued)
-                    isLightningImbued = false;
-                else
-                    isLightningImbued = true;
+                ToggleActiveSkill(0);
             }
             if (Input.GetKeyDown(KeyCode.R))
             {
-                if (mana >= 40)
-                {
-                    mana -= 40;
-                    frenzyBonus += 2 * attributes[1] / 25;
-                    frenzyTime = 10f;
-                    RecalculateExternalStats();
-                }
+                ToggleActiveSkill(1);
             }
             if (Input.GetKeyDown(KeyCode.F))
             {
-                if (doctorParryTimer <= 0 && doctorParryInvincibleTimer <= 0)
-                {
-                    doctorParryTimer = doctorParryForgiveness;
-                }
+                ToggleActiveSkill(2);
+            }
+            if (Input.GetKeyDown(KeyCode.V))
+            {
+                ToggleActiveSkill(3);
+            }
+            if (Input.GetKeyDown(KeyCode.C))
+            {
+                ToggleActiveSkill(4);
+            }
+            if (Input.GetKeyDown(KeyCode.X))
+            {
+                ToggleActiveSkill(5);
+            }
+            if (Input.GetKeyDown(KeyCode.Z))
+            {
+                ToggleActiveSkill(6);
             }
         }
 
@@ -422,6 +439,13 @@ public class NewPlayer : PhysicsObject
         {
             frenzyTime = 0;
             frenzyBonus = 0;
+        }
+
+        if (resistanceBarrierTimer > 0)
+            resistanceBarrierTimer -= Time.deltaTime;
+        if (resistanceBarrierTimer < 0)
+        {
+            resistanceBarrierTimer = 0;
         }
 
         for (int i = 0; i < parryTimer.Length; i++)
@@ -542,7 +566,8 @@ public class NewPlayer : PhysicsObject
 
                 // Removed: If an attack animation has yet to hit, recalculate ferocity. Change 1 to a modifier if such a modifier exists.
 
-                aerodynamicHeating.DisplaySprite();
+                if (SearchPassiveSkill("AerodynamicHeating") != null)
+                    aerodynamicHeating.DisplaySprite();
 
                 // AerodynamicHeating end
 
@@ -558,7 +583,7 @@ public class NewPlayer : PhysicsObject
             {
                 canDodge = false;
                 animator.SetBool("pounded", false);
-                if (isLightningDash)
+                if (SearchPassiveSkill("LightningDash") != null)
                     Dodge(2f);
                 else
                     Dodge(1f);
@@ -716,7 +741,7 @@ public class NewPlayer : PhysicsObject
                 velocity.y = 0;
                 dodging = false;    // Invincibility may continue, but speed is no longer going to be calculated in this manner.
 
-                if (isLightningDash)
+                if (SearchPassiveSkill("LightningDash") != null)
                 {
                     rollingThunderAttackHit.enabled = true;
                     rollingThunderAttackHit.gameObject.transform.localScale = new Vector3(Mathf.Abs(dodgeOriginX - gameObject.transform.position.x) + 1f, 2.65f, 1f);
@@ -728,7 +753,7 @@ public class NewPlayer : PhysicsObject
             {
                 dodging = false;    // Invincibility may continue, but speed is no longer going to be calculated in this manner.
 
-                if (isLightningDash)
+                if (SearchPassiveSkill("LightningDash") != null)
                 {
                     rollingThunderAttackHit.enabled = true;
                     rollingThunderAttackHit.gameObject.transform.localScale = new Vector3(Mathf.Abs(dodgeOriginX - gameObject.transform.position.x) + 1f, 2.65f, 1f);
@@ -741,7 +766,7 @@ public class NewPlayer : PhysicsObject
             {
                 dodgeTimer = 0;
                 dodgeDistanceSpent = 0;
-                isDodgeInvincible = true;
+                isDodgeInvincible = false;
             }
 
             animator.SetFloat("velocityX", Mathf.Abs(velocity.x) / baseSpeed);
@@ -798,11 +823,35 @@ public class NewPlayer : PhysicsObject
             launch = hurtDirection * (hurtLaunchPower.x);
             recoveryCounter.ResetAllCounters();
 
-            Debug.Log("rewardingProficiencyCurrent = " + rewardingProficiencyDefenceCurrent);
+            //Debug.Log("rewardingProficiencyCurrent = " + rewardingProficiencyDefenceCurrent);
 
             for (int i = 0; i < hitPower.Length - 2; i++)
             {
-                if (canOptimizeInnards && health < 0.5 * externalStats[0])
+                if (resistanceBarrierTimer > 0)
+                {
+                    double tmpHitPower = hitPower[i];
+                    hitPower[i] *= resistanceBarrierMult;
+                    if (SearchActiveSkill("Redirect") != null)
+                    {
+                        IncrementRedirectSum(tmpHitPower - hitPower[i]);
+                    }
+                    Debug.Log("ResBar DMG bef " + tmpHitPower + ", aft " + hitPower[i]);
+                }
+
+                if (earthCapsuleHealth >= earthCapsuleMaxHealth/100.0)
+                {
+                    double tmpHitPower = hitPower[i];
+                    hitPower[i] *= (100.0 / ((earthCapsuleHealth / earthCapsuleMaxHealth) * attributes[0] + 100));
+                    earthCapsuleHealth -= 100*(tmpHitPower - hitPower[i])/(earthCapsuleDefence + 100);
+                    if (SearchActiveSkill("Redirect") != null)
+                    {
+                        IncrementRedirectSum(tmpHitPower - hitPower[i]);
+                    }
+                    Debug.Log("Now Capsule MAX " + earthCapsuleMaxHealth + ", CUR " + earthCapsuleHealth + ", DEF " + earthCapsuleDefence
+                        + ", DMG bef " + tmpHitPower + ", aft " + hitPower[i]);
+                }
+
+                if (SearchPassiveSkill("VitalProtraction") != null && health < 0.5 * externalStats[0])
                 {
                     health -= 100*hitPower[i]*(1/(1+(-2*health + externalStats[0]) * (attributes[0] / 100) / externalStats[0]))/(externalStats[1] + rewardingProficiencyDefenceCurrent + 100);
 
@@ -939,8 +988,10 @@ public class NewPlayer : PhysicsObject
         if (velocity.y != externalStats[10])
         {
             // SeismicWave
-            seismicWave.DisplaySprite(new Vector3(transform.position.x, transform.position.y, 0), facingRight);
-            earthPrism.DisplaySprite(new Vector3(transform.position.x, transform.position.y, 0), facingRight);
+            if (SearchPassiveSkill("TumultuousTakeoff") != null)
+                seismicWave.DisplaySprite(new Vector3(transform.position.x, transform.position.y, 0), facingRight);
+            if (SearchPassiveSkill("EarthPrism") != null)
+                earthPrism.DisplaySprite(new Vector3(transform.position.x, transform.position.y, 0), facingRight);
 
             velocity.y = (float) externalStats[10] * jumpMultiplier; //The jumpMultiplier allows us to use the Jump function to also launch the player from bounce platforms
             fallForgivenessCounter = fallForgiveness;
@@ -977,7 +1028,7 @@ public class NewPlayer : PhysicsObject
             DodgeEffect();
             dodging = true;
 
-            if (isLightningDash)
+            if (SearchPassiveSkill("LightningDash") != null)
             {
                 // If an attack animation has yet to hit, recalculate ferocity. Change 1 to a modifier if such a modifier exists.
                 /*
@@ -1187,7 +1238,7 @@ public class NewPlayer : PhysicsObject
         // Combo-specific multipliers
         if (comboIndex == 3 && (attackType == 0 || attackType == 1 || attackType == 6 || attackType == 7))
         {
-            if (hasPolishedTechnique)
+            if (SearchPassiveSkill("PolishedTechnique") != null)
             {
                 physicalDamage = modifiers[5]*externalStats[5] * (2 + attributes[0]/1000.0);
                 magicalDamage = modifiers[6]*externalStats[6] * (2 + attributes[0]/1000.0);
@@ -1245,16 +1296,16 @@ public class NewPlayer : PhysicsObject
         {
             damage[i] = singleHitDamage;
 
-            if (canVehementFerocity)
+            if (SearchPassiveSkill("VehementFerocity") != null)
             {
                 damage[i] *= System.Math.Pow(1 + (attributes[1] / (10000.0 + attributes[1]/1125.0)), i);
 
                 //Debug.Log("VF: " + (System.Math.Pow(1 + (attributes[1] / 10000.0), i)));
             }
             
-            if (canGrislyComeuppance && health*2 < externalStats[0])
+            if (SearchPassiveSkill("GrislyComeuppance") != null && health*2 < externalStats[0])
             {
-                damage[i] *= (1+(-2*health + externalStats[0]) * (attributes[1] / 100) / externalStats[0]);
+                damage[i] *= (1 + (-2*health + externalStats[0]) * (attributes[1] / 100) / externalStats[0]);
 
                 //Debug.Log("GC: " + (1+(-2*health + externalStats[0]) * (attributes[1] / 100) / externalStats[0]));
             }
@@ -1262,7 +1313,7 @@ public class NewPlayer : PhysicsObject
 
         damage[damage.Length - 1] = 0;
 
-        if (canRaycastSyphon)
+        if (SearchPassiveSkill("TensileSiphoning") != null)
         {
             if (health/externalStats[0] < 0.34)
             {
@@ -1429,12 +1480,12 @@ public class NewPlayer : PhysicsObject
 
     public void Parry(Transform colliderTransform)
     {
-        if (canRewardProficiency)
+        if (SearchPassiveSkill("RewardingProficiency") != null)
         {
             RewardProficiency();
         }
 
-        if (canParryStorm)
+        if (SearchPassiveSkill("ParryStorm") != null)
         {
             parryStorm.gameObject.transform.position = colliderTransform.position;
             parryStorm.DisplaySprite();
@@ -1443,7 +1494,7 @@ public class NewPlayer : PhysicsObject
 
     public void Kill(int level, double xpMultiplier)
     {
-        if (canRewardProficiency)
+        if (SearchPassiveSkill("RewardingProficiency") != null)
         {
             RewardProficiency();
         }
@@ -1491,9 +1542,146 @@ public class NewPlayer : PhysicsObject
 
     public void GiveSkillSlot(int slot)
     {
-        if (slot != 2)
+        if (slot != 2 && slot < 4 && slot >= 0)
         {
             maxSkillSlots[slot]++;
+        }
+    }
+
+    public ActiveSkill SearchActiveSkill(string id)
+    {
+        foreach (ActiveSkill activeSkill in myActiveSkills)
+        {
+            if (id.Equals(activeSkill.id))
+            {
+                return activeSkill;
+            }
+        }
+        return null;
+    }
+
+    public PassiveSkill SearchPassiveSkill(string id)
+    {
+        foreach (PassiveSkill passiveSkill in myPassiveSkills)
+        {
+            if (id.Equals(passiveSkill.id))
+            {
+                return passiveSkill;
+            }
+        }
+        return null;
+    }
+
+    public ClassItem SearchClassItem(string id)
+    {
+        foreach (ClassItem classItem in myClasses)
+        {
+            if (id.Equals(classItem.id))
+            {
+                return classItem;
+            }
+        }
+        return null;
+    }
+
+    public void ToggleActiveSkill(int index)
+    {
+        if (index < myActiveSkills.Count && myActiveSkills[index] != null)
+        {
+            ActiveSkill activeSkill = myActiveSkills[index];
+            if (activeSkill.id == "Rakurai")
+            {
+                if (isLightningImbued)
+                    isLightningImbued = false;
+                else
+                    isLightningImbued = true;
+            }
+            else if (activeSkill.id == "EnduringFrenzy")
+            {
+                if (mana >= 40)
+                {
+                    mana -= 40;
+                    frenzyBonus += 2 * attributes[1] / 25;
+                    frenzyTime = 10f;
+                    RecalculateExternalStats();
+                }
+            }
+            else if (activeSkill.id == "Regenerate")
+            {
+                if (doctorParryTimer <= 0 && doctorParryInvincibleTimer <= 0)
+                {
+                    doctorParryTimer = doctorParryForgiveness;
+                }
+            }
+            else if (activeSkill.id == "EarthCapsule")
+            {
+                if (mana >= 100)
+                {
+                    mana -= 100;
+                    earthCapsuleMaxHealth = externalStats[0] * (activeSkill.level + 1);
+                    earthCapsuleHealth = earthCapsuleMaxHealth;
+                    earthCapsuleDefence = 100.0*System.Math.Pow(attributes[0]/100.0 + 1.0, 2) - 100.0;
+                    Debug.Log("Capsule MAX " + earthCapsuleMaxHealth + ", CUR " + earthCapsuleHealth + ", DEF " + earthCapsuleDefence);
+                }
+            }
+            else if (activeSkill.id == "BarrierOfResistance")
+            {
+                if (mana >= 100)
+                {
+                    mana -= 100;
+                    resistanceBarrierTimer = 30f * (activeSkill.level + 1f);
+                    resistanceBarrierMult = 0.7 - 0.05 * activeSkill.level;
+                    if (resistanceBarrierMult < 0)
+                        resistanceBarrierMult = 0;
+                }
+            }
+        }
+    }
+
+    public void IncrementRedirectSum(double amount)
+    {
+        double oldSum = redirectSum;
+        redirectSum += amount;
+
+        if (oldSum >= 0 && redirectSum < 0)
+        {
+            redirectSum = oldSum;
+        }
+    }
+
+    public void AddSkillSlot(UIItem uIItem, int panelIndex)
+    {
+        if (panelIndex == 0)
+        {
+            myActiveSkills.Add((uIItem as UISkillItem).skill as ActiveSkill);
+        }
+        else if (panelIndex == 3)
+        {
+            myClasses.Add((uIItem as UIClassItem).classItem);
+        }
+        else
+        {
+            myPassiveSkills.Add((uIItem as UISkillItem).skill as PassiveSkill);
+        }
+    }
+
+    public void RemoveSkillSlotAt(int slotIndex, int panelIndex, int slottablePassiveCount)
+    {
+        if (panelIndex == 0)
+        {
+            myActiveSkills.RemoveAt(slotIndex);
+        }
+        else if (panelIndex == 1)
+        {
+            myPassiveSkills.RemoveAt(slotIndex);
+        }
+        else if (panelIndex == 2)
+        {
+            myPassiveSkills.RemoveAt(slottablePassiveCount + slotIndex);
+        }
+        else if (panelIndex == 3)
+        {
+            myClasses.RemoveAt(slotIndex);
         }
     }
 }

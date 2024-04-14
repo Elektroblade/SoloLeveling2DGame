@@ -21,25 +21,23 @@ public class UIClass : MonoBehaviour, SubMenu
 
     public void WakeMeUp()
     {
+        holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
         isDoingStuff = true;
         if (uISkillItems[highlightedPanel] == null)
             uISkillItems[highlightedPanel] = new List<UISkillItem>();
 
-        if (uISkillItems[highlightedPanel].Count > 0)
+        if (highlightedIndex < uISkillItems[highlightedPanel].Count)
         {
-            uISkillItems[highlightedPanel][highlightedIndex].highlighted = true;
-            highlightedDescription.text = uISkillItems[highlightedPanel][highlightedIndex].skill.GetDescription();
-        }
-
-        if (uISkillItems[highlightedPanel][highlightedIndex].skill != null)
-        {
-            highlightedDescription.text = uISkillItems[highlightedPanel][highlightedIndex].skill.GetDescription();
             uISkillItems[highlightedPanel][highlightedIndex].HighlightMe();
+            highlightedDescription.text = uISkillItems[highlightedPanel][highlightedIndex].skill.ToString() + "\n\n" 
+                + uISkillItems[highlightedPanel][highlightedIndex].skill.GetDescription();
         }
     }
     
     public void Goodbye()
     {
+        if (highlightedIndex < uISkillItems[highlightedPanel].Count)
+            uISkillItems[highlightedPanel][highlightedIndex].UnhighlightMe();
         isDoingStuff = false;
     }
 
@@ -64,19 +62,30 @@ public class UIClass : MonoBehaviour, SubMenu
         }
 
         int prevHighlightedIndex = highlightedIndex;    // Remember previous highlighted index to unhighlight if another index is highlighted.
+        int prevHighlightedPanel = highlightedPanel;
 
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
+            bool wentUp = false;
             if (highlightedIndex - rowLength >= 0)
             {
                 highlightedIndex -= rowLength;
+                wentUp = true;
             }
-            else if (highlightedPanel > 0 && uISkillItems[highlightedPanel - 1] != null && uISkillItems[highlightedPanel - 1].Count > 0)
+            else if (highlightedPanel > 0)
             {
-                highlightedPanel--;
+                for (int i = highlightedPanel - 1; i >= 0; i--)
+                {
+                    if (uISkillItems[i] != null && uISkillItems[i].Count > 0)
+                    {
+                        highlightedPanel = i;
+                        wentUp = true;
+                        break;
+                    }
+                }
             }
-            else
+            if (!wentUp)
             {
                 this.gameObject.transform.parent.GetComponent<UISkills>().SetActivePanel(0);
                 return;
@@ -99,9 +108,16 @@ public class UIClass : MonoBehaviour, SubMenu
             {
                 highlightedIndex += rowLength;
             }
-            else if (highlightedPanel < uISkillItems.Length - 1 && uISkillItems[highlightedPanel + 1] != null && uISkillItems[highlightedPanel + 1].Count > 0)
+            else if (highlightedPanel < uISkillItems.Length - 1)
             {
-                highlightedPanel++;
+                for (int i = highlightedPanel + 1; i < uISkillItems.Length; i++)
+                {
+                    if (uISkillItems[i] != null && uISkillItems[i].Count > 0)
+                    {
+                        highlightedPanel = i;
+                        break;
+                    }
+                }
             }
         }
         if (Input.GetKeyDown(KeyCode.LeftArrow) && highlightedIndex > 0)
@@ -116,15 +132,25 @@ public class UIClass : MonoBehaviour, SubMenu
         if (Input.GetKey(KeyCode.UpArrow) && holdArrowKeyCooldown == 0)
         {
             holdArrowKeyCooldown = holdArrowKeyCooldownMax;
+            bool wentUp = false;
             if (highlightedIndex - rowLength >= 0)
             {
                 highlightedIndex -= rowLength;
+                wentUp = true;
             }
-            else if (highlightedPanel > 0 && uISkillItems[highlightedPanel - 1] != null && uISkillItems[highlightedPanel - 1].Count > 0)
+            else if (highlightedPanel > 0)
             {
-                highlightedPanel--;
+                for (int i = highlightedPanel - 1; i >= 0; i--)
+                {
+                    if (uISkillItems[i] != null && uISkillItems[i].Count > 0)
+                    {
+                        highlightedPanel = i;
+                        wentUp = true;
+                        break;
+                    }
+                }
             }
-            else
+            if (!wentUp)
             {
                 this.gameObject.transform.parent.GetComponent<UISkills>().SetActivePanel(0);
             }
@@ -141,9 +167,16 @@ public class UIClass : MonoBehaviour, SubMenu
             {
                 highlightedIndex += rowLength;
             }
-            else if (highlightedPanel < uISkillItems.Length - 1 && uISkillItems[highlightedPanel + 1] != null && uISkillItems[highlightedPanel - 1].Count > 0)
+            else if (highlightedPanel < uISkillItems.Length - 1)
             {
-                highlightedPanel++;
+                for (int i = highlightedPanel + 1; i < uISkillItems.Length; i++)
+                {
+                    if (uISkillItems[i] != null && uISkillItems[i].Count > 0)
+                    {
+                        highlightedPanel = i;
+                        break;
+                    }
+                }
             }
         }
         if (Input.GetKey(KeyCode.LeftArrow) && holdArrowKeyCooldown == 0 && highlightedIndex > 0)
@@ -210,21 +243,23 @@ public class UIClass : MonoBehaviour, SubMenu
             bool foundMatch = false;
             if (uISkillSelected.uISlotItems[highlightedPanel] != null)
             {
-                for (int i = 0; i < uISkillSelected.uISlotItems[3].Count; i++)
+                for (int i = 0; i < uISkillSelected.uISlotItems[highlightedPanel].Count; i++)
                 {
-                    if (uISkillItems[highlightedPanel][highlightedIndex].skill.GetId() == uISkillSelected.uISlotItems[highlightedPanel][i].GetItemId())
+                    if (uISkillItems[highlightedPanel][recogHighlightedIndex].skill.GetId() == uISkillSelected.uISlotItems[highlightedPanel][i].GetItemId())
                     {
                         foundMatch = true;
                         uISkillSelected.RemoveElement(highlightedPanel, i);
-                        uISkillItems[highlightedPanel][highlightedIndex].UnselectMe();
+                        uISkillItems[highlightedPanel][recogHighlightedIndex].UnselectMe();
                         break;
                     }
                 }
             }
-            if (!foundMatch && (uISkillSelected.uISlotItems[highlightedPanel] == null || uISkillSelected.uISlotItems[highlightedPanel].Count < NewPlayer.Instance.maxSkillSlots[highlightedPanel]))
+            if (!foundMatch && (uISkillSelected.uISlotItems[highlightedPanel] == null 
+            || uISkillSelected.uISlotItems[highlightedPanel].Count < NewPlayer.Instance.maxSkillSlots[highlightedPanel] || highlightedPanel == 2))
             {
-                uISkillSelected.AddElement(highlightedPanel, uISkillItems[highlightedPanel][highlightedIndex]);
-                uISkillItems[highlightedPanel][highlightedIndex].SelectMe();
+                uISkillSelected.AddElement(highlightedPanel, uISkillItems[highlightedPanel][recogHighlightedIndex]);
+                uISkillItems[highlightedPanel][recogHighlightedIndex].SelectMe();
+                Debug.Log("highlightedPanel = " + highlightedPanel + ", recogHighlightedIndex = " + recogHighlightedIndex);
             }
         }
 
@@ -233,19 +268,27 @@ public class UIClass : MonoBehaviour, SubMenu
             // Do nothing
         }
         
-        if (uISkillItems[highlightedPanel][recogHighlightedIndex].skill != null && highlightedIndex != prevHighlightedIndex)
+        if (uISkillItems[highlightedPanel][recogHighlightedIndex].skill != null && (highlightedIndex != prevHighlightedIndex || highlightedPanel != prevHighlightedPanel))
         {
-            highlightedDescription.text = uISkillItems[highlightedPanel][recogHighlightedIndex].skill.GetDescription();
+            highlightedDescription.text = uISkillItems[highlightedPanel][recogHighlightedIndex].skill.ToString() + "\n\n" 
+                + uISkillItems[highlightedPanel][recogHighlightedIndex].skill.GetDescription();
             uISkillItems[highlightedPanel][recogHighlightedIndex].HighlightMe();
         }
-        else if (highlightedIndex != prevHighlightedIndex)
+        else if (highlightedIndex != prevHighlightedIndex || highlightedPanel != prevHighlightedPanel)
         {
             highlightedDescription.text = "";
         }
-        if (highlightedIndex != prevHighlightedIndex && prevHighlightedIndex < uISkillItems[highlightedPanel].Count)
+        if ((highlightedIndex != prevHighlightedIndex || highlightedPanel != prevHighlightedPanel) && uISkillItems[prevHighlightedPanel] != null 
+            && prevHighlightedIndex < uISkillItems[prevHighlightedPanel].Count)
         {
-            uISkillItems[highlightedPanel][prevHighlightedIndex].UnhighlightMe();
+            uISkillItems[prevHighlightedPanel][prevHighlightedIndex].UnhighlightMe();
         }
+        else if ((highlightedIndex != prevHighlightedIndex || highlightedPanel != prevHighlightedPanel) && uISkillItems[prevHighlightedPanel] != null)
+        {
+            uISkillItems[prevHighlightedPanel][uISkillItems[prevHighlightedPanel].Count - 1].UnhighlightMe();
+        }
+
+        //Debug.Log("[" + highlightedPanel + "], [" + highlightedIndex + "]");
     }
 
     /*
@@ -317,7 +360,8 @@ public class UIClass : MonoBehaviour, SubMenu
         {
             int rowIndex = 0;
             uISkillClassDenominator += 3f;
-            for (int j = 0; j < skillItemCategories[i].Count; j++)
+            int j;
+            for (j = 0; j < skillItemCategories[i].Count; j++)
             {
                 GameObject instance = Instantiate(skillSlotPrefab);
                 instance.transform.SetParent(panel);
@@ -328,8 +372,13 @@ public class UIClass : MonoBehaviour, SubMenu
                     uISkillClassDenominator += 2;
                 }
             }
+            if (j > 0)
+            {
+                uISkillClassDenominator += 2;
+            }
         }
         uISkillClassDenominator++;
+        bool setHighlightedPanel = false;
 
         for (int i = 0; i < uISkillItems.Length; i++)
         {
@@ -337,9 +386,16 @@ public class UIClass : MonoBehaviour, SubMenu
             {
                 RectTransform rectTransform = uISkillItems[i][j].transform.parent.GetComponent<RectTransform>();
 
-                rectTransform.anchorMin = new Vector2(((j * 1f) % rowLength) / rowLength, (uISkillItems[i][j].numerator/uISkillClassDenominator));
-                rectTransform.anchorMax = new Vector2(((j * 1f) % rowLength + 1) / rowLength, (uISkillItems[i][j].numerator/uISkillClassDenominator));
+                rectTransform.anchorMin = new Vector2(((j * 1f) % rowLength) / rowLength, 1 - (uISkillItems[i][j].numerator/uISkillClassDenominator));
+                rectTransform.anchorMax = new Vector2(((j * 1f) % rowLength + 1) / rowLength, 1 - (uISkillItems[i][j].numerator/uISkillClassDenominator));
                 rectTransform.anchoredPosition = new Vector3(0f, 0f, 0f);
+            }
+
+            // highlight a nonempty panel
+            if (!setHighlightedPanel && uISkillItems[i].Count > 0)
+            {
+                highlightedPanel = i;
+                setHighlightedPanel = true;
             }
         }
     }

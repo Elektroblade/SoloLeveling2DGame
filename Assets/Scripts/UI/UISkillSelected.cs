@@ -25,22 +25,20 @@ public class UISkillSelected : MonoBehaviour, SubMenu
 
     public void WakeMeUp()
     {
+        holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
         isDoingStuff = true;
-        if (uISlotItems[highlightedPanel].Count > 0)
+        if (uISlotItems[highlightedPanel] != null && highlightedIndex < uISlotItems[highlightedPanel].Count)
         {
             uISlotItems[highlightedPanel][highlightedIndex].HighlightMe();
-            highlightedDescription.text = uISlotItems[highlightedPanel][highlightedIndex].GetDescription();
-        }
-
-        if (!uISlotItems[highlightedPanel][highlightedIndex].ItemIsNull())
-        {
-            highlightedDescription.text = uISlotItems[highlightedPanel][highlightedIndex].GetDescription();
-            uISlotItems[highlightedPanel][highlightedIndex].HighlightMe();
+            highlightedDescription.text = uISlotItems[highlightedPanel][highlightedIndex].GetName() + "\n\n" 
+                + uISlotItems[highlightedPanel][highlightedIndex].GetDescription();
         }
     }
     
     public void Goodbye()
     {
+        if (uISlotItems[highlightedPanel] != null && highlightedIndex < uISlotItems[highlightedPanel].Count)
+            uISlotItems[highlightedPanel][highlightedIndex].UnhighlightMe();
         isDoingStuff = false;
     }
 
@@ -65,19 +63,30 @@ public class UISkillSelected : MonoBehaviour, SubMenu
         }
 
         int prevHighlightedIndex = highlightedIndex;    // Remember previous highlighted index to unhighlight if another index is highlighted.
+        int prevHighlightedPanel = highlightedPanel;
 
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             holdArrowKeyCooldown = 4f*holdArrowKeyCooldownMax;
+            bool wentUp = false;
             if (highlightedIndex - rowLength >= 0)
             {
                 highlightedIndex -= rowLength;
+                wentUp = true;
             }
-            else if (highlightedPanel > 0 && uISlotItems[highlightedPanel - 1] != null && uISlotItems[highlightedPanel - 1].Count > 0)
+            else if (highlightedPanel > 0)
             {
-                highlightedPanel--;
+                for (int i = highlightedPanel - 1; i >= 0; i--)
+                {
+                    if (uISlotItems[i] != null && uISlotItems[i].Count > 0)
+                    {
+                        highlightedPanel = i;
+                        wentUp = true;
+                        break;
+                    }
+                }
             }
-            else
+            if (!wentUp)
             {
                 this.gameObject.transform.parent.GetComponent<UISkills>().SetActivePanel(0);
             }
@@ -94,9 +103,16 @@ public class UISkillSelected : MonoBehaviour, SubMenu
             {
                 highlightedIndex += rowLength;
             }
-            else if (highlightedPanel < uISlotItems.Length - 1 && uISlotItems[highlightedPanel + 1] != null && uISlotItems[highlightedPanel + 1].Count > 0)
+            else if (highlightedPanel < uISlotItems.Length - 1)
             {
-                highlightedPanel++;
+                for (int i = highlightedPanel + 1; i < uISlotItems.Length; i++)
+                {
+                    if (uISlotItems[i] != null && uISlotItems[i].Count > 0)
+                    {
+                        highlightedPanel = i;
+                        break;
+                    }
+                }
             }
         }
         if (Input.GetKeyDown(KeyCode.LeftArrow) && highlightedIndex > 0)
@@ -115,15 +131,25 @@ public class UISkillSelected : MonoBehaviour, SubMenu
         if (Input.GetKey(KeyCode.UpArrow) && holdArrowKeyCooldown == 0)
         {
             holdArrowKeyCooldown = holdArrowKeyCooldownMax;
+            bool wentUp = false;
             if (highlightedIndex - rowLength >= 0)
             {
                 highlightedIndex -= rowLength;
+                wentUp = true;
             }
-            else if (highlightedPanel > 0 && uISlotItems[highlightedPanel - 1] != null && uISlotItems[highlightedPanel - 1].Count > 0)
+            else if (highlightedPanel > 0)
             {
-                highlightedPanel--;
+                for (int i = highlightedPanel - 1; i >= 0; i--)
+                {
+                    if (uISlotItems[i] != null && uISlotItems[i].Count > 0)
+                    {
+                        highlightedPanel = i;
+                        wentUp = true;
+                        break;
+                    }
+                }
             }
-            else
+            if (!wentUp)
             {
                 this.gameObject.transform.parent.GetComponent<UISkills>().SetActivePanel(0);
             }
@@ -140,9 +166,16 @@ public class UISkillSelected : MonoBehaviour, SubMenu
             {
                 highlightedIndex += rowLength;
             }
-            else if (highlightedPanel < uISlotItems.Length - 1 && uISlotItems[highlightedPanel + 1] != null && uISlotItems[highlightedPanel - 1].Count > 0)
+            else if (highlightedPanel < uISlotItems.Length - 1)
             {
-                highlightedPanel++;
+                for (int i = highlightedPanel + 1; i < uISlotItems.Length; i++)
+                {
+                    if (uISlotItems[i] != null && uISlotItems[i].Count > 0)
+                    {
+                        highlightedPanel = i;
+                        break;
+                    }
+                }
             }
         }
         if (Input.GetKey(KeyCode.LeftArrow) && holdArrowKeyCooldown == 0 && highlightedIndex > 0)
@@ -207,11 +240,18 @@ public class UISkillSelected : MonoBehaviour, SubMenu
         if (Input.GetButtonDown("Jump"))
         {
             RemoveElement(highlightedPanel, recogHighlightedIndex);
-            if (IsEmpty())
+            if (uISlotItems[highlightedPanel] == null)
             {
-                Goodbye();
-                this.gameObject.transform.parent.GetComponent<SubMenu>().IsEmpty();
-                return;
+                uISlotItems[highlightedPanel] = new List<UIItem>();
+            }
+            if (uISlotItems[highlightedPanel].Count == 0)
+            {
+                if (IsEmpty())
+                {
+                    Goodbye();
+                    this.gameObject.transform.parent.GetComponent<SubMenu>().IsEmpty();
+                    return;
+                }
             }
         }
 
@@ -220,18 +260,19 @@ public class UISkillSelected : MonoBehaviour, SubMenu
             // Do nothing
         }
         
-        if (!uISlotItems[highlightedPanel][recogHighlightedIndex].ItemIsNull() && highlightedIndex != prevHighlightedIndex)
+        if (!uISlotItems[highlightedPanel][recogHighlightedIndex].ItemIsNull() && (highlightedIndex != prevHighlightedIndex || highlightedPanel != prevHighlightedPanel))
         {
-            highlightedDescription.text = uISlotItems[highlightedPanel][recogHighlightedIndex].GetDescription();
+            highlightedDescription.text = uISlotItems[highlightedPanel][recogHighlightedIndex].GetName() + "\n\n" 
+                + uISlotItems[highlightedPanel][recogHighlightedIndex].GetDescription();
             uISlotItems[highlightedPanel][recogHighlightedIndex].HighlightMe();
         }
-        else if (highlightedIndex != prevHighlightedIndex)
+        else if (highlightedIndex != prevHighlightedIndex || highlightedPanel != prevHighlightedPanel)
         {
             highlightedDescription.text = "";
         }
-        if (highlightedIndex != prevHighlightedIndex && prevHighlightedIndex < uISlotItems[highlightedPanel].Count)
+        if ((highlightedIndex != prevHighlightedIndex || highlightedPanel != prevHighlightedPanel) && prevHighlightedIndex < uISlotItems[highlightedPanel].Count)
         {
-            uISlotItems[highlightedPanel][prevHighlightedIndex].UnhighlightMe();
+            uISlotItems[prevHighlightedPanel][prevHighlightedIndex].UnhighlightMe();
         }
     }
 
@@ -244,6 +285,15 @@ public class UISkillSelected : MonoBehaviour, SubMenu
         if (uISlotItems[panelIndex].Count % rowLength == 0)
         {
             uISkillSelectedDenominator += 2;
+            for (int i = panelIndex + 1; i < uISlotItems.Length; i++)
+            {
+                if (uISlotItems[i] == null)
+                    uISlotItems[i] = new List<UIItem>();
+                for (int j = 0; j < uISlotItems[i].Count; j++)
+                {
+                    uISlotItems[i][j].IncrementNumerator();
+                }
+            }
             UpdateYAnchors();
         }
 
@@ -253,27 +303,33 @@ public class UISkillSelected : MonoBehaviour, SubMenu
         {
             if (uISlotItems[i] == null)
                 uISlotItems[i] = new List<UIItem>();
-            tmpNumerator += (uISlotItems[i].Count / rowLength);
+            //Debug.Log("((uISlotItems[i].Count + rowLength - 1) / rowLength) = " + ((uISlotItems[i].Count + rowLength - 1) / rowLength));
+            tmpNumerator += ((uISlotItems[i].Count + rowLength - 1) / rowLength);
         }
-        for (int i = 0; i <= uISlotItems[panelIndex].Count; i += rowLength)
+        for (int i = rowLength; i <= uISlotItems[panelIndex].Count; i += rowLength)
         {
             tmpNumerator++;
         }
 
+        //Debug.Log("4 + panelIndex * 3 + tmpNumerator * 2 = " + (5 + panelIndex * 3 + tmpNumerator * 2));
+        //Debug.Log("uISkillSelectedDenominator = " + uISkillSelectedDenominator);
+
+        GameObject instance;
         if (panelIndex == 3)
         {
-            GameObject instance = Instantiate(classSlotPrefab);
+            instance = Instantiate(classSlotPrefab);
             instance.transform.SetParent(selectedPanel);
-            instance.GetComponentInChildren<UIClassItem>().UpdateClassItem((uIItem as UIClassItem).classItem, 1 + panelIndex * 3 + tmpNumerator * 2);
-            uISlotItems[panelIndex].Add(instance.GetComponentInChildren<UIItem>());
+            instance.GetComponentInChildren<UIClassItem>().UpdateClassItem((uIItem as UIClassItem).classItem, 5 + panelIndex * 3 + tmpNumerator * 2);
+            
         }
         else
         {
-            GameObject instance = Instantiate(skillSlotPrefab);
+            instance = Instantiate(skillSlotPrefab);
             instance.transform.SetParent(selectedPanel);
-            instance.GetComponentInChildren<UISkillItem>().UpdateSkillItem((uIItem as UISkillItem).skill, 1 + panelIndex * 3 + tmpNumerator * 2);
-            uISlotItems[panelIndex].Add(instance.GetComponentInChildren<UIItem>());
+            instance.GetComponentInChildren<UISkillItem>().UpdateSkillItem((uIItem as UISkillItem).skill, 5 + panelIndex * 3 + tmpNumerator * 2);
         }
+        uISlotItems[panelIndex].Add(instance.GetComponentInChildren<UIItem>());
+        NewPlayer.Instance.AddSkillSlot(instance.GetComponentInChildren<UIItem>(), panelIndex);
 
         RectTransform rectTransform = uISlotItems[panelIndex][uISlotItems[panelIndex].Count - 1].GetTransform().parent.GetComponent<RectTransform>();
         rectTransform.anchorMin = new Vector2(((uISlotItems[panelIndex].Count - 1) % rowLength)/(rowLength*1f), (1 - uISlotItems[panelIndex][uISlotItems[panelIndex].Count - 1].GetNumerator()/uISkillSelectedDenominator));
@@ -292,12 +348,23 @@ public class UISkillSelected : MonoBehaviour, SubMenu
         Destroy(elementToRemove.GetTransform().parent.gameObject);
         uISlotItems[panelIndex].RemoveAt(slotIndex);
 
-        // Do not need to slide slots down
+        NewPlayer.Instance.RemoveSkillSlotAt(slotIndex, panelIndex, uISlotItems[1].Count);
+
+        // Do not need to slide slots in this panel down
         if (slotIndex == uISlotItems[panelIndex].Count)
         {
             if (uISlotItems[panelIndex].Count % rowLength == 0)
             {
                 uISkillSelectedDenominator -= 2;
+                for (int i = panelIndex + 1; i < uISlotItems.Length; i++)
+                {
+                    if (uISlotItems[i] == null)
+                        uISlotItems[i] = new List<UIItem>();
+                    for (int j = 0; j < uISlotItems[i].Count; j++)
+                    {
+                        uISlotItems[i][j].DecrementNumerator();
+                    }
+                }
                 UpdateYAnchors();
             }
         }
@@ -308,27 +375,23 @@ public class UISkillSelected : MonoBehaviour, SubMenu
                 uISkillSelectedDenominator -= 2;
                 UpdateYAnchors();
             }
-            foreach (Transform slotTranform in selectedPanel)
+            for (int j = slotIndex; j < uISlotItems[panelIndex].Count; j++)
             {
-                UIClassItem slotUIClassItem = slotTranform.GetComponentInChildren<UIClassItem>();
-                RectTransform slotRectTransform = slotTranform.GetComponent<RectTransform>();
-                bool a = slotRectTransform.anchorMin.y > removedAnchorMin.y;
-                bool b = slotUIClassItem.numerator >= removedNumerator;
-                bool c = slotRectTransform.anchorMin.x > removedAnchorMin.x;
-                if (slotUIClassItem.numerator > removedNumerator || (slotUIClassItem.numerator >= removedNumerator && slotRectTransform.anchorMin.x > removedAnchorMin.x))
+                RectTransform slotRectTransform = uISlotItems[panelIndex][j].GetTransform().parent.GetComponent<RectTransform>();
+                if (uISlotItems[panelIndex][j].GetNumerator() > removedNumerator || (uISlotItems[panelIndex][j].GetNumerator() >= removedNumerator && slotRectTransform.anchorMin.x > removedAnchorMin.x))
                 {
                     if (slotRectTransform.anchorMin.x < (0.5f / (rowLength * 1f)))
                     {
-                        slotUIClassItem.DecrementNumerator();
-                        slotRectTransform.anchorMin = new Vector2((rowLength - 1f) / (rowLength * 1f), (1 - slotUIClassItem.numerator/uISkillSelectedDenominator));
-                        slotRectTransform.anchorMax = new Vector2(1f, (1 - slotUIClassItem.numerator/uISkillSelectedDenominator));
+                        uISlotItems[panelIndex][j].DecrementNumerator();
+                        slotRectTransform.anchorMin = new Vector2((rowLength - 1f) / (rowLength * 1f), (1 - uISlotItems[panelIndex][j].GetNumerator()/uISkillSelectedDenominator));
+                        slotRectTransform.anchorMax = new Vector2(1f, (1 - uISlotItems[panelIndex][j].GetNumerator()/uISkillSelectedDenominator));
                         slotRectTransform.anchoredPosition = new Vector3(0f, 0f, 0f);
                     }
                     else
                     {
                         float tmpSlotAnchorMinX = slotRectTransform.anchorMin.x;
-                        slotRectTransform.anchorMin = new Vector2(slotRectTransform.anchorMin.x - (1f / (rowLength * 1f)), (1 - slotUIClassItem.numerator/uISkillSelectedDenominator));
-                        slotRectTransform.anchorMax = new Vector2(tmpSlotAnchorMinX, (1 - slotUIClassItem.numerator/uISkillSelectedDenominator));
+                        slotRectTransform.anchorMin = new Vector2(slotRectTransform.anchorMin.x - (1f / (rowLength * 1f)), (1 - uISlotItems[panelIndex][j].GetNumerator()/uISkillSelectedDenominator));
+                        slotRectTransform.anchorMax = new Vector2(tmpSlotAnchorMinX, (1 - uISlotItems[panelIndex][j].GetNumerator()/uISkillSelectedDenominator));
                         slotRectTransform.anchoredPosition = new Vector3(0f, 0f, 0f);
                     }
                 }
@@ -340,10 +403,10 @@ public class UISkillSelected : MonoBehaviour, SubMenu
     {
         foreach (Transform slotTranform in selectedPanel)
         {
-            UIClassItem slotUIClassItem = slotTranform.GetComponentInChildren<UIClassItem>();
+            UIItem slotUIItem = slotTranform.GetComponentInChildren<UIItem>();
             RectTransform slotRectTransform = slotTranform.GetComponent<RectTransform>();
-            slotRectTransform.anchorMin = new Vector2(slotRectTransform.anchorMin.x, (1 - slotUIClassItem.numerator/uISkillSelectedDenominator));
-            slotRectTransform.anchorMax = new Vector2(slotRectTransform.anchorMax.x, (1 - slotUIClassItem.numerator/uISkillSelectedDenominator));
+            slotRectTransform.anchorMin = new Vector2(slotRectTransform.anchorMin.x, (1 - slotUIItem.GetNumerator()/uISkillSelectedDenominator));
+            slotRectTransform.anchorMax = new Vector2(slotRectTransform.anchorMax.x, (1 - slotUIItem.GetNumerator()/uISkillSelectedDenominator));
             slotRectTransform.anchoredPosition = new Vector3(0f, 0f, 0f);
         }
     }

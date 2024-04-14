@@ -5587,6 +5587,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33c8cc753b5b6a44ea2afc06c62393a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  uISkillSelected: {fileID: 2106737849}
   panel: {fileID: 396184827}
   highlightedDescription: {fileID: 1055377836}
   skillSlotPrefab: {fileID: 7969091720502955062, guid: 2bf2289e5bff1c4418bcc314147996eb,
@@ -56234,7 +56235,8 @@ MonoBehaviour:
   highlightedDescription: {fileID: 1055377836}
   classSlotPrefab: {fileID: 372078611066596895, guid: 253fcd4f4948a2645ab71f6ec1254363,
     type: 3}
-  skillSlotPrefab: {fileID: 0}
+  skillSlotPrefab: {fileID: 7969091720502955062, guid: 2bf2289e5bff1c4418bcc314147996eb,
+    type: 3}
 --- !u!1 &2113985164
 GameObject:
   m_ObjectHideFlags: 0

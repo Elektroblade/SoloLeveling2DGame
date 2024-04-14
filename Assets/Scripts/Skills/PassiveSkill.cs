@@ -32,7 +32,7 @@ public class PassiveSkill : Skill
             this.description += "This skill is automatically applied and does not cost a slot.";
         }
 
-        this.icon = Resources.Load<Sprite>("UI/Skills/" + id);
+        //this.icon = Resources.Load<Sprite>("UI/Skills/" + id);
 
         this.xp = 0;
         this.level = 0;

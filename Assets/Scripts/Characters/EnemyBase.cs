@@ -434,32 +434,35 @@ public class EnemyBase : MonoBehaviour
                 xpMultiplier = 10.0;
 
             NewPlayer.Instance.Kill(level, xpMultiplier);
-            int randInt = GameManager.Instance.GetRandomInt(0, 3);
+            int randInt = GameManager.Instance.GetRandomInt(0, 4);
             NewPlayer.Instance.GiveSkillSlot(randInt);
 
             canDropXp = false;
 
             // Necromancy
-            EnemyBase[] theReanimated = NewPlayer.Instance.myReanimated;
-            for (int i = 0; i < theReanimated.Length; i++)
+            if (NewPlayer.Instance.SearchClassItem("NECROMANCER") != null)
             {
-                if (theReanimated[i] != null)
+                EnemyBase[] theReanimated = NewPlayer.Instance.myReanimated;
+                for (int i = 0; i < theReanimated.Length; i++)
                 {
-                    // Change multiplier back to 2
-                    theReanimated[i].AddXp((int) (xpMultiplier * 2.0*System.Math.Pow(level, 2.0)));
-                    Debug.Log("gave " + ((int) (xpMultiplier * 2.0*System.Math.Pow(level, 2.0))) + " xp to reanimated #" + i);
+                    if (theReanimated[i] != null)
+                    {
+                        // Change multiplier back to 2
+                        theReanimated[i].AddXp((int) (xpMultiplier * 2.0*System.Math.Pow(level, 2.0)));
+                        Debug.Log("gave " + ((int) (xpMultiplier * 2.0*System.Math.Pow(level, 2.0))) + " xp to reanimated #" + i);
+                    }
                 }
-            }
-            EnemyContainer myCorpseContainer;
-            EnemyBase myCorpse;
-            if (ariseContainer)
-            {
-                myCorpseContainer = Instantiate(ariseContainer, transform.position, Quaternion.identity).GetComponent<EnemyContainer>();
-                if (myCorpseContainer)
+                EnemyContainer myCorpseContainer;
+                EnemyBase myCorpse;
+                if (ariseContainer)
                 {
-                    myCorpse = myCorpseContainer.GetEnemyBase();
-                    myCorpse.SummonReanimated(level, 0, intrinsicStats[0]);
-                    NewPlayer.Instance.GiveNewReanimated(myCorpse);
+                    myCorpseContainer = Instantiate(ariseContainer, transform.position, Quaternion.identity).GetComponent<EnemyContainer>();
+                    if (myCorpseContainer)
+                    {
+                        myCorpse = myCorpseContainer.GetEnemyBase();
+                        myCorpse.SummonReanimated(level, 0, intrinsicStats[0]);
+                        NewPlayer.Instance.GiveNewReanimated(myCorpse);
+                    }
                 }
             }
         }
